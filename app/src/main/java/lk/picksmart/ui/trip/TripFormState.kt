@@ -108,7 +108,7 @@ fun Trip.toFormState(): TripFormState {
             commissionType = commissionType,
             commission = if (commissionHundredths == 0L) "" else hundredthsToInput(commissionHundredths),
             otherCosts = if (otherCostsCents == 0L) "" else hundredthsToInput(otherCostsCents),
-            pickupKm = decimalToInput(pickupKm),
+            pickupKm = if (pickupKm == 0.0) "" else decimalToInput(pickupKm),
             tripKm = if (tripKm == 0.0) "" else decimalToInput(tripKm),
             returnKm = if (returnKm == 0.0) "" else decimalToInput(returnKm),
         ),

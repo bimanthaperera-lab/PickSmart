@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -44,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
@@ -207,6 +209,8 @@ private fun TripRow(row: HistoryRow, onClick: () -> Unit) {
         net < 0 -> status.loss
         else -> status.profit
     }
+    // At large font sizes a side column is too narrow and would break the amount mid-number.
+    val amountBelow = LocalDensity.current.fontScale > STACK_FONT_SCALE
 
     Surface(
         shape = shape,
@@ -245,15 +249,18 @@ private fun TripRow(row: HistoryRow, onClick: () -> Unit) {
                     if (trip.status != TripStatus.COMPLETED) StatusTag(trip.status)
                     Text(detail, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
+                if (amountBelow) Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
             }
-            Spacer(Modifier.width(Spacing.s))
-            Text(
-                amount,
-                style = MaterialTheme.typography.titleMedium,
-                color = amountColor,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(0.7f),
-            )
+            if (!amountBelow) {
+                Spacer(Modifier.width(Spacing.s))
+                Text(
+                    amount,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = amountColor,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.weight(0.7f),
+                )
+            }
         }
     }
 }

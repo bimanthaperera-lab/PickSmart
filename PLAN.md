@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 5 — Trips, history and other income
-- **Next step:** Add the `Trip` entity with its rate snapshot, Room migration v1→v2 with a `MigrationTestHelper` test, then "Save offer" on Check a Ride (with the platform chips from the mockup).
-- **Last updated:** 2026-10-22 (Phase 4 done)
+- **Current phase:** 6 — Fuel log and expenses
+- **Next step:** Add the `FuelLog` entity (with the full-tank flag), migration v2→v3 with a `MigrationTestHelper` test, then its entry screen and list, reached from Home and Settings → Records.
+- **Last updated:** 2026-10-22 (Phase 5 done)
 
 ## Open questions for the owner
 
@@ -92,15 +92,16 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 5 — Trips, history and other income
 
-- [ ] `Trip` entity with the rate snapshot; Room migration v1→v2 with a migration test
-- [ ] Save a checked offer as `OFFER_CHECK` ("Save offer" / "I took it" on the Check a Ride result, plus the platform chips from the mockup)
-- [ ] Mark an offer as completed (rider confirms actual values) or cancelled (with optional cancellation fee)
-- [ ] Add a completed trip directly, without checking it first
-- [ ] History list: date, platform, fare, costs, net profit; filter by status
-- [ ] Edit and delete with confirmation
-- [ ] `OtherIncome` entity and simple entry screen (incentives, tips, bonuses)
-- [ ] Empty state for new users
-- [ ] Test proving offers are excluded from all totals
+- [x] `Trip` entity with the rate snapshot; Room migration v1→v2 with a migration test
+- [x] Save a checked offer as `OFFER_CHECK` ("Save offer" / "I took it" on the Check a Ride result, plus the platform chips from the mockup)
+- [x] Mark an offer as completed (rider confirms actual values) or cancelled (with optional cancellation fee)
+- [x] Add a completed trip directly, without checking it first
+- [x] History list: date, platform, fare, costs, net profit; filter by status
+- [x] Edit and delete with confirmation
+- [x] `OtherIncome` entity and simple entry screen (incentives, tips, bonuses)
+- [x] Empty state for new users
+- [x] Test proving offers are excluded from all totals (`TripProfitTest`, `HistoryGroupingTest`)
+- [x] Checked on the emulator (2026-10-22): update from the Phase 4 build kept the vehicle, theme and remembered inputs with no re-onboarding; saved an offer and a taken trip; marked the offer cancelled with a fee; deleted a trip after confirming; added a trip and an income entry; data survived a force-stop; 360 × 640 dp at 200% font.
 
 **Done when:** trips and income survive restarts, and no offer is ever counted as income.
 

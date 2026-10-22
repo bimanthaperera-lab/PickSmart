@@ -351,6 +351,11 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
 
 @Composable
 private fun StatusSelector(statuses: List<TripStatus>, selected: TripStatus, onSelect: (TripStatus) -> Unit) {
+    // Segments split the width, so at large font sizes "Completed" would break mid-word; chips scroll instead.
+    if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
+        ChoiceChips(statuses, selected, { stringResource(it.label) }, onSelect)
+        return
+    }
     SingleChoiceSegmentedButtonRow(
         Modifier
             .fillMaxWidth()

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Window theme only; the app is drawn by Compose (ui/theme/Theme.kt). -->
+    <!-- Window theme only; the app is drawn by Compose (ui/theme/Theme.kt). The background is
+         near-black in both modes because the app opens on the dark brand splash. -->
     <style name="Theme.Picksmart" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@color/off_white</item>
+        <item name="android:windowBackground">@color/near_black</item>
     </style>
 </resources>

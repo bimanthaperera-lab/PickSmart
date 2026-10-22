@@ -46,6 +46,7 @@ import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.components.message
+import lk.picksmart.ui.components.neutralRecordIcon
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
@@ -75,7 +76,7 @@ fun ExpenseListScreen(
                         MonthTotalCard(
                             label = stringResource(R.string.expense_month_total),
                             amount = money.format(s.monthTotalCents),
-                            note = stringResource(R.string.expense_month_note),
+                            note = null,
                         )
                     }
                     if (s.entries.isEmpty()) {
@@ -120,6 +121,7 @@ fun ExpenseListScreen(
 private fun ExpenseRow(entry: Expense, today: LocalDate, onClick: () -> Unit) {
     val date = rememberRecordDate(entry.date, today)
     RecordRow(
+        icon = neutralRecordIcon(entry.category.icon),
         title = stringResource(entry.category.label),
         subtitle = entry.note?.let { stringResource(R.string.income_row_subtitle, date, it) } ?: date,
         amount = rememberMoneyFormatter().format(entry.amountCents),

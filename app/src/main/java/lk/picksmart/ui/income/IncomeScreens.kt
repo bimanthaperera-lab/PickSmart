@@ -45,6 +45,7 @@ import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.MonthTotalCard
 import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PrimaryButton
+import lk.picksmart.ui.components.RecordIcon
 import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.TextInputField
@@ -52,6 +53,7 @@ import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.trip.icon
 import lk.picksmart.ui.trip.label
 import java.time.LocalDate
 
@@ -119,7 +121,9 @@ private fun IncomeRow(entry: OtherIncome, today: LocalDate, onClick: () -> Unit)
     val date = rememberRecordDate(entry.date, today)
     val type = stringResource(entry.type.label)
     val title = entry.platform?.let { stringResource(R.string.history_row_title, type, stringResource(it.label)) } ?: type
+    val status = PicksmartTheme.status
     RecordRow(
+        icon = RecordIcon(entry.type.icon, status.profit, status.profitContainer),
         title = title,
         subtitle = entry.note?.let { stringResource(R.string.income_row_subtitle, date, it) } ?: date,
         amount = money.formatSigned(entry.amountCents),

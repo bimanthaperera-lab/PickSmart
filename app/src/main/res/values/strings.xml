@@ -58,8 +58,21 @@
     <string name="home_title">Today</string>
     <!-- java.time pattern for the date above the Home title, e.g. "Wednesday, 21 Oct". -->
     <string name="home_date_pattern">EEEE, d MMM</string>
-    <string name="home_empty_title">No trips yet today</string>
-    <string name="home_empty_body">Check a ride offer to see your real profit before you accept it.</string>
+    <string name="home_net_title">Today\'s net profit</string>
+    <!-- "Today's net profit · Honda Dio" -->
+    <string name="home_net_title_vehicle">Today\'s net profit · %1$s</string>
+    <!-- Tag on the profit card: fuel and maintenance in it are estimates -->
+    <string name="home_estimated_tag">ESTIMATED</string>
+    <!-- "Rs. 60.81 per km · after fees, fuel and maintenance reserve" -->
+    <string name="home_net_per_km">%1$s per km · after fees, fuel and maintenance reserve</string>
+    <string name="home_net_basis">After fees, fuel and maintenance reserve</string>
+    <string name="home_net_empty">Nothing recorded today yet. Check an offer, then tap \"I took it\" to count it.</string>
+    <string name="home_stat_earned">Earned after fees</string>
+    <string name="home_stat_expenses">Recorded expenses</string>
+    <string name="home_stat_trips">Completed trips</string>
+    <string name="home_stat_distance">Distance</string>
+    <string name="home_recent">Recent trips</string>
+    <string name="home_see_all">See all</string>
 
     <!-- Check a Ride -->
     <string name="check_ride_title">Check a Ride</string>
@@ -207,8 +220,7 @@
 
     <!-- Fuel log -->
     <string name="fuel_title">Fuel log</string>
-    <string name="fuel_month_total">Spent on fuel this month</string>
-    <string name="fuel_month_note">Every fill-up you record here</string>
+    <string name="fuel_month_total">Spent this month</string>
     <string name="fuel_recent">Recent fill-ups</string>
     <string name="fuel_help">Record every fill-up here. Fuel is only recorded in this log, never as an expense, so it\'s never counted twice.</string>
     <string name="fuel_add">Add fill-up</string>
@@ -236,33 +248,32 @@
     <string name="fuel_not_found_body">This fill-up is no longer on this phone.</string>
     <string name="fuel_no_vehicle_body">Add your vehicle first, so the fill-up has a vehicle and a starting price.</string>
     <string name="fuel_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
-    <!-- "8.05 L" -->
-    <string name="fuel_litres_value">%1$s L</string>
-    <!-- "8.05 L · Full tank" -->
-    <string name="fuel_row_title_full">%1$s L · Full tank</string>
-    <!-- "20 Oct · Rs. 414.00/L" -->
-    <string name="fuel_row_subtitle">%1$s · %2$s/L</string>
-    <!-- "20 Oct · Rs. 414.00/L · 45,210 km" -->
-    <string name="fuel_row_subtitle_odometer">%1$s · %2$s/L · %3$s km</string>
-    <string name="efficiency_title">Actual km per litre</string>
+    <!-- "6.50 L · Rs. 414.00/L" -->
+    <string name="fuel_row_title">%1$s L · %2$s/L</string>
+    <!-- "18 Oct · 12,840 km" -->
+    <string name="fuel_row_subtitle_odometer">%1$s · %2$s km</string>
+    <!-- "4 Oct · partial": a fill-up that didn't fill the tank -->
+    <string name="fuel_row_subtitle_partial">%1$s · partial</string>
+    <string name="efficiency_title">Actual efficiency</string>
+    <!-- Shown in place of a km/L value before there are two full-tank fill-ups -->
+    <string name="efficiency_unknown">Not yet</string>
     <!-- "36.3 km/L" -->
     <string name="efficiency_value">%1$s km/L</string>
     <!-- "290 km on 8.00 L between your last two full tanks" -->
     <string name="efficiency_basis">%1$s km on %2$s L between your last two full tanks</string>
-    <!-- "Your vehicle is set to 40 km/L" -->
-    <string name="efficiency_setting">Your vehicle is set to %1$s km/L</string>
     <string name="efficiency_none">Fill the tank to the top, turn on Full tank and enter the odometer. After two full-tank fill-ups, Picksmart shows your real km per litre.</string>
-    <string name="efficiency_assumes">This assumes every fill-up in between is recorded.</string>
-    <!-- "Use 36.3 km/L for new checks? Past trips keep the rates they were saved with." -->
-    <string name="efficiency_suggest">Use %1$s km/L for new checks? Past trips keep the rates they were saved with.</string>
-    <!-- Button: "Use 36.3 km/L" -->
-    <string name="efficiency_use">Use %1$s km/L</string>
-    <string name="efficiency_not_now">Not now</string>
+    <string name="efficiency_assumes">Assumes every fill-up in between is recorded.</string>
+    <!-- "Your fill-ups show 36.3 km/L" -->
+    <string name="efficiency_suggest_title">Your fill-ups show %1$s km/L</string>
+    <!-- "Your vehicle is set to 40. Update it for new checks? Past trips keep their rates." -->
+    <string name="efficiency_suggest_body">Your vehicle is set to %1$s. Update it for new checks? Past trips keep their rates.</string>
+    <!-- Button: "Keep 40" -->
+    <string name="efficiency_keep">Keep %1$s</string>
+    <string name="efficiency_update">Update</string>
 
     <!-- Expenses -->
     <string name="expense_title">Expenses</string>
-    <string name="expense_month_total">Spent this month</string>
-    <string name="expense_month_note">Repairs, parking, data and other costs</string>
+    <string name="expense_month_total">Expenses this month · excludes fuel</string>
     <string name="expense_recent">Recent</string>
     <string name="expense_help">Add costs like repairs, parking, mobile data and tolls. Fuel goes in the Fuel log instead, so it\'s never counted twice.</string>
     <string name="expense_add">Add expense</string>

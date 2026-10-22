@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 6b — Fuel price updates
+- **Current phase:** UI polish (owner asked for it before 6b), then 6b — Fuel price updates
 - **Next step:** Build `FuelPriceSource` in `data/remote` (parse, validate, cache the last valid list in DataStore) with the section 8a tests, using a local JSON fixture until the owner publishes the real file and its URL.
-- **Last updated:** 2026-10-22 (Phase 6 done)
+- **Last updated:** 2026-10-22 (Phase 6 done; Home dashboard and record icons brought forward)
 
 ## Open questions for the owner
 
@@ -133,7 +133,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 ## Phase 7 — Dashboard, reports and export
 
 - [ ] Accounting use case implementing both views from `CLAUDE.md` section 7, with tests including a no-double-counting test
-- [ ] Home: today's net profit, gross income, recorded expenses, completed trips, total km, and a large Check a Ride button
+- [x] Home: today's net profit, gross income, recorded expenses, completed trips, total km, and a large Check a Ride button (brought forward on 2026-10-22; day figures from `summarizeDay`, tested in `DaySummaryTest`)
 - [ ] Reports: daily, weekly (Mon–Sun) and monthly, with an Estimated / Cash toggle
 - [ ] Simple Canvas charts
 - [ ] Clear notice when data is incomplete

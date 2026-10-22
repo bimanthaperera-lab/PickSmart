@@ -1,5 +1,6 @@
 package lk.picksmart.ui.trip
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import lk.picksmart.R
 import lk.picksmart.domain.model.IncomeType
@@ -42,4 +43,13 @@ val IncomeType.label: Int
         IncomeType.TIP -> R.string.income_type_tip
         IncomeType.BONUS -> R.string.income_type_bonus
         IncomeType.OTHER -> R.string.income_type_other
+    }
+
+@get:DrawableRes
+val IncomeType.icon: Int
+    get() = when (this) {
+        IncomeType.INCENTIVE -> R.drawable.ic_gift
+        IncomeType.TIP -> R.drawable.ic_thumb_up
+        IncomeType.BONUS -> R.drawable.ic_star
+        IncomeType.OTHER -> R.drawable.ic_plus_circle
     }

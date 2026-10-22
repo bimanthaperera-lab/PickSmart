@@ -94,6 +94,8 @@ fun PicksmartApp() {
             composable<HomeRoute> {
                 HomeScreen(
                     onCheckRide = openCheckRide,
+                    onOpenHistory = { navController.navigateToTopLevel(TopLevelDestination.HISTORY) },
+                    onOpenTrip = { id -> navController.navigate(EditTripRoute(id)) },
                     onOpenIncome = openIncome,
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,

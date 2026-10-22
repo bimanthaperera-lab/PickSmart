@@ -178,7 +178,7 @@ private fun formatDay(date: LocalDate, today: LocalDate): String {
 }
 
 @Composable
-private fun TripRow(row: HistoryRow, onClick: () -> Unit) {
+internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
     val trip = row.trip
     val money = rememberMoneyFormatter()
     val status = PicksmartTheme.status

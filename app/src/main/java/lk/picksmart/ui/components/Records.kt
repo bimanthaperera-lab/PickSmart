@@ -1,13 +1,18 @@
 package lk.picksmart.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
@@ -30,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import lk.picksmart.R
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
+import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -70,15 +76,31 @@ fun MonthTotalCard(label: String, amount: String, note: String?, amountColor: Co
     }
 }
 
-/** One saved record in a list: what it was, when, and its amount. Opens the record when tapped. */
+/** How a record's icon tile looks: the icon and its tint on a soft container. */
+data class RecordIcon(@DrawableRes val icon: Int, val tint: Color, val container: Color)
+
+/** A neutral icon tile, for costs such as fuel and expenses. */
+@Composable
+fun neutralRecordIcon(@DrawableRes icon: Int, tint: Color = MaterialTheme.colorScheme.onSurfaceVariant) =
+    RecordIcon(icon, tint, MaterialTheme.colorScheme.surfaceContainerHighest)
+
+/**
+ * One saved record in a list: an icon tile, what it was and when, an optional [tag] such as
+ * "Full tank", and its amount. Opens the record when tapped.
+ */
 @Composable
 fun RecordRow(
+    icon: RecordIcon,
     title: String,
     subtitle: String,
     amount: String,
     onClick: () -> Unit,
     amountColor: Color = MaterialTheme.colorScheme.onSurface,
+    tag: String? = null,
 ) {
+    // At large font sizes a side column for the amount leaves the details too narrow and breaks
+    // numbers mid-way, so the amount moves under them (as in History).
+    val amountBelow = LocalDensity.current.fontScale > STACK_FONT_SCALE
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -87,27 +109,54 @@ fun RecordRow(
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {},
     ) {
-        val padding = Modifier
-            .defaultMinSize(minHeight = 64.dp)
-            .padding(horizontal = Spacing.l, vertical = Spacing.m)
-        // At large font sizes a side column for the amount leaves the details too narrow and
-        // breaks numbers mid-way, so the amount moves under them (as in History).
-        if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
-            Column(padding) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
-            }
-        } else {
-            Row(padding, verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
+        Row(
+            Modifier
+                .defaultMinSize(minHeight = 72.dp)
+                .padding(horizontal = Spacing.l, vertical = Spacing.m),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconTile(icon)
+            Spacer(Modifier.width(Spacing.m))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s), itemVerticalAlignment = Alignment.CenterVertically) {
                     Text(title, style = MaterialTheme.typography.titleMedium)
-                    Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (tag != null) RecordTag(tag)
                 }
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (amountBelow) Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
+            }
+            if (!amountBelow) {
                 Spacer(Modifier.width(Spacing.s))
                 Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
             }
         }
+    }
+}
+
+/** The rounded square holding a record's icon. Decorative: the row's title says what it is. */
+@Composable
+fun IconTile(icon: RecordIcon, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .size(44.dp)
+            .background(icon.container, MaterialTheme.shapes.medium),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(painterResource(icon.icon), contentDescription = null, tint = icon.tint, modifier = Modifier.size(24.dp))
+    }
+}
+
+/** A small green label inside a row, e.g. "Full tank". */
+@Composable
+private fun RecordTag(text: String) {
+    val status = PicksmartTheme.status
+    Surface(shape = MaterialTheme.shapes.extraSmall, color = status.profitContainer) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelMedium,
+            color = status.onProfitContainer,
+            modifier = Modifier.padding(horizontal = Spacing.s, vertical = 2.dp),
+        )
     }
 }
 

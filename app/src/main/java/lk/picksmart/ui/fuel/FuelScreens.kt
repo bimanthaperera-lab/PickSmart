@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,15 +37,16 @@ import lk.picksmart.ui.components.DetailHeader
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
-import lk.picksmart.ui.components.MonthTotalCard
+import lk.picksmart.ui.components.NoticeCard
 import lk.picksmart.ui.components.NumberField
-import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.RecordRow
-import lk.picksmart.ui.components.SecondaryButton
+import lk.picksmart.ui.components.Stat
+import lk.picksmart.ui.components.StatGrid
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.SwitchRow
 import lk.picksmart.ui.components.message
+import lk.picksmart.ui.components.neutralRecordIcon
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
@@ -74,17 +74,9 @@ fun FuelLogScreen(
             when (val s = state) {
                 FuelListUiState.Loading -> item { LoadingState() }
                 is FuelListUiState.Loaded -> {
-                    item {
-                        MonthTotalCard(
-                            label = stringResource(R.string.fuel_month_total),
-                            amount = money.format(s.monthTotalCents),
-                            note = stringResource(R.string.fuel_month_note),
-                        )
-                    }
-                    s.efficiency?.let { efficiency ->
-                        item {
-                            EfficiencyCard(efficiency, viewModel::acceptSuggestion, viewModel::dismissSuggestion)
-                        }
+                    item { FuelSummary(s.monthTotalCents, s.efficiency) }
+                    s.efficiency?.takeIf { it.suggest }?.let { efficiency ->
+                        item { EfficiencySuggestion(efficiency, viewModel::acceptSuggestion, viewModel::dismissSuggestion) }
                     }
                     if (s.entries.isEmpty()) {
                         item {
@@ -125,72 +117,75 @@ fun FuelLogScreen(
 }
 
 /**
- * The vehicle's measured km/L next to its setting. When they differ noticeably, it offers to use
- * the measured value; the setting only changes if the rider taps that button.
+ * This month's fuel spending beside the measured km/L, with a line saying what the reading is
+ * based on (or how to get one).
  */
 @Composable
-private fun EfficiencyCard(efficiency: EfficiencyUi, onAccept: () -> Unit, onDismiss: () -> Unit) {
-    val reading = efficiency.reading
-    val setting = decimalToInput(efficiency.vehicleKmPerLitre)
-    PicksmartCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.semantics(mergeDescendants = true) {}, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(stringResource(R.string.efficiency_title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (reading == null) {
-                Text(stringResource(R.string.efficiency_none), style = MaterialTheme.typography.bodyMedium)
-            } else {
-                Text(
-                    stringResource(R.string.efficiency_value, formatDecimal(reading.kmPerLitre, 1)),
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-                Text(
-                    stringResource(R.string.efficiency_basis, formatDecimal(reading.km, 0), formatDecimal(reading.litres, 2)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    stringResource(R.string.efficiency_setting, setting),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    stringResource(R.string.efficiency_assumes),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        if (reading != null && efficiency.suggest) {
-            val value = formatDecimal(reading.kmPerLitre, 1)
+private fun FuelSummary(monthTotalCents: Long, efficiency: EfficiencyUi?) {
+    val money = rememberMoneyFormatter()
+    val reading = efficiency?.reading
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        StatGrid(
+            listOf(
+                Stat(stringResource(R.string.fuel_month_total), money.format(monthTotalCents)),
+                Stat(
+                    stringResource(R.string.efficiency_title),
+                    reading?.let { stringResource(R.string.efficiency_value, formatDecimal(it.kmPerLitre, 1)) }
+                        ?: stringResource(R.string.efficiency_unknown),
+                ),
+            ),
+        )
+        if (efficiency != null) {
             Text(
-                stringResource(R.string.efficiency_suggest, value),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = Spacing.m, bottom = Spacing.m),
-            )
-            // Stacked rather than side by side, so both labels fit at large font sizes.
-            PrimaryButton(stringResource(R.string.efficiency_use, value), onAccept, Modifier.fillMaxWidth())
-            SecondaryButton(
-                stringResource(R.string.efficiency_not_now),
-                onDismiss,
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = Spacing.s),
+                if (reading == null) {
+                    stringResource(R.string.efficiency_none)
+                } else {
+                    stringResource(R.string.efficiency_basis, formatDecimal(reading.km, 0), formatDecimal(reading.litres, 2)) +
+                        " " + stringResource(R.string.efficiency_assumes)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = Spacing.s),
             )
         }
     }
+}
+
+/**
+ * Offered when the measured km/L differs noticeably from the vehicle's setting. The setting only
+ * changes if the rider taps "Update"; "Keep" remembers the choice for this reading.
+ */
+@Composable
+private fun EfficiencySuggestion(efficiency: EfficiencyUi, onAccept: () -> Unit, onDismiss: () -> Unit) {
+    val reading = efficiency.reading ?: return
+    val setting = decimalToInput(efficiency.vehicleKmPerLitre)
+    NoticeCard(
+        title = stringResource(R.string.efficiency_suggest_title, formatDecimal(reading.kmPerLitre, 1)),
+        body = stringResource(R.string.efficiency_suggest_body, setting),
+        iconRes = R.drawable.ic_fuel,
+        actionLabel = stringResource(R.string.efficiency_keep, setting),
+        onAction = onDismiss,
+        primaryLabel = stringResource(R.string.efficiency_update),
+        onPrimary = onAccept,
+        modifier = Modifier.padding(top = Spacing.s),
+    )
 }
 
 @Composable
 private fun FuelRow(entry: FuelLog, today: LocalDate, onClick: () -> Unit) {
     val money = rememberMoneyFormatter()
     val date = rememberRecordDate(entry.date, today)
-    val litres = formatDecimal(entry.litres, 2)
-    val price = money.format(entry.pricePerLitreCents)
     RecordRow(
-        title = stringResource(if (entry.fullTank) R.string.fuel_row_title_full else R.string.fuel_litres_value, litres),
-        subtitle = entry.odometerKm?.let { stringResource(R.string.fuel_row_subtitle_odometer, date, price, formatDecimal(it, 0)) }
-            ?: stringResource(R.string.fuel_row_subtitle, date, price),
+        icon = neutralRecordIcon(R.drawable.ic_fuel, tint = MaterialTheme.colorScheme.primary),
+        title = stringResource(R.string.fuel_row_title, formatDecimal(entry.litres, 2), money.format(entry.pricePerLitreCents)),
+        subtitle = when {
+            entry.odometerKm != null -> stringResource(R.string.fuel_row_subtitle_odometer, date, formatDecimal(entry.odometerKm, 0))
+            entry.fullTank -> date
+            else -> stringResource(R.string.fuel_row_subtitle_partial, date)
+        },
         amount = money.format(entry.totalCents),
         onClick = onClick,
+        tag = if (entry.fullTank) stringResource(R.string.fuel_full_tank) else null,
     )
 }
 

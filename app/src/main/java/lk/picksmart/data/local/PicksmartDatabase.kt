@@ -5,15 +5,27 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import lk.picksmart.data.local.dao.OtherIncomeDao
+import lk.picksmart.data.local.dao.TripDao
 import lk.picksmart.data.local.dao.VehicleDao
+import lk.picksmart.data.local.entity.OtherIncomeEntity
+import lk.picksmart.data.local.entity.TripEntity
 import lk.picksmart.data.local.entity.VehicleEntity
 import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
 
-@Database(entities = [VehicleEntity::class], version = 1, exportSchema = true)
+@Database(
+    entities = [VehicleEntity::class, TripEntity::class, OtherIncomeEntity::class],
+    version = 2,
+    exportSchema = true,
+)
 @TypeConverters(Converters::class)
 abstract class PicksmartDatabase : RoomDatabase() {
 
     abstract fun vehicleDao(): VehicleDao
+
+    abstract fun tripDao(): TripDao
+
+    abstract fun otherIncomeDao(): OtherIncomeDao
 
     companion object {
         /** The file Auto Backup includes (`database` domain). Never rename it. */

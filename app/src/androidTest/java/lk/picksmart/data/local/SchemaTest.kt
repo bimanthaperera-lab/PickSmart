@@ -21,8 +21,7 @@ import org.junit.runner.RunWith
  * written it), then opened with the app's real builder and migrations. If someone changes an
  * entity without bumping the version and adding a migration, Room's identity check fails here.
  *
- * When version 2 arrives, add a test that creates version 1, runs MIGRATION_1_2 with
- * [MigrationTestHelper.runMigrationsAndValidate], and checks the rows.
+ * Each single migration step is validated in [MigrationTest].
  */
 @RunWith(AndroidJUnit4::class)
 class SchemaTest {

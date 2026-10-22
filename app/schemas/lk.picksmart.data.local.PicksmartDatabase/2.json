@@ -1,0 +1,340 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "04b9c07b1e174ea1d8336bbb438f53a2",
+    "entities": [
+      {
+        "tableName": "vehicles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `fuel_type` TEXT NOT NULL, `fuel_price_per_litre_cents` INTEGER NOT NULL, `fuel_price_source` TEXT NOT NULL, `fuel_price_effective_date` TEXT, `auto_update_fuel_price` INTEGER NOT NULL DEFAULT 0, `fuel_efficiency_km_per_litre` REAL NOT NULL, `maintenance_reserve_per_km_cents` INTEGER NOT NULL, `target_profit_per_km_cents` INTEGER, `is_sample` INTEGER NOT NULL DEFAULT 0, `archived` INTEGER NOT NULL DEFAULT 0, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fuelType",
+            "columnName": "fuel_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fuelPricePerLitreCents",
+            "columnName": "fuel_price_per_litre_cents",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fuelPriceSource",
+            "columnName": "fuel_price_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fuelPriceEffectiveDate",
+            "columnName": "fuel_price_effective_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "autoUpdateFuelPrice",
+            "columnName": "auto_update_fuel_price",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "fuelEfficiencyKmPerLitre",
+            "columnName": "fuel_efficiency_km_per_litre",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maintenanceReservePerKmCents",
+            "columnName": "maintenance_reserve_per_km_cents",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetProfitPerKmCents",
+            "columnName": "target_profit_per_km_cents",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isSample",
+            "columnName": "is_sample",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "archived",
+            "columnName": "archived",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "trips",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `vehicle_id` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `trip_date_time` INTEGER NOT NULL, `platform` TEXT NOT NULL, `status` TEXT NOT NULL, `fare_cents` INTEGER NOT NULL, `fare_mode` TEXT NOT NULL, `commission_type` TEXT NOT NULL, `commission_hundredths` INTEGER NOT NULL, `pickup_km` REAL NOT NULL, `trip_km` REAL NOT NULL, `return_km` REAL NOT NULL, `other_costs_cents` INTEGER NOT NULL, `cancellation_fee_cents` INTEGER, `notes` TEXT, `fuel_price_per_litre_cents_snapshot` INTEGER NOT NULL, `fuel_efficiency_snapshot` REAL NOT NULL, `maintenance_reserve_per_km_cents_snapshot` INTEGER NOT NULL, `target_profit_per_km_cents_snapshot` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vehicleId",
+            "columnName": "vehicle_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripDateTimeMillis",
+            "columnName": "trip_date_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "platform",
+            "columnName": "platform",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fareCents",
+            "columnName": "fare_cents",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fareMode",
+            "columnName": "fare_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commissionType",
+            "columnName": "commission_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commissionHundredths",
+            "columnName": "commission_hundredths",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pickupKm",
+            "columnName": "pickup_km",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tripKm",
+            "columnName": "trip_km",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "returnKm",
+            "columnName": "return_km",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "otherCostsCents",
+            "columnName": "other_costs_cents",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cancellationFeeCents",
+            "columnName": "cancellation_fee_cents",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fuelPricePerLitreCentsSnapshot",
+            "columnName": "fuel_price_per_litre_cents_snapshot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fuelEfficiencySnapshot",
+            "columnName": "fuel_efficiency_snapshot",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maintenanceReservePerKmCentsSnapshot",
+            "columnName": "maintenance_reserve_per_km_cents_snapshot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetProfitPerKmCentsSnapshot",
+            "columnName": "target_profit_per_km_cents_snapshot",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_trips_trip_date_time",
+            "unique": false,
+            "columnNames": [
+              "trip_date_time"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trips_trip_date_time` ON `${TABLE_NAME}` (`trip_date_time`)"
+          },
+          {
+            "name": "index_trips_vehicle_id",
+            "unique": false,
+            "columnNames": [
+              "vehicle_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trips_vehicle_id` ON `${TABLE_NAME}` (`vehicle_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "other_income",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL, `type` TEXT NOT NULL, `platform` TEXT, `amount_cents` INTEGER NOT NULL, `note` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "platform",
+            "columnName": "platform",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "amountCents",
+            "columnName": "amount_cents",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAtMillis",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_other_income_date",
+            "unique": false,
+            "columnNames": [
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_other_income_date` ON `${TABLE_NAME}` (`date`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '04b9c07b1e174ea1d8336bbb438f53a2')"
+    ]
+  }
+}

@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 6 — Fuel log and expenses
-- **Next step:** Add the `FuelLog` entity (with the full-tank flag), migration v2→v3 with a `MigrationTestHelper` test, then its entry screen and list, reached from Home and Settings → Records.
-- **Last updated:** 2026-10-22 (Phase 5 done)
+- **Current phase:** 6b — Fuel price updates
+- **Next step:** Build `FuelPriceSource` in `data/remote` (parse, validate, cache the last valid list in DataStore) with the section 8a tests, using a local JSON fixture until the owner publishes the real file and its URL.
+- **Last updated:** 2026-10-22 (Phase 6 done)
 
 ## Open questions for the owner
 
@@ -107,10 +107,11 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 6 — Fuel log and expenses
 
-- [ ] `FuelLog` entity, entry screen and list (with full-tank flag)
-- [ ] `Expense` entity, entry screen and list (no fuel category)
-- [ ] Actual km/L calculated from full-tank fills, with an optional suggestion to update the vehicle setting
-- [ ] Migrations and migration tests for each schema change
+- [x] `FuelLog` entity, entry screen and list (with full-tank flag)
+- [x] `Expense` entity, entry screen and list (no fuel category)
+- [x] Actual km/L calculated from full-tank fills, with an optional suggestion to update the vehicle setting
+- [x] Migrations and migration tests for each schema change (database v3, `MIGRATION_2_3`, `MigrationTest`)
+- [x] Checked on the emulator (2026-10-22): update from the Phase 5 build kept the vehicle, trip and income with no re-onboarding; added fill-ups by amount and by litres; two full tanks with a partial fill between gave 30.0 km/L, "Use 30.0 km/L" changed the vehicle and left the past trip's profit unchanged; deleted fill-ups after confirming; added a repair (with odometer) and parking (no odometer field); data survived a force-stop; 360 × 640 dp at 200% font.
 
 **Done when:** fuel and expenses are recorded in exactly one place each.
 

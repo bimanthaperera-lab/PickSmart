@@ -22,12 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import lk.picksmart.R
+import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -85,18 +87,26 @@ fun RecordRow(
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {},
     ) {
-        Row(
-            Modifier
-                .defaultMinSize(minHeight = 64.dp)
-                .padding(horizontal = Spacing.l, vertical = Spacing.m),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
+        val padding = Modifier
+            .defaultMinSize(minHeight = 64.dp)
+            .padding(horizontal = Spacing.l, vertical = Spacing.m)
+        // At large font sizes a side column for the amount leaves the details too narrow and
+        // breaks numbers mid-way, so the amount moves under them (as in History).
+        if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
+            Column(padding) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
             }
-            Spacer(Modifier.width(Spacing.s))
-            Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
+        } else {
+            Row(padding, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(Spacing.s))
+                Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
+            }
         }
     }
 }

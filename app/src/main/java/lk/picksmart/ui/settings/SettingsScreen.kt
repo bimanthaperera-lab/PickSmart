@@ -32,6 +32,7 @@ import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.ui.components.ListGroup
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
+import lk.picksmart.ui.components.RecordsGroup
 import lk.picksmart.ui.components.ListRow
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SectionLabel
@@ -45,6 +46,8 @@ import lk.picksmart.ui.vehicle.vehicleRatesSummary
 fun SettingsScreen(
     onEditVehicle: (vehicleId: Long) -> Unit,
     onOpenIncome: () -> Unit,
+    onOpenFuelLog: () -> Unit,
+    onOpenExpenses: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -56,15 +59,7 @@ fun SettingsScreen(
         Column {
             VehicleSettings(vehicle, onEditVehicle)
             SectionLabel(stringResource(R.string.settings_section_records))
-            ListGroup(
-                rows = listOf {
-                    ListRow(
-                        title = stringResource(R.string.settings_other_income),
-                        subtitle = stringResource(R.string.settings_other_income_body),
-                        onClick = onOpenIncome,
-                    )
-                },
-            )
+            RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
             SectionLabel(stringResource(R.string.settings_section_app))
             ListGroup(
                 rows = listOf {

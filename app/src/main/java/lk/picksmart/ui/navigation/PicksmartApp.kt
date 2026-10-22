@@ -31,6 +31,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import lk.picksmart.ui.checkride.CheckRideScreen
+import lk.picksmart.ui.expenses.EditExpenseScreen
+import lk.picksmart.ui.expenses.ExpenseListScreen
+import lk.picksmart.ui.fuel.EditFuelScreen
+import lk.picksmart.ui.fuel.FuelLogScreen
 import lk.picksmart.ui.history.HistoryScreen
 import lk.picksmart.ui.income.EditIncomeScreen
 import lk.picksmart.ui.income.IncomeListScreen
@@ -84,7 +88,17 @@ fun PicksmartApp() {
         ) {
             val openCheckRide = { navController.navigateToTopLevel(TopLevelDestination.CHECK_RIDE) }
             val openIncome = { navController.navigate(OtherIncomeRoute) }
-            composable<HomeRoute> { HomeScreen(onCheckRide = openCheckRide, onOpenIncome = openIncome) }
+            val openFuelLog = { navController.navigate(FuelLogRoute) }
+            val openExpenses = { navController.navigate(ExpensesRoute) }
+            val addVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) }
+            composable<HomeRoute> {
+                HomeScreen(
+                    onCheckRide = openCheckRide,
+                    onOpenIncome = openIncome,
+                    onOpenFuelLog = openFuelLog,
+                    onOpenExpenses = openExpenses,
+                )
+            }
             composable<CheckRideRoute> {
                 CheckRideScreen(
                     onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
@@ -108,6 +122,26 @@ fun PicksmartApp() {
             composable<EditIncomeRoute> {
                 EditIncomeScreen(onClose = { navController.popIfOn(EditIncomeRoute::class) })
             }
+            composable<FuelLogRoute> {
+                FuelLogScreen(
+                    onBack = { navController.popIfOn(FuelLogRoute::class) },
+                    onAdd = { navController.navigate(EditFuelLogRoute(EditFuelLogRoute.NEW)) },
+                    onOpen = { id -> navController.navigate(EditFuelLogRoute(id)) },
+                )
+            }
+            composable<EditFuelLogRoute> {
+                EditFuelScreen(onClose = { navController.popIfOn(EditFuelLogRoute::class) }, onAddVehicle = addVehicle)
+            }
+            composable<ExpensesRoute> {
+                ExpenseListScreen(
+                    onBack = { navController.popIfOn(ExpensesRoute::class) },
+                    onAdd = { navController.navigate(EditExpenseRoute(EditExpenseRoute.NEW)) },
+                    onOpen = { id -> navController.navigate(EditExpenseRoute(id)) },
+                )
+            }
+            composable<EditExpenseRoute> {
+                EditExpenseScreen(onClose = { navController.popIfOn(EditExpenseRoute::class) })
+            }
             composable<EditTripRoute> {
                 EditTripScreen(
                     onClose = { navController.popIfOn(EditTripRoute::class) },
@@ -119,6 +153,8 @@ fun PicksmartApp() {
                 SettingsScreen(
                     onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) },
                     onOpenIncome = openIncome,
+                    onOpenFuelLog = openFuelLog,
+                    onOpenExpenses = openExpenses,
                 )
             }
             composable<EditVehicleRoute> {

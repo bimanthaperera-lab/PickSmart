@@ -13,8 +13,7 @@ import androidx.compose.ui.res.stringResource
 import lk.picksmart.R
 import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.EmptyState
-import lk.picksmart.ui.components.ListGroup
-import lk.picksmart.ui.components.ListRow
+import lk.picksmart.ui.components.RecordsGroup
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.theme.Spacing
@@ -23,7 +22,12 @@ import java.time.format.DateTimeFormatter
 
 /** Today's summary. The dashboard arrives in Phase 7; until then, the way in and records. */
 @Composable
-fun HomeScreen(onCheckRide: () -> Unit, onOpenIncome: () -> Unit) {
+fun HomeScreen(
+    onCheckRide: () -> Unit,
+    onOpenIncome: () -> Unit,
+    onOpenFuelLog: () -> Unit,
+    onOpenExpenses: () -> Unit,
+) {
     TabScreen {
         HomeHeader()
         EmptyState(
@@ -33,15 +37,7 @@ fun HomeScreen(onCheckRide: () -> Unit, onOpenIncome: () -> Unit) {
             actionLabel = stringResource(R.string.action_check_ride),
             onAction = onCheckRide,
         )
-        ListGroup(
-            rows = listOf {
-                ListRow(
-                    title = stringResource(R.string.settings_other_income),
-                    subtitle = stringResource(R.string.settings_other_income_body),
-                    onClick = onOpenIncome,
-                )
-            },
-        )
+        RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
     }
 }
 

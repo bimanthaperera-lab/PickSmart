@@ -205,6 +205,90 @@
     <!-- "20 Oct · 20 trips done" -->
     <string name="income_row_subtitle">%1$s · %2$s</string>
 
+    <!-- Fuel log -->
+    <string name="fuel_title">Fuel log</string>
+    <string name="fuel_month_total">Spent on fuel this month</string>
+    <string name="fuel_month_note">Every fill-up you record here</string>
+    <string name="fuel_recent">Recent fill-ups</string>
+    <string name="fuel_help">Record every fill-up here. Fuel is only recorded in this log, never as an expense, so it\'s never counted twice.</string>
+    <string name="fuel_add">Add fill-up</string>
+    <string name="fuel_empty_title">No fill-ups yet</string>
+    <string name="fuel_add_title">Add fill-up</string>
+    <string name="fuel_edit_title">Edit fill-up</string>
+    <string name="fuel_total">Amount paid</string>
+    <string name="fuel_litres">Litres</string>
+    <string name="fuel_price">Price per litre</string>
+    <string name="fuel_price_help">Starts from your vehicle\'s price. Change it if this station charged differently.</string>
+    <string name="fuel_worked_out">Worked out from the price</string>
+    <string name="fuel_full_tank">Full tank</string>
+    <string name="fuel_full_tank_body">Filled to the top. Two full tanks with odometer readings show your real km per litre.</string>
+    <string name="fuel_odometer">Odometer · optional</string>
+    <string name="fuel_odometer_help">The reading when you filled up</string>
+    <string name="fuel_date">Date</string>
+    <string name="fuel_save">Save fill-up</string>
+    <string name="fuel_delete">Delete fill-up</string>
+    <string name="fuel_delete_title">Delete this fill-up?</string>
+    <string name="fuel_delete_body">It will be removed from your fuel spending and km per litre. This can\'t be undone.</string>
+    <string name="fuel_error_total_required">Enter what you paid</string>
+    <string name="fuel_error_litres_required">Enter the litres</string>
+    <string name="fuel_error_price_required">Enter the price per litre</string>
+    <string name="fuel_not_found_title">Fill-up not found</string>
+    <string name="fuel_not_found_body">This fill-up is no longer on this phone.</string>
+    <string name="fuel_no_vehicle_body">Add your vehicle first, so the fill-up has a vehicle and a starting price.</string>
+    <string name="fuel_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
+    <!-- "8.05 L" -->
+    <string name="fuel_litres_value">%1$s L</string>
+    <!-- "8.05 L · Full tank" -->
+    <string name="fuel_row_title_full">%1$s L · Full tank</string>
+    <!-- "20 Oct · Rs. 414.00/L" -->
+    <string name="fuel_row_subtitle">%1$s · %2$s/L</string>
+    <!-- "20 Oct · Rs. 414.00/L · 45,210 km" -->
+    <string name="fuel_row_subtitle_odometer">%1$s · %2$s/L · %3$s km</string>
+    <string name="efficiency_title">Actual km per litre</string>
+    <!-- "36.3 km/L" -->
+    <string name="efficiency_value">%1$s km/L</string>
+    <!-- "290 km on 8.00 L between your last two full tanks" -->
+    <string name="efficiency_basis">%1$s km on %2$s L between your last two full tanks</string>
+    <!-- "Your vehicle is set to 40 km/L" -->
+    <string name="efficiency_setting">Your vehicle is set to %1$s km/L</string>
+    <string name="efficiency_none">Fill the tank to the top, turn on Full tank and enter the odometer. After two full-tank fill-ups, Picksmart shows your real km per litre.</string>
+    <string name="efficiency_assumes">This assumes every fill-up in between is recorded.</string>
+    <!-- "Use 36.3 km/L for new checks? Past trips keep the rates they were saved with." -->
+    <string name="efficiency_suggest">Use %1$s km/L for new checks? Past trips keep the rates they were saved with.</string>
+    <!-- Button: "Use 36.3 km/L" -->
+    <string name="efficiency_use">Use %1$s km/L</string>
+    <string name="efficiency_not_now">Not now</string>
+
+    <!-- Expenses -->
+    <string name="expense_title">Expenses</string>
+    <string name="expense_month_total">Spent this month</string>
+    <string name="expense_month_note">Repairs, parking, data and other costs</string>
+    <string name="expense_recent">Recent</string>
+    <string name="expense_help">Add costs like repairs, parking, mobile data and tolls. Fuel goes in the Fuel log instead, so it\'s never counted twice.</string>
+    <string name="expense_add">Add expense</string>
+    <string name="expense_empty_title">No expenses yet</string>
+    <string name="expense_add_title">Add expense</string>
+    <string name="expense_edit_title">Edit expense</string>
+    <string name="expense_category">Category</string>
+    <string name="expense_category_maintenance">Maintenance &amp; repair</string>
+    <string name="expense_category_parking">Parking</string>
+    <string name="expense_category_mobile_data">Mobile data</string>
+    <string name="expense_category_tolls">Tolls</string>
+    <string name="expense_category_other">Other</string>
+    <string name="expense_amount">Amount</string>
+    <string name="expense_date">Date</string>
+    <string name="expense_odometer">Odometer · optional</string>
+    <string name="expense_odometer_help">Helps you see when the last service was</string>
+    <string name="expense_note">Note · optional</string>
+    <string name="expense_note_placeholder">e.g. Chain and sprocket</string>
+    <string name="expense_save">Save expense</string>
+    <string name="expense_delete">Delete expense</string>
+    <string name="expense_delete_title">Delete this expense?</string>
+    <string name="expense_delete_body">It will be removed from your totals. This can\'t be undone.</string>
+    <string name="expense_not_found_title">Expense not found</string>
+    <string name="expense_not_found_body">This expense is no longer on this phone.</string>
+    <string name="expense_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
+
     <!-- Reports -->
     <string name="reports_title">Reports</string>
     <string name="reports_empty_title">No reports yet</string>
@@ -213,6 +297,7 @@
     <!-- Units, used as field suffixes and in summaries -->
     <string name="unit_per_litre">per litre</string>
     <string name="unit_km_per_litre">km/L</string>
+    <string name="unit_litre_short">L</string>
     <string name="unit_per_km">/km</string>
     <string name="amount_placeholder_zero" translatable="false">0.00</string>
     <string name="placeholder_zero" translatable="false">0</string>
@@ -294,6 +379,10 @@
     <string name="settings_section_records">Records</string>
     <string name="settings_other_income">Other income</string>
     <string name="settings_other_income_body">Bonuses, tips and incentives</string>
+    <string name="settings_fuel_log">Fuel log</string>
+    <string name="settings_fuel_log_body">Fill-ups and your real km per litre</string>
+    <string name="settings_expenses">Expenses</string>
+    <string name="settings_expenses_body">Repairs, parking, mobile data and tolls</string>
     <string name="settings_section_app">App</string>
     <string name="settings_section_about">About</string>
     <string name="settings_theme">Theme</string>

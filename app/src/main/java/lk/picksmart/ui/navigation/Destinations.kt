@@ -39,6 +39,28 @@ data class EditIncomeRoute(val incomeId: Long) {
     }
 }
 
+/** Fuel log list, with the actual km/L card. Opened from Home and Settings. */
+@Serializable data object FuelLogRoute
+
+/** Add a fill-up, or edit one when [fuelLogId] isn't [NEW]. */
+@Serializable
+data class EditFuelLogRoute(val fuelLogId: Long) {
+    companion object {
+        const val NEW = 0L
+    }
+}
+
+/** Expenses list. Opened from Home and Settings. */
+@Serializable data object ExpensesRoute
+
+/** Add an expense, or edit one when [expenseId] isn't [NEW]. */
+@Serializable
+data class EditExpenseRoute(val expenseId: Long) {
+    companion object {
+        const val NEW = 0L
+    }
+}
+
 /** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
 enum class TopLevelDestination(
     val route: Any,

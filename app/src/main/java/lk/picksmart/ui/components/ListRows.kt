@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -88,4 +89,35 @@ fun ListRow(
             )
         }
     }
+}
+
+/** The ways into the rider's records, shown on Home and under Settings → Records. */
+@Composable
+fun RecordsGroup(onOpenFuelLog: () -> Unit, onOpenExpenses: () -> Unit, onOpenIncome: () -> Unit, modifier: Modifier = Modifier) {
+    ListGroup(
+        modifier = modifier,
+        rows = listOf(
+            {
+                ListRow(
+                    title = stringResource(R.string.settings_fuel_log),
+                    subtitle = stringResource(R.string.settings_fuel_log_body),
+                    onClick = onOpenFuelLog,
+                )
+            },
+            {
+                ListRow(
+                    title = stringResource(R.string.settings_expenses),
+                    subtitle = stringResource(R.string.settings_expenses_body),
+                    onClick = onOpenExpenses,
+                )
+            },
+            {
+                ListRow(
+                    title = stringResource(R.string.settings_other_income),
+                    subtitle = stringResource(R.string.settings_other_income_body),
+                    onClick = onOpenIncome,
+                )
+            },
+        ),
+    )
 }

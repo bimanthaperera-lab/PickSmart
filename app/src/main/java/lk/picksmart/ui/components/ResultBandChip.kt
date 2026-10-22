@@ -23,32 +23,56 @@ import lk.picksmart.domain.calculator.ResultBand
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 
-/** How a [ResultBand] looks: always a text label and an icon, plus colour. */
+/**
+ * How a [ResultBand] looks: always a text label and an icon, plus colour. [content] is the band
+ * colour for labels and icons; [onContainer] is for large text on [container].
+ */
 data class BandStyle(
     @StringRes val label: Int,
     @DrawableRes val icon: Int,
     val content: Color,
     val container: Color,
+    val onContainer: Color,
 )
 
 @Composable
 fun ResultBand.style(): BandStyle {
     val status = PicksmartTheme.status
     return when (this) {
-        ResultBand.GOOD -> BandStyle(R.string.band_good, R.drawable.ic_band_good, status.profit, status.profitContainer)
-        ResultBand.PROFIT -> BandStyle(R.string.band_profit, R.drawable.ic_band_profit, status.profit, status.profitContainer)
+        ResultBand.GOOD -> BandStyle(
+            R.string.band_good,
+            R.drawable.ic_band_good,
+            status.profit,
+            status.profitContainer,
+            status.onProfitContainer,
+        )
+        ResultBand.PROFIT -> BandStyle(
+            R.string.band_profit,
+            R.drawable.ic_band_profit,
+            status.profit,
+            status.profitContainer,
+            status.onProfitContainer,
+        )
         ResultBand.BELOW_TARGET -> BandStyle(
             R.string.band_below_target,
             R.drawable.ic_band_below_target,
             status.belowTarget,
             status.belowTargetContainer,
+            status.onBelowTargetContainer,
         )
-        ResultBand.LOSS -> BandStyle(R.string.band_loss, R.drawable.ic_band_loss, status.loss, status.lossContainer)
+        ResultBand.LOSS -> BandStyle(
+            R.string.band_loss,
+            R.drawable.ic_band_loss,
+            status.loss,
+            status.lossContainer,
+            status.onLossContainer,
+        )
         ResultBand.BREAK_EVEN -> BandStyle(
             R.string.band_break_even,
             R.drawable.ic_band_break_even,
             MaterialTheme.colorScheme.onSurfaceVariant,
             MaterialTheme.colorScheme.surfaceContainerHigh,
+            MaterialTheme.colorScheme.onSurface,
         )
     }
 }

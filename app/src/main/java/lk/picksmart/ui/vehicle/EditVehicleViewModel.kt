@@ -75,8 +75,8 @@ class EditVehicleViewModel(
             try {
                 val ok = if (current.isNew) {
                     val id = vehicles.create(input)
-                    // The first vehicle becomes the default, so Check a Ride has something to use.
-                    if (preferences.defaultVehicleId.first() == null) preferences.setDefaultVehicleId(id)
+                    // Becomes the default when there is none (or its row is gone), so Check a Ride has rates to use.
+                    if (vehicles.defaultVehicle.first() == null) preferences.setDefaultVehicleId(id)
                     true
                 } else {
                     vehicles.update(vehicleId, input)

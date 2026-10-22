@@ -1,5 +1,6 @@
 package lk.picksmart.ui.navigation
 
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
@@ -72,11 +73,16 @@ fun PicksmartApp() {
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
-            modifier = Modifier.padding(innerPadding),
+            // Consumed so a screen's imePadding() only adds the part of the keyboard below the bar.
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         ) {
             val openCheckRide = { navController.navigateToTopLevel(TopLevelDestination.CHECK_RIDE) }
             composable<HomeRoute> { HomeScreen(onCheckRide = openCheckRide) }
-            composable<CheckRideRoute> { CheckRideScreen() }
+            composable<CheckRideRoute> {
+                CheckRideScreen(onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) })
+            }
             composable<HistoryRoute> { HistoryScreen(onCheckRide = openCheckRide) }
             composable<ReportsRoute> { ReportsScreen() }
             composable<SettingsRoute> {
@@ -85,7 +91,7 @@ fun PicksmartApp() {
             composable<EditVehicleRoute> {
                 EditVehicleScreen(
                     onClose = {
-                        // Guard against a double close (e.g. tapping X as a save finishes) popping past Settings.
+                        // Guard against a double close (e.g. tapping X as a save finishes) popping past the opener.
                         if (navController.currentDestination?.hasRoute(EditVehicleRoute::class) == true) {
                             navController.popBackStack()
                         }

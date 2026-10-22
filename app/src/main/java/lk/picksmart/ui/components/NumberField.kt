@@ -19,7 +19,7 @@ import lk.picksmart.util.sanitizeDecimalInput
 /**
  * A number input with a numeric keyboard. Typing is cleaned with [sanitizeDecimalInput], so the
  * value is always empty or a non-negative number. Use [prefix] for "Rs." and [suffix] for units
- * such as "km".
+ * such as "km", and [trailing] for a small control at the field's end.
  *
  * @param error Shown under the field and announced by screen readers; null when valid.
  */
@@ -36,6 +36,7 @@ fun NumberField(
     supportingText: String? = null,
     error: String? = null,
     imeAction: ImeAction = ImeAction.Next,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -44,6 +45,7 @@ fun NumberField(
         placeholder = placeholder?.let { { Text(it) } },
         prefix = prefix?.let { { Text(it) } },
         suffix = suffix?.let { { Text(it) } },
+        trailingIcon = trailing,
         supportingText = (error ?: supportingText)?.let { { Text(it) } },
         isError = error != null,
         singleLine = true,

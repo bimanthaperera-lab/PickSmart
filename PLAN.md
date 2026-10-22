@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 4 — Check a Ride
-- **Next step:** Build the Check a Ride form pre-filled from the default vehicle and last-used inputs (saved in DataStore), with live `ProfitCalculator` results.
-- **Last updated:** 2026-10-22 (Phase 3 done)
+- **Current phase:** 5 — Trips, history and other income
+- **Next step:** Add the `Trip` entity with its rate snapshot, Room migration v1→v2 with a `MigrationTestHelper` test, then "Save offer" on Check a Ride (with the platform chips from the mockup).
+- **Last updated:** 2026-10-22 (Phase 4 done)
 
 ## Open questions for the owner
 
@@ -76,23 +76,24 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 4 — Check a Ride
 
-- [ ] Form pre-filled from the default vehicle and last-used values
-- [ ] Save last-used Check a Ride inputs in DataStore (moved from Phase 3)
-- [ ] Show "Sample" next to rates while the vehicle still uses sample values
-- [ ] Fare field focused with a numeric keyboard
-- [ ] Fare mode selector; commission field hidden in payout mode
-- [ ] Return distance visibly optional
-- [ ] Live recalculation and validation messages
-- [ ] Result card: total km, fuel, reserve, commission, net profit, per km, band with text label
-- [ ] Per-trip overrides of vehicle rates
-- [ ] "Results are estimates" line and safety line
+- [x] Form pre-filled from the default vehicle and last-used values
+- [x] Save last-used Check a Ride inputs in DataStore (moved from Phase 3)
+- [x] Show "Sample" next to rates while the vehicle still uses sample values
+- [x] Fare field focused with a numeric keyboard
+- [x] Fare mode selector; commission field hidden in payout mode
+- [x] Return distance visibly optional
+- [x] Live recalculation and validation messages
+- [x] Result card: total km, fuel, reserve, commission, net profit, per km, band with text label
+- [x] Per-trip overrides of vehicle rates
+- [x] "Results are estimates" line and safety line
+- [x] Checked on the emulator (2026-10-22): G2 and G3 on screen, remembered inputs after restart, overrides leave the vehicle unchanged, 360 × 640 dp at 100% and 200% font, light and dark. Not checked: the full on-screen keyboard (the emulator shows only Gboard's floating toolbar while a host keyboard is attached).
 
 **Done when:** a typical check needs three field edits or fewer, and the result is visible without scrolling on a small screen.
 
 ## Phase 5 — Trips, history and other income
 
 - [ ] `Trip` entity with the rate snapshot; Room migration v1→v2 with a migration test
-- [ ] Save a checked offer as `OFFER_CHECK`
+- [ ] Save a checked offer as `OFFER_CHECK` ("Save offer" / "I took it" on the Check a Ride result, plus the platform chips from the mockup)
 - [ ] Mark an offer as completed (rider confirms actual values) or cancelled (with optional cancellation fee)
 - [ ] Add a completed trip directly, without checking it first
 - [ ] History list: date, platform, fare, costs, net profit; filter by status

@@ -33,8 +33,59 @@
 
     <!-- Check a Ride -->
     <string name="check_ride_title">Check a Ride</string>
-    <string name="check_ride_empty_title">Ride check is coming soon</string>
-    <string name="check_ride_empty_body">You\'ll type the fare and distance here and see your estimated profit, profit per km, and whether the ride is worth taking.</string>
+    <string name="check_fare_mode_gross">Gross fare</string>
+    <string name="check_fare_mode_payout">Payout after fee</string>
+    <string name="check_fare_gross">Fare offered</string>
+    <string name="check_fare_payout">Payout to you</string>
+    <string name="check_fare_payout_help">The platform fee is already taken out, so it isn\'t asked for.</string>
+    <string name="check_clear_fare">Clear fare</string>
+    <string name="check_fee">Platform fee</string>
+    <string name="check_fee_unit_amount" translatable="false">Rs.</string>
+    <string name="check_fee_unit_percent" translatable="false">%</string>
+    <string name="check_fee_in_rupees">Fee in rupees</string>
+    <string name="check_fee_in_percent">Fee as a percentage of the fare</string>
+    <string name="check_fee_switch_to_percent">Switch to percentage</string>
+    <string name="check_fee_switch_to_rupees">Switch to rupees</string>
+    <string name="check_other_costs">Other costs</string>
+    <string name="check_pickup">Pickup</string>
+    <string name="check_trip">Trip</string>
+    <string name="check_return">Return</string>
+    <string name="check_optional">Optional</string>
+    <string name="unit_km">km</string>
+    <!-- "Honda Dio · Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
+    <string name="check_vehicle_rates">%1$s · %2$s</string>
+    <string name="check_sample_label">Sample</string>
+    <string name="check_change_rates">Change</string>
+    <string name="check_change_rates_description">Change rates for this check</string>
+    <string name="check_overrides_title">Rates for this check</string>
+    <string name="check_overrides_body">Only used for this check. Your vehicle\'s saved rates don\'t change.</string>
+    <string name="check_use_vehicle_rates">Use vehicle rates</string>
+    <string name="check_error_percent_above_100">Can\'t be more than 100%</string>
+    <string name="check_safety_line">Estimate only. Check offers when you\'re stopped safely.</string>
+
+    <!-- Check a Ride result -->
+    <string name="check_result_needs_fare_title">Enter the fare</string>
+    <string name="check_result_needs_fare_body">Your estimated profit appears here as you type.</string>
+    <string name="check_result_invalid_title">Check the highlighted fields</string>
+    <string name="check_result_too_large">These numbers are too large to calculate. Check the fare and distances.</string>
+    <!-- Band lines. %1$s is the rider's target, e.g. "Rs. 60.00". -->
+    <string name="check_band_good">Good · meets your %1$s/km target</string>
+    <string name="check_band_below_target">Below target · under your %1$s/km target</string>
+    <string name="check_band_profit">Profit</string>
+    <string name="check_band_break_even">Break-even · no profit, no loss</string>
+    <string name="check_band_loss">Loss · this ride costs more than it pays</string>
+    <!-- Screen reader text for the result: "Estimated net profit Rs. 705.00, Rs. 70.50/km" -->
+    <string name="check_net_profit_description">Estimated net profit %1$s, %2$s</string>
+    <!-- "Rs. 70.50/km" -->
+    <string name="check_per_km_value">%1$s/km</string>
+    <string name="check_per_km_none">Add a distance to see profit per km</string>
+    <string name="check_result_distance">Distance</string>
+    <string name="check_result_fee">Fee</string>
+    <string name="check_result_fuel">Fuel</string>
+    <string name="check_result_reserve">Reserve</string>
+    <string name="check_result_other">Other</string>
+    <!-- "10.0 km" -->
+    <string name="check_km_value">%1$s km</string>
 
     <!-- History -->
     <string name="history_title">History</string>
@@ -51,6 +102,7 @@
     <string name="unit_km_per_litre">km/L</string>
     <string name="unit_per_km">/km</string>
     <string name="amount_placeholder_zero" translatable="false">0.00</string>
+    <string name="placeholder_zero" translatable="false">0</string>
 
     <!-- Vehicle types and fuel types (CLAUDE.md section 5) -->
     <string name="vehicle_type_motorcycle">Motorcycle</string>

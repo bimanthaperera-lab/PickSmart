@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 1 — ProfitCalculator
-- **Next step:** Write `domain/calculator/ProfitCalculator` with typed validation and the golden tests G1–G7.
-- **Last updated:** 2026-10-22 (Phase 0 done)
+- **Current phase:** 2 — Design system and app shell
+- **Next step:** Build the theme (including profit/loss/below-target colours and a readable light-theme accent), the `Rs.` formatter in `util/`, and the five-tab navigation shell with `AppContainer`.
+- **Last updated:** 2026-10-22 (Phase 1 done)
 
 ## Open questions for the owner
 
@@ -41,12 +41,12 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 1 — ProfitCalculator
 
-- [ ] Pure Kotlin `ProfitCalculator` in `domain/calculator`
-- [ ] Typed validation errors (no exceptions into the UI, no NaN/Infinity)
-- [ ] Both fare modes and both commission types
-- [ ] Result bands, including the optional target
-- [ ] Golden tests G1–G7 from `CLAUDE.md` section 6, plus negative, zero-efficiency, over-100% and large-value tests
-- [ ] Rounding policy written in KDoc
+- [x] Pure Kotlin `ProfitCalculator` in `domain/calculator`
+- [x] Typed validation errors (no exceptions into the UI, no NaN/Infinity)
+- [x] Both fare modes and both commission types
+- [x] Result bands, including the optional target
+- [x] Golden tests G1–G7 from `CLAUDE.md` section 6, plus negative, zero-efficiency, over-100% and large-value tests (25 tests, all passing on 2026-10-22)
+- [x] Rounding policy written in KDoc
 
 **Done when:** `./gradlew testDebugUnitTest` passes with every golden test.
 

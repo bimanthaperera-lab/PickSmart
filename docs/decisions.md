@@ -27,3 +27,11 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 - **Launcher icon.** The adaptive icon uses the traced pin mark, 58 of 108 units tall, centred inside the 66 dp safe zone, on a near-black background. The monochrome (themed) icon uses the same paths in one colour; the dark gaps in the mark keep the white P readable. *Default.*
 - **Brand colours in the logo.** The traced logo uses the flat brand colours (yellow `#FBBB23`, off-white `#F5F5F2`) instead of the slight gradient in the JPEG. *Default.*
 - **Start screen.** It always uses the dark theme and light system bar icons, because the full logo is only legible on a dark surface. The window background is near-black in both modes, so there's no light flash at launch. Phase 2 revisits this when the app shell arrives. *Default.*
+
+## 2026-10-22 — Phase 1 ProfitCalculator
+
+- **Commission as one whole number.** `ProfitInput.commissionHundredths` holds the commission in hundredths of its unit: cents for `AMOUNT` (Rs. 200 = 20000) and hundredths of a percent for `PERCENT` (20% = 2000, 12.5% = 1250). Both types stay an exact `Long` with no `Double`, and percentages are precise to 0.01%. The `Trip` entity will store the same value. *Default.*
+- **Net profit from rounded parts.** Fuel, reserve, commission and per-km values are each rounded HALF_UP to cents. Net profit is computed from those rounded parts, so the breakdown on screen always adds up to the net shown. *Default.*
+- **Band uses the rounded per-km value.** The target comparison uses the same rounded profit per km the rider sees, and meeting the target exactly counts as `GOOD`. A loss is always `LOSS`, even with a target set. With a target but zero distance, the band falls back to `PROFIT` or `BREAK_EVEN`. *Default.*
+- **Validation.** Every problem is returned at once as typed `ValidationError`s, each tied to an `InputField`, so the UI can mark each field. NaN or infinite numbers are rejected. Commission isn't validated in payout mode, because that field is hidden. Results too large for a `Long` return `ResultTooLarge` instead of overflowing or throwing. *Default.*
+- **Gradle daemon JVM.** Android Studio generated `gradle/gradle-daemon-jvm.properties`, which pins the daemon to JDK 25. It's committed, consistent with the JDK entry above. *Default.*

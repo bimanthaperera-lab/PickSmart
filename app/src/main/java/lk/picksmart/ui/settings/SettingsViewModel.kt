@@ -7,17 +7,33 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.model.ThemeMode
+import lk.picksmart.domain.model.Vehicle
 
-class SettingsViewModel(private val preferences: UserPreferencesRepository) : ViewModel() {
+sealed interface VehicleSection {
+    data object Loading : VehicleSection
+    data object None : VehicleSection
+    data class Loaded(val vehicle: Vehicle) : VehicleSection
+}
+
+class SettingsViewModel(
+    private val preferences: UserPreferencesRepository,
+    vehicles: VehicleRepository,
+) : ViewModel() {
 
     /** Null until the stored value has loaded. */
     val themeMode: StateFlow<ThemeMode?> = preferences.themeMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val vehicle: StateFlow<VehicleSection> = vehicles.defaultVehicle
+        .map { it?.let(VehicleSection::Loaded) ?: VehicleSection.None }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), VehicleSection.Loading)
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { preferences.setThemeMode(mode) }
@@ -26,8 +42,8 @@ class SettingsViewModel(private val preferences: UserPreferencesRepository) : Vi
     companion object {
         val Factory = viewModelFactory {
             initializer {
-                val app = this[APPLICATION_KEY] as PicksmartApplication
-                SettingsViewModel(app.container.userPreferences)
+                val container = (this[APPLICATION_KEY] as PicksmartApplication).container
+                SettingsViewModel(container.userPreferences, container.vehicles)
             }
         }
     }

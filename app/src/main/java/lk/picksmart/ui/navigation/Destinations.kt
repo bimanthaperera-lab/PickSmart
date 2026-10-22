@@ -11,6 +11,15 @@ import lk.picksmart.R
 @Serializable data object ReportsRoute
 @Serializable data object SettingsRoute
 
+/** Edit a vehicle, or add one when [vehicleId] is [NEW]. Opened from Settings. */
+@Serializable
+data class EditVehicleRoute(val vehicleId: Long) {
+    companion object {
+        /** Room ids start at 1, so 0 means "create a new vehicle". */
+        const val NEW = 0L
+    }
+}
+
 /** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
 enum class TopLevelDestination(
     val route: Any,

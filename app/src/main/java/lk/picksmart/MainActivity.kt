@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.ui.navigation.PicksmartApp
+import lk.picksmart.ui.onboarding.OnboardingScreen
 import lk.picksmart.ui.theme.PicksmartTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,15 +23,18 @@ class MainActivity : ComponentActivity() {
         val preferences = (application as PicksmartApplication).container.userPreferences
 
         setContent {
-            // Wait for the stored theme before drawing, so a rider who chose Dark never sees a
-            // flash of the light theme. The window background shows for that moment.
+            // Wait for the stored theme and setup flag before drawing, so a rider never sees a
+            // flash of the wrong theme or of onboarding. The window background shows meanwhile.
             val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = null)
-            themeMode?.let { AppContent(it) }
+            val onboardingComplete by preferences.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
+            val mode = themeMode
+            val setupDone = onboardingComplete
+            if (mode != null && setupDone != null) AppContent(mode, setupDone)
         }
     }
 
     @Composable
-    private fun AppContent(mode: ThemeMode) {
+    private fun AppContent(mode: ThemeMode, onboardingComplete: Boolean) {
         val darkTheme = when (mode) {
             ThemeMode.SYSTEM -> isSystemInDarkTheme()
             ThemeMode.LIGHT -> false
@@ -47,7 +51,9 @@ class MainActivity : ComponentActivity() {
         }
 
         PicksmartTheme(darkTheme = darkTheme) {
-            PicksmartApp()
+            // Setup runs only while the flag is false; finishing it flips the flag and this
+            // switches to the app. An update never resets the flag (CLAUDE.md N7).
+            if (onboardingComplete) PicksmartApp() else OnboardingScreen()
         }
     }
 

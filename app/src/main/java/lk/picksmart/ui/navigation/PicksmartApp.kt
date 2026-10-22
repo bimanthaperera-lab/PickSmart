@@ -34,6 +34,7 @@ import lk.picksmart.ui.history.HistoryScreen
 import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
 import lk.picksmart.ui.settings.SettingsScreen
+import lk.picksmart.ui.vehicle.EditVehicleScreen
 
 /** The app shell: bottom navigation around the five tabs. */
 @Composable
@@ -45,7 +46,9 @@ fun PicksmartApp() {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+            // Only the five tabs show the bar; detail screens such as Edit vehicle take the full height.
+            val onTopLevel = TopLevelDestination.entries.any { d -> currentDestination?.hasRoute(d.route::class) == true }
+            if (onTopLevel) NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
                 TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
                     NavigationBarItem(
@@ -76,7 +79,19 @@ fun PicksmartApp() {
             composable<CheckRideRoute> { CheckRideScreen() }
             composable<HistoryRoute> { HistoryScreen(onCheckRide = openCheckRide) }
             composable<ReportsRoute> { ReportsScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<SettingsRoute> {
+                SettingsScreen(onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) })
+            }
+            composable<EditVehicleRoute> {
+                EditVehicleScreen(
+                    onClose = {
+                        // Guard against a double close (e.g. tapping X as a save finishes) popping past Settings.
+                        if (navController.currentDestination?.hasRoute(EditVehicleRoute::class) == true) {
+                            navController.popBackStack()
+                        }
+                    },
+                )
+            }
         }
     }
 }

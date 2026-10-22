@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 3 — Persistence foundation and onboarding
-- **Next step:** Room database v1 with the `Vehicle` entity (schema exported), then first-launch onboarding that saves the vehicle and the onboarding flag.
-- **Last updated:** 2026-10-22 (Phase 2 done)
+- **Current phase:** 4 — Check a Ride
+- **Next step:** Build the Check a Ride form pre-filled from the default vehicle and last-used inputs (saved in DataStore), with live `ProfitCalculator` results.
+- **Last updated:** 2026-10-22 (Phase 3 done)
 
 ## Open questions for the owner
 
@@ -64,19 +64,21 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 3 — Persistence foundation and onboarding
 
-- [ ] Room database v1 with `exportSchema = true`, schema committed
-- [ ] `Vehicle` entity, DAO and repository
-- [ ] DataStore: default vehicle, onboarding flag, theme, last-used inputs (theme done in Phase 2: `UserPreferencesRepository`)
-- [ ] First-launch onboarding: vehicle type, fuel type, fuel price, efficiency, maintenance reserve, optional target per km
-- [ ] "Use sample values" option, clearly labelled as samples
-- [ ] One-time safety notice
-- [ ] Settings screen to edit the vehicle
+- [x] Room database v1 with `exportSchema = true`, schema committed
+- [x] `Vehicle` entity, DAO and repository
+- [x] DataStore: default vehicle, onboarding flag, theme (last-used Check a Ride inputs moved to Phase 4, where their shape is decided)
+- [x] First-launch onboarding: vehicle type, fuel type, fuel price, efficiency, maintenance reserve, optional target per km
+- [x] "Use sample values" option, clearly labelled as samples
+- [x] One-time safety notice
+- [x] Settings screen to edit the vehicle
 
 **Done when:** a new user finishes setup and the values survive an app restart.
 
 ## Phase 4 — Check a Ride
 
 - [ ] Form pre-filled from the default vehicle and last-used values
+- [ ] Save last-used Check a Ride inputs in DataStore (moved from Phase 3)
+- [ ] Show "Sample" next to rates while the vehicle still uses sample values
 - [ ] Fare field focused with a numeric keyboard
 - [ ] Fare mode selector; commission field hidden in payout mode
 - [ ] Return distance visibly optional
@@ -113,7 +115,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 ## Phase 6b — Fuel price updates
 
 - [ ] Publish the first fuel price file (owner) and add its URL as a `BuildConfig` field
-- [ ] Vehicle fields: `fuelType`, `fuelPriceSource`, `fuelPriceEffectiveDate`, `autoUpdateFuelPrice`, with a migration and migration test
+- [x] Vehicle fields: `fuelType`, `fuelPriceSource`, `fuelPriceEffectiveDate`, `autoUpdateFuelPrice` (included in database v1 in Phase 3, so no migration is needed)
 - [ ] `FuelPriceSource` in `data/remote`: fetch, validate, cache the last valid list in DataStore
 - [ ] 12-hour throttle; silent failure; offline uses the last valid list
 - [ ] Fuel price screen: fuel type, current price with its source and date, auto-update switch

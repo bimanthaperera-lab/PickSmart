@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -29,20 +30,30 @@ import lk.picksmart.BuildConfig
 import lk.picksmart.R
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.ui.components.ListGroup
+import lk.picksmart.ui.components.LoadingState
+import lk.picksmart.ui.components.NoticeCard
 import lk.picksmart.ui.components.ListRow
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.TabScreen
+import lk.picksmart.ui.navigation.EditVehicleRoute
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.vehicle.vehicleKindSummary
+import lk.picksmart.ui.vehicle.vehicleRatesSummary
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)) {
+fun SettingsScreen(
+    onEditVehicle: (vehicleId: Long) -> Unit,
+    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
+) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val vehicle by viewModel.vehicle.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     TabScreen {
         ScreenTitle(stringResource(R.string.settings_title))
         Column {
+            VehicleSettings(vehicle, onEditVehicle)
             SectionLabel(stringResource(R.string.settings_section_app))
             ListGroup(
                 rows = listOf {
@@ -72,6 +83,44 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel(factory = SettingsVi
             },
             onDismiss = { showThemeDialog = false },
         )
+    }
+}
+
+@Composable
+private fun VehicleSettings(section: VehicleSection, onEditVehicle: (Long) -> Unit) {
+    SectionLabel(stringResource(R.string.settings_section_vehicle))
+    when (section) {
+        VehicleSection.Loading -> LoadingState()
+        VehicleSection.None -> ListGroup(
+            rows = listOf {
+                ListRow(
+                    title = stringResource(R.string.settings_add_vehicle),
+                    subtitle = stringResource(R.string.settings_add_vehicle_body),
+                    onClick = { onEditVehicle(EditVehicleRoute.NEW) },
+                )
+            },
+        )
+        is VehicleSection.Loaded -> {
+            val v = section.vehicle
+            if (v.isSample) {
+                NoticeCard(
+                    title = stringResource(R.string.sample_notice_title),
+                    body = stringResource(R.string.settings_sample_body),
+                    actionLabel = stringResource(R.string.settings_edit_vehicle),
+                    onAction = { onEditVehicle(v.id) },
+                    modifier = Modifier.padding(bottom = Spacing.m),
+                )
+            }
+            ListGroup(
+                rows = listOf {
+                    ListRow(
+                        title = if (v.isSample) stringResource(R.string.vehicle_name_sample, v.name) else v.name,
+                        subtitle = vehicleKindSummary(v) + "\n" + vehicleRatesSummary(v),
+                        onClick = { onEditVehicle(v.id) },
+                    )
+                },
+            )
+        }
     }
 }
 

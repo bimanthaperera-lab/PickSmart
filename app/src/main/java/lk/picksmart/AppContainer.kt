@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import lk.picksmart.data.local.PicksmartDatabase
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.repository.OtherIncomeRepository
+import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.usecase.CompleteOnboarding
@@ -34,6 +36,10 @@ class AppContainer(context: Context) {
     val vehicles: VehicleRepository by lazy {
         VehicleRepository(database.vehicleDao(), userPreferences, clock)
     }
+
+    val trips: TripRepository by lazy { TripRepository(database.tripDao(), clock) }
+
+    val otherIncome: OtherIncomeRepository by lazy { OtherIncomeRepository(database.otherIncomeDao(), clock) }
 
     val completeOnboarding: CompleteOnboarding by lazy { CompleteOnboarding(vehicles, userPreferences) }
 

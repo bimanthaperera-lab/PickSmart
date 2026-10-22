@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window theme only; the app is drawn by Compose (ui/theme/Theme.kt). -->
+    <style name="Theme.Picksmart" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/off_white</item>
+    </style>
+</resources>

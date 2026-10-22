@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder pin until the owner's logo source is in design/brand/. Kept inside the 66 dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/brand_yellow"
+        android:fillType="evenOdd"
+        android:pathData="M54,26 C65,26 74,35 74,46 C74,60 54,80 54,80 C54,80 34,60 34,46 C34,35 43,26 54,26 Z M46,46 A8,8 0 1,0 62,46 A8,8 0 1,0 46,46 Z" />
+</vector>

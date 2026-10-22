@@ -1,0 +1,21 @@
+# Gradle / build
+.gradle/
+.kotlin/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local machine config
+local.properties
+
+# Release signing and secrets (never commit)
+keystore.properties
+*.jks
+*.keystore
+google-services.json
+
+# IDE
+.idea/
+*.iml
+.DS_Store

@@ -20,6 +20,14 @@ data class EditVehicleRoute(val vehicleId: Long) {
     }
 }
 
+/** Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History. */
+@Serializable
+data class EditTripRoute(val tripId: Long) {
+    companion object {
+        const val NEW = 0L
+    }
+}
+
 /** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
 enum class TopLevelDestination(
     val route: Any,

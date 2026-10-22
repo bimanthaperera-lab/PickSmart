@@ -313,7 +313,7 @@ private fun CheckRideForm(
 }
 
 @Composable
-private fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {
+internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {
     val modes = FareMode.entries
     // One shared height, so a label that wraps at large font sizes doesn't leave the other segment short.
     SingleChoiceSegmentedButtonRow(
@@ -347,7 +347,7 @@ private fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {
 
 /** The "Rs." / "%" switch inside the fee field. */
 @Composable
-private fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> Unit) {
+internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> Unit) {
     val amount = type == CommissionType.AMOUNT
     val description = stringResource(if (amount) R.string.check_fee_in_rupees else R.string.check_fee_in_percent)
     val actionLabel = stringResource(if (amount) R.string.check_fee_switch_to_percent else R.string.check_fee_switch_to_rupees)
@@ -458,7 +458,7 @@ private fun RateOverridesCard(
 
 /** Fields side by side with equal widths, or stacked full width when [stacked]. */
 @Composable
-private fun FieldRow(stacked: Boolean, fields: List<@Composable (Modifier) -> Unit>) {
+internal fun FieldRow(stacked: Boolean, fields: List<@Composable (Modifier) -> Unit>) {
     if (stacked) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
             fields.forEach { it(Modifier.fillMaxWidth()) }
@@ -644,7 +644,7 @@ private fun bandLine(band: ResultBand, targetCents: Long?): String {
 }
 
 @Composable
-private fun Map<InputField, CheckRideError>.text(field: InputField): String? = get(field)?.let { error ->
+internal fun Map<InputField, CheckRideError>.text(field: InputField): String? = get(field)?.let { error ->
     stringResource(
         when (error) {
             CheckRideError.REQUIRED ->
@@ -656,4 +656,4 @@ private fun Map<InputField, CheckRideError>.text(field: InputField): String? = g
     )
 }
 
-private const val STACK_FONT_SCALE = 1.3f
+internal const val STACK_FONT_SCALE = 1.3f

@@ -35,7 +35,9 @@ import lk.picksmart.ui.history.HistoryScreen
 import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
 import lk.picksmart.ui.settings.SettingsScreen
+import lk.picksmart.ui.trip.EditTripScreen
 import lk.picksmart.ui.vehicle.EditVehicleScreen
+import kotlin.reflect.KClass
 
 /** The app shell: bottom navigation around the five tabs. */
 @Composable
@@ -86,19 +88,26 @@ fun PicksmartApp() {
                     onOpenHistory = { navController.navigateToTopLevel(TopLevelDestination.HISTORY) },
                 )
             }
-            composable<HistoryRoute> { HistoryScreen(onCheckRide = openCheckRide) }
+            composable<HistoryRoute> {
+                HistoryScreen(
+                    onCheckRide = openCheckRide,
+                    onAddTrip = { navController.navigate(EditTripRoute(EditTripRoute.NEW)) },
+                    onOpenTrip = { id -> navController.navigate(EditTripRoute(id)) },
+                )
+            }
+            composable<EditTripRoute> {
+                EditTripScreen(
+                    onClose = { navController.popIfOn(EditTripRoute::class) },
+                    onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
+                )
+            }
             composable<ReportsRoute> { ReportsScreen() }
             composable<SettingsRoute> {
                 SettingsScreen(onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) })
             }
             composable<EditVehicleRoute> {
                 EditVehicleScreen(
-                    onClose = {
-                        // Guard against a double close (e.g. tapping X as a save finishes) popping past the opener.
-                        if (navController.currentDestination?.hasRoute(EditVehicleRoute::class) == true) {
-                            navController.popBackStack()
-                        }
-                    },
+                    onClose = { navController.popIfOn(EditVehicleRoute::class) },
                 )
             }
         }
@@ -129,6 +138,14 @@ private fun NavLabel(text: String) {
         autoSize = TextAutoSize.StepBased(minFontSize = minFontSize, maxFontSize = style.fontSize, stepSize = 0.5.sp),
         modifier = Modifier.widthIn(max = maxWidth),
     )
+}
+
+/**
+ * Closes a detail screen. Guards against a double close (e.g. tapping X as a save finishes)
+ * popping past the screen that opened it.
+ */
+private fun NavHostController.popIfOn(route: KClass<*>) {
+    if (currentDestination?.hasRoute(route) == true) popBackStack()
 }
 
 /**

@@ -6,75 +6,54 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import lk.picksmart.domain.model.ThemeMode
+import lk.picksmart.ui.navigation.PicksmartApp
 import lk.picksmart.ui.theme.PicksmartTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // The only screen so far is the dark brand splash, so system bar icons stay light in
-        // every mode. Revisit when the app shell arrives in Phase 2.
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-        )
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        val preferences = (application as PicksmartApplication).container.userPreferences
+
         setContent {
-            // The full logo is only legible on a dark surface (design/brand/README.md).
-            PicksmartTheme(darkTheme = true) {
-                StartScreen()
-            }
+            // Wait for the stored theme before drawing, so a rider who chose Dark never sees a
+            // flash of the light theme. The window background shows for that moment.
+            val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = null)
+            themeMode?.let { AppContent(it) }
         }
     }
-}
 
-/** Phase 0 start screen. Replaced by the app shell and bottom navigation in Phase 2. */
-@Composable
-private fun StartScreen() {
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.picksmart_logo),
-                contentDescription = stringResource(R.string.app_name),
-                modifier = Modifier.width(240.dp),
+    @Composable
+    private fun AppContent(mode: ThemeMode) {
+        val darkTheme = when (mode) {
+            ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            ThemeMode.LIGHT -> false
+            ThemeMode.DARK -> true
+        }
+
+        // Keep system bar icons readable when the app theme differs from the phone's.
+        DisposableEffect(darkTheme) {
+            enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                navigationBarStyle = SystemBarStyle.auto(LightScrim, DarkScrim) { darkTheme },
             )
-            Text(
-                text = stringResource(R.string.tagline),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 24.dp),
-            )
+            onDispose {}
+        }
+
+        PicksmartTheme(darkTheme = darkTheme) {
+            PicksmartApp()
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun StartScreenPreview() {
-    PicksmartTheme(darkTheme = true) {
-        StartScreen()
+    private companion object {
+        // Scrims for three-button navigation on older Android versions, where the bar can't be fully transparent.
+        val LightScrim = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)
+        val DarkScrim = Color.argb(0x80, 0x1B, 0x1B, 0x1B)
     }
 }

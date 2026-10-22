@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 2 — Design system and app shell
-- **Next step:** Build the theme (including profit/loss/below-target colours and a readable light-theme accent), the `Rs.` formatter in `util/`, and the five-tab navigation shell with `AppContainer`.
-- **Last updated:** 2026-10-22 (Phase 1 done)
+- **Current phase:** 3 — Persistence foundation and onboarding
+- **Next step:** Room database v1 with the `Vehicle` entity (schema exported), then first-launch onboarding that saves the vehicle and the onboarding flag.
+- **Last updated:** 2026-10-22 (Phase 2 done)
 
 ## Open questions for the owner
 
@@ -52,13 +52,13 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 2 — Design system and app shell
 
-- [ ] Theme: colours (including profit, loss and below-target), typography, spacing, shapes; dark, light and system modes
-- [ ] Reusable components: buttons, number input fields, cards, result band chip, empty/loading/error states
-- [ ] Currency and number formatter in `util/` (`Rs. 1,250.00`)
-- [ ] Type-safe navigation with the five bottom tabs
-- [ ] `AppContainer` for manual DI
-- [ ] All strings in `strings.xml`
-- [ ] Checked at small screen size and 200% font scale
+- [x] Theme: colours (including profit, loss and below-target), typography, spacing, shapes; dark, light and system modes
+- [x] Reusable components: buttons, number input fields, cards, result band chip, empty/loading/error states
+- [x] Currency and number formatter in `util/` (`Rs. 1,250.00`)
+- [x] Type-safe navigation with the five bottom tabs
+- [x] `AppContainer` for manual DI
+- [x] All strings in `strings.xml`
+- [x] Checked at small screen size and 200% font scale (360 × 640 dp emulator, 2026-10-22)
 
 **Done when:** every tab opens a real (if simple) screen, and back navigation works.
 
@@ -66,7 +66,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] Room database v1 with `exportSchema = true`, schema committed
 - [ ] `Vehicle` entity, DAO and repository
-- [ ] DataStore: default vehicle, onboarding flag, theme, last-used inputs
+- [ ] DataStore: default vehicle, onboarding flag, theme, last-used inputs (theme done in Phase 2: `UserPreferencesRepository`)
 - [ ] First-launch onboarding: vehicle type, fuel type, fuel price, efficiency, maintenance reserve, optional target per km
 - [ ] "Use sample values" option, clearly labelled as samples
 - [ ] One-time safety notice

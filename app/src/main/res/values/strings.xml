@@ -1,5 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Picksmart</string>
-    <string name="tagline">Know your real profit before you ride.</string>
+    <!-- Shown before every amount: "Rs. 1,250.00". -->
+    <string name="currency_prefix">Rs.</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_check_ride">Check Ride</string>
+    <string name="nav_history">History</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Result bands. Always shown with an icon; never rely on colour alone. -->
+    <string name="band_good">Good</string>
+    <string name="band_profit">Profit</string>
+    <string name="band_below_target">Below target</string>
+    <string name="band_loss">Loss</string>
+    <string name="band_break_even">Break-even</string>
+
+    <!-- Common -->
+    <string name="action_check_ride">Check a Ride</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="state_loading">Loading</string>
+
+    <!-- Home -->
+    <string name="home_title">Today</string>
+    <!-- java.time pattern for the date above the Home title, e.g. "Wednesday, 21 Oct". -->
+    <string name="home_date_pattern">EEEE, d MMM</string>
+    <string name="home_empty_title">No trips yet today</string>
+    <string name="home_empty_body">Check a ride offer to see your real profit before you accept it.</string>
+
+    <!-- Check a Ride -->
+    <string name="check_ride_title">Check a Ride</string>
+    <string name="check_ride_empty_title">Ride check is coming soon</string>
+    <string name="check_ride_empty_body">You\'ll type the fare and distance here and see your estimated profit, profit per km, and whether the ride is worth taking.</string>
+
+    <!-- History -->
+    <string name="history_title">History</string>
+    <string name="history_empty_title">No trips yet</string>
+    <string name="history_empty_body">Rides you check, complete or cancel will be listed here, newest first.</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Reports</string>
+    <string name="reports_empty_title">No reports yet</string>
+    <string name="reports_empty_body">Your daily, weekly and monthly profit will appear here once you record trips.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_app">App</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_version">Version</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

@@ -2,6 +2,6 @@
 <resources>
     <!-- Used only by the window and launcher icon before Compose draws. Compose colours live in ui/theme. -->
     <color name="brand_yellow">#FFFBBB23</color>
-    <color name="near_black">#FF0B0D0F</color>
+    <color name="near_black">#FF0D1112</color>
     <color name="off_white">#FFF5F5F2</color>
 </resources>

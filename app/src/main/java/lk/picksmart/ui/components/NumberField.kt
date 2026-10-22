@@ -1,0 +1,61 @@
+package lk.picksmart.ui.components
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import lk.picksmart.util.sanitizeDecimalInput
+
+/**
+ * A number input with a numeric keyboard. Typing is cleaned with [sanitizeDecimalInput], so the
+ * value is always empty or a non-negative number. Use [prefix] for "Rs." and [suffix] for units
+ * such as "km".
+ *
+ * @param error Shown under the field and announced by screen readers; null when valid.
+ */
+@Composable
+fun NumberField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    prefix: String? = null,
+    suffix: String? = null,
+    maxDecimals: Int = 2,
+    supportingText: String? = null,
+    error: String? = null,
+    imeAction: ImeAction = ImeAction.Next,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onValueChange(sanitizeDecimalInput(it, maxDecimals)) },
+        label = { Text(label) },
+        prefix = prefix?.let { { Text(it) } },
+        suffix = suffix?.let { { Text(it) } },
+        supportingText = (error ?: supportingText)?.let { { Text(it) } },
+        isError = error != null,
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleLarge,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = if (maxDecimals > 0) KeyboardType.Decimal else KeyboardType.Number,
+            imeAction = imeAction,
+        ),
+        shape = MaterialTheme.shapes.medium,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (error != null) Modifier.semantics { error(error) } else Modifier),
+    )
+}

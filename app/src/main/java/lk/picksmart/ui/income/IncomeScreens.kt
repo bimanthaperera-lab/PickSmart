@@ -1,17 +1,12 @@
 package lk.picksmart.ui.income
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -20,26 +15,19 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
@@ -49,22 +37,23 @@ import lk.picksmart.domain.model.Platform
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.ChoiceGrid
 import lk.picksmart.ui.components.DateField
+import lk.picksmart.ui.components.DetailHeader
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.FieldLabel
 import lk.picksmart.ui.components.LoadingState
+import lk.picksmart.ui.components.MonthTotalCard
 import lk.picksmart.ui.components.NumberField
-import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
-import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.TextInputField
+import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.trip.label
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /** Other income: this month's total, the entries newest first, and "Add income". */
 @Composable
@@ -125,49 +114,28 @@ fun IncomeListScreen(
 }
 
 @Composable
-private fun MonthTotal(cents: Long) {
+private fun IncomeRow(entry: OtherIncome, today: LocalDate, onClick: () -> Unit) {
     val money = rememberMoneyFormatter()
-    PicksmartCard(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
-        Text(stringResource(R.string.income_month_total), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(money.formatSigned(cents), style = MaterialTheme.typography.headlineMedium, color = PicksmartTheme.status.profit)
-        Text(stringResource(R.string.income_month_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    val date = rememberRecordDate(entry.date, today)
+    val type = stringResource(entry.type.label)
+    val title = entry.platform?.let { stringResource(R.string.history_row_title, type, stringResource(it.label)) } ?: type
+    RecordRow(
+        title = title,
+        subtitle = entry.note?.let { stringResource(R.string.income_row_subtitle, date, it) } ?: date,
+        amount = money.formatSigned(entry.amountCents),
+        onClick = onClick,
+        amountColor = PicksmartTheme.status.profit,
+    )
 }
 
 @Composable
-private fun IncomeRow(entry: OtherIncome, today: LocalDate, onClick: () -> Unit) {
-    val money = rememberMoneyFormatter()
-    val locale = LocalConfiguration.current.locales[0]
-    val pattern = stringResource(if (entry.date.year == today.year) R.string.pattern_short_date else R.string.pattern_date_field)
-    val date = remember(entry.date, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(entry.date) }
-    val type = stringResource(entry.type.label)
-    val title = entry.platform?.let { stringResource(R.string.history_row_title, type, stringResource(it.label)) } ?: type
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics(mergeDescendants = true) {},
-    ) {
-        Row(
-            Modifier
-                .defaultMinSize(minHeight = 64.dp)
-                .padding(horizontal = Spacing.l, vertical = Spacing.m),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    entry.note?.let { stringResource(R.string.income_row_subtitle, date, it) } ?: date,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Spacer(Modifier.width(Spacing.s))
-            Text(money.formatSigned(entry.amountCents), style = MaterialTheme.typography.titleMedium, color = PicksmartTheme.status.profit)
-        }
-    }
+private fun MonthTotal(cents: Long) {
+    MonthTotalCard(
+        label = stringResource(R.string.income_month_total),
+        amount = rememberMoneyFormatter().formatSigned(cents),
+        note = stringResource(R.string.income_month_note),
+        amountColor = PicksmartTheme.status.profit,
+    )
 }
 
 @Composable
@@ -288,30 +256,6 @@ private fun IncomeForm(state: EditIncomeUiState.Editing, onChange: (IncomeFormSt
         maxLength = NOTE_MAX_LENGTH,
         imeAction = ImeAction.Done,
     )
-}
-
-/** Back or close icon, a title, and optional actions on the right. */
-@Composable
-private fun DetailHeader(
-    title: String,
-    navIcon: Int,
-    navDescription: String,
-    onNav: () -> Unit,
-    actions: @Composable () -> Unit = {},
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = Spacing.s, end = Spacing.s, top = Spacing.s),
-    ) {
-        IconButton(onClick = onNav) { Icon(painterResource(navIcon), contentDescription = navDescription) }
-        ScreenTitle(
-            title,
-            Modifier
-                .weight(1f)
-                .padding(start = Spacing.s),
-        )
-        actions()
-    }
 }
 
 private const val NOTE_MAX_LENGTH = 100

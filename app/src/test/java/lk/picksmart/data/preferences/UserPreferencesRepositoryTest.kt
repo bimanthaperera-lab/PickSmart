@@ -110,4 +110,12 @@ class UserPreferencesRepositoryTest {
         }
         assertEquals(LastCheckInputs(), UserPreferencesRepository(dataStore).lastCheckInputs.first())
     }
+
+    @Test
+    fun `a dismissed km per litre suggestion is remembered`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        assertNull(prefs.dismissedEfficiencyLogId.first())
+        prefs.setDismissedEfficiencyLogId(12)
+        assertEquals(12L, prefs.dismissedEfficiencyLogId.first())
+    }
 }

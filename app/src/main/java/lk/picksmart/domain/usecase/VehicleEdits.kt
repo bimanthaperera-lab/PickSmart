@@ -68,3 +68,11 @@ fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long): Ve
         updatedAtMillis = nowMillis,
     )
 }
+
+/**
+ * Sets the km per litre the rider accepted from a measured reading. Only efficiency changes: the
+ * other rates (and the "Sample" label on them) stay as they were, and past trips keep their own
+ * snapshot.
+ */
+fun applyEfficiencyUpdate(current: Vehicle, kmPerLitre: Double, nowMillis: Long): Vehicle =
+    current.copy(fuelEfficiencyKmPerLitre = kmPerLitre, updatedAtMillis = nowMillis)

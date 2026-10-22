@@ -11,6 +11,7 @@ import lk.picksmart.data.local.entity.toEntity
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
+import lk.picksmart.domain.usecase.applyEfficiencyUpdate
 import lk.picksmart.domain.usecase.applyVehicleEdit
 import lk.picksmart.domain.usecase.newVehicle
 import java.time.Clock
@@ -41,6 +42,13 @@ class VehicleRepository(
     suspend fun update(id: Long, input: VehicleInput): Boolean {
         val current = dao.get(id)?.toDomain() ?: return false
         dao.update(applyVehicleEdit(current, input, clock.millis()).toEntity())
+        return true
+    }
+
+    /** The rider accepted a measured km/L. Returns false if the vehicle no longer exists. */
+    suspend fun setFuelEfficiency(id: Long, kmPerLitre: Double): Boolean {
+        val current = dao.get(id)?.toDomain() ?: return false
+        dao.update(applyEfficiencyUpdate(current, kmPerLitre, clock.millis()).toEntity())
         return true
     }
 }

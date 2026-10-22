@@ -52,6 +52,18 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         )
     }.distinctUntilChanged()
 
+    /**
+     * The fill-up whose km/L suggestion the rider dismissed with "Not now", so the same reading
+     * isn't offered again. A later full-tank fill gives a new reading and a new chance.
+     */
+    val dismissedEfficiencyLogId: Flow<Long?> = dataStore.data
+        .map { it[Keys.DISMISSED_EFFICIENCY_LOG_ID] }
+        .distinctUntilChanged()
+
+    suspend fun setDismissedEfficiencyLogId(id: Long) {
+        dataStore.edit { it[Keys.DISMISSED_EFFICIENCY_LOG_ID] = id }
+    }
+
     suspend fun setLastCheckInputs(inputs: LastCheckInputs) {
         dataStore.edit {
             it[Keys.CHECK_PLATFORM] = inputs.platform.name
@@ -99,6 +111,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val CHECK_PICKUP_KM = doublePreferencesKey("check_pickup_km")
         val CHECK_TRIP_KM = doublePreferencesKey("check_trip_km")
         val CHECK_RETURN_KM = doublePreferencesKey("check_return_km")
+
+        val DISMISSED_EFFICIENCY_LOG_ID = longPreferencesKey("dismissed_efficiency_log_id")
     }
 }
 

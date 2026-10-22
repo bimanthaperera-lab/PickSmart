@@ -84,4 +84,14 @@ class VehicleEditsTest {
         assertEquals(1_000L, edited.createdAtMillis)
         assertEquals(9_000L, edited.updatedAtMillis)
     }
+
+    @Test
+    fun `accepting a measured km per litre changes only efficiency`() {
+        val sample = published.copy(isSample = true)
+        val updated = applyEfficiencyUpdate(sample, 36.3, nowMillis = 9_000)
+        assertEquals(sample.copy(fuelEfficiencyKmPerLitre = 36.3, updatedAtMillis = 9_000), updated)
+        // The published price and its auto-update setting are untouched.
+        assertEquals(FuelPriceSource.PUBLISHED, updated.fuelPriceSource)
+        assertTrue(updated.autoUpdateFuelPrice)
+    }
 }

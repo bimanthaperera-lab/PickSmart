@@ -1,11 +1,16 @@
 package lk.picksmart.data.preferences
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import lk.picksmart.domain.model.CommissionType
+import lk.picksmart.domain.model.FareMode
+import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.ThemeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -63,5 +68,43 @@ class UserPreferencesRepositoryTest {
         val dataStore = store()
         dataStore.edit { it[stringPreferencesKey("theme_mode")] = "SEPIA" }
         assertEquals(ThemeMode.SYSTEM, UserPreferencesRepository(dataStore).themeMode.first())
+    }
+
+    @Test
+    fun `check a ride starts empty in gross mode before the first check`() = runTest {
+        assertEquals(LastCheckInputs(), UserPreferencesRepository(store()).lastCheckInputs.first())
+    }
+
+    @Test
+    fun `last check inputs round trip, and clearing a field removes it`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        val full = LastCheckInputs(
+            fareMode = FareMode.PAYOUT_AFTER_COMMISSION,
+            commissionType = CommissionType.AMOUNT,
+            commissionHundredths = 20_000,
+            otherCostsCents = 5_000,
+            pickupKm = 2.5,
+            tripKm = 8.0,
+            returnKm = 1.2,
+        )
+        prefs.setLastCheckInputs(full)
+        assertEquals(full, prefs.lastCheckInputs.first())
+
+        val cleared = full.copy(commissionHundredths = null, returnKm = null)
+        prefs.setLastCheckInputs(cleared)
+        assertEquals(cleared, prefs.lastCheckInputs.first())
+    }
+
+    @Test
+    fun `unknown or invalid stored check values fall back to defaults`() = runTest {
+        val dataStore = store()
+        dataStore.edit {
+            it[stringPreferencesKey("check_fare_mode")] = "SOMETHING_NEW"
+            it[stringPreferencesKey("check_commission_type")] = "PER_KM"
+            it[longPreferencesKey("check_commission_hundredths")] = -5
+            it[doublePreferencesKey("check_pickup_km")] = Double.NaN
+            it[doublePreferencesKey("check_trip_km")] = -1.0
+        }
+        assertEquals(LastCheckInputs(), UserPreferencesRepository(dataStore).lastCheckInputs.first())
     }
 }

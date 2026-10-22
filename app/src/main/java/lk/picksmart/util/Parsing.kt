@@ -23,3 +23,9 @@ fun centsToInput(cents: Long): String = BigDecimal.valueOf(cents, 2).toPlainStri
 
 /** A number as editable text without trailing zeros: 40.0 → "40", 37.5 → "37.5". */
 fun decimalToInput(value: Double): String = BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
+
+/**
+ * A two-decimal whole number (cents, or hundredths of a percent) as short editable text:
+ * 20000 → "200", 1250 → "12.5", 5 → "0.05".
+ */
+fun hundredthsToInput(value: Long): String = BigDecimal.valueOf(value, 2).stripTrailingZeros().toPlainString()

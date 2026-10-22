@@ -49,4 +49,12 @@ class ParsingTest {
         assertEquals("37.5", decimalToInput(37.5))
         assertEquals("0.1", decimalToInput(0.1))
     }
+
+    @Test
+    fun `hundredths become short editable text`() {
+        assertEquals("200", hundredthsToInput(20_000))
+        assertEquals("12.5", hundredthsToInput(1_250))
+        assertEquals("0.05", hundredthsToInput(5))
+        assertEquals("0", hundredthsToInput(0))
+    }
 }

@@ -2,13 +2,16 @@ package lk.picksmart.data.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.ThemeMode
 
 /**
@@ -18,9 +21,7 @@ import lk.picksmart.domain.model.ThemeMode
 class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     val themeMode: Flow<ThemeMode> = dataStore.data.map { prefs ->
-        // An unknown stored value (e.g. written by a newer version) falls back to the default.
-        prefs[Keys.THEME_MODE]?.let { stored -> ThemeMode.entries.firstOrNull { it.name == stored } }
-            ?: ThemeMode.SYSTEM
+        prefs[Keys.THEME_MODE].toEnum(ThemeMode.SYSTEM)
     }.distinctUntilChanged()
 
     /**
@@ -35,6 +36,32 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     val defaultVehicleId: Flow<Long?> = dataStore.data
         .map { it[Keys.DEFAULT_VEHICLE_ID] }
         .distinctUntilChanged()
+
+    /** The values Check a Ride starts from. Defaults (all empty) before the first check. */
+    val lastCheckInputs: Flow<LastCheckInputs> = dataStore.data.map { prefs ->
+        val defaults = LastCheckInputs()
+        LastCheckInputs(
+            fareMode = prefs[Keys.CHECK_FARE_MODE].toEnum(defaults.fareMode),
+            commissionType = prefs[Keys.CHECK_COMMISSION_TYPE].toEnum(defaults.commissionType),
+            commissionHundredths = prefs[Keys.CHECK_COMMISSION_HUNDREDTHS]?.takeIf { it >= 0 },
+            otherCostsCents = prefs[Keys.CHECK_OTHER_COSTS_CENTS]?.takeIf { it >= 0 },
+            pickupKm = prefs[Keys.CHECK_PICKUP_KM].validKm(),
+            tripKm = prefs[Keys.CHECK_TRIP_KM].validKm(),
+            returnKm = prefs[Keys.CHECK_RETURN_KM].validKm(),
+        )
+    }.distinctUntilChanged()
+
+    suspend fun setLastCheckInputs(inputs: LastCheckInputs) {
+        dataStore.edit {
+            it[Keys.CHECK_FARE_MODE] = inputs.fareMode.name
+            it[Keys.CHECK_COMMISSION_TYPE] = inputs.commissionType.name
+            it.setOrRemove(Keys.CHECK_COMMISSION_HUNDREDTHS, inputs.commissionHundredths)
+            it.setOrRemove(Keys.CHECK_OTHER_COSTS_CENTS, inputs.otherCostsCents)
+            it.setOrRemove(Keys.CHECK_PICKUP_KM, inputs.pickupKm)
+            it.setOrRemove(Keys.CHECK_TRIP_KM, inputs.tripKm)
+            it.setOrRemove(Keys.CHECK_RETURN_KM, inputs.returnKm)
+        }
+    }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { it[Keys.THEME_MODE] = mode.name }
@@ -52,9 +79,28 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    private fun <T : Any> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
+        if (value == null) remove(key) else set(key, value)
+    }
+
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         val DEFAULT_VEHICLE_ID = longPreferencesKey("default_vehicle_id")
+
+        // Last-used Check a Ride inputs. An absent key means the field was left empty.
+        val CHECK_FARE_MODE = stringPreferencesKey("check_fare_mode")
+        val CHECK_COMMISSION_TYPE = stringPreferencesKey("check_commission_type")
+        val CHECK_COMMISSION_HUNDREDTHS = longPreferencesKey("check_commission_hundredths")
+        val CHECK_OTHER_COSTS_CENTS = longPreferencesKey("check_other_costs_cents")
+        val CHECK_PICKUP_KM = doublePreferencesKey("check_pickup_km")
+        val CHECK_TRIP_KM = doublePreferencesKey("check_trip_km")
+        val CHECK_RETURN_KM = doublePreferencesKey("check_return_km")
     }
 }
+
+/** An unknown stored name (e.g. written by a newer version) falls back to [default]. */
+private inline fun <reified E : Enum<E>> String?.toEnum(default: E): E =
+    this?.let { stored -> enumValues<E>().firstOrNull { it.name == stored } } ?: default
+
+private fun Double?.validKm(): Double? = this?.takeIf { it.isFinite() && it >= 0 }

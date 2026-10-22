@@ -44,6 +44,7 @@ import lk.picksmart.ui.vehicle.vehicleRatesSummary
 @Composable
 fun SettingsScreen(
     onEditVehicle: (vehicleId: Long) -> Unit,
+    onOpenIncome: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -54,6 +55,16 @@ fun SettingsScreen(
         ScreenTitle(stringResource(R.string.settings_title))
         Column {
             VehicleSettings(vehicle, onEditVehicle)
+            SectionLabel(stringResource(R.string.settings_section_records))
+            ListGroup(
+                rows = listOf {
+                    ListRow(
+                        title = stringResource(R.string.settings_other_income),
+                        subtitle = stringResource(R.string.settings_other_income_body),
+                        onClick = onOpenIncome,
+                    )
+                },
+            )
             SectionLabel(stringResource(R.string.settings_section_app))
             ListGroup(
                 rows = listOf {

@@ -13,15 +13,17 @@ import androidx.compose.ui.res.stringResource
 import lk.picksmart.R
 import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.EmptyState
+import lk.picksmart.ui.components.ListGroup
+import lk.picksmart.ui.components.ListRow
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.util.todayInColombo
 import java.time.format.DateTimeFormatter
 
-/** Today's summary. Shows the empty state until trips are recorded (Phase 5 and 7). */
+/** Today's summary. The dashboard arrives in Phase 7; until then, the way in and records. */
 @Composable
-fun HomeScreen(onCheckRide: () -> Unit) {
+fun HomeScreen(onCheckRide: () -> Unit, onOpenIncome: () -> Unit) {
     TabScreen {
         HomeHeader()
         EmptyState(
@@ -30,6 +32,15 @@ fun HomeScreen(onCheckRide: () -> Unit) {
             body = stringResource(R.string.home_empty_body),
             actionLabel = stringResource(R.string.action_check_ride),
             onAction = onCheckRide,
+        )
+        ListGroup(
+            rows = listOf {
+                ListRow(
+                    title = stringResource(R.string.settings_other_income),
+                    subtitle = stringResource(R.string.settings_other_income_body),
+                    onClick = onOpenIncome,
+                )
+            },
         )
     }
 }

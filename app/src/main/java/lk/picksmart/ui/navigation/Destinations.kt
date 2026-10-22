@@ -28,6 +28,17 @@ data class EditTripRoute(val tripId: Long) {
     }
 }
 
+/** Other income list. Opened from Home and Settings. */
+@Serializable data object OtherIncomeRoute
+
+/** Add an income entry, or edit one when [incomeId] isn't [NEW]. */
+@Serializable
+data class EditIncomeRoute(val incomeId: Long) {
+    companion object {
+        const val NEW = 0L
+    }
+}
+
 /** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
 enum class TopLevelDestination(
     val route: Any,

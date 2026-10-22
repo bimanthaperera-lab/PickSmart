@@ -32,6 +32,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import lk.picksmart.ui.checkride.CheckRideScreen
 import lk.picksmart.ui.history.HistoryScreen
+import lk.picksmart.ui.income.EditIncomeScreen
+import lk.picksmart.ui.income.IncomeListScreen
 import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
 import lk.picksmart.ui.settings.SettingsScreen
@@ -81,7 +83,8 @@ fun PicksmartApp() {
                 .consumeWindowInsets(innerPadding),
         ) {
             val openCheckRide = { navController.navigateToTopLevel(TopLevelDestination.CHECK_RIDE) }
-            composable<HomeRoute> { HomeScreen(onCheckRide = openCheckRide) }
+            val openIncome = { navController.navigate(OtherIncomeRoute) }
+            composable<HomeRoute> { HomeScreen(onCheckRide = openCheckRide, onOpenIncome = openIncome) }
             composable<CheckRideRoute> {
                 CheckRideScreen(
                     onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
@@ -95,6 +98,16 @@ fun PicksmartApp() {
                     onOpenTrip = { id -> navController.navigate(EditTripRoute(id)) },
                 )
             }
+            composable<OtherIncomeRoute> {
+                IncomeListScreen(
+                    onBack = { navController.popIfOn(OtherIncomeRoute::class) },
+                    onAdd = { navController.navigate(EditIncomeRoute(EditIncomeRoute.NEW)) },
+                    onOpen = { id -> navController.navigate(EditIncomeRoute(id)) },
+                )
+            }
+            composable<EditIncomeRoute> {
+                EditIncomeScreen(onClose = { navController.popIfOn(EditIncomeRoute::class) })
+            }
             composable<EditTripRoute> {
                 EditTripScreen(
                     onClose = { navController.popIfOn(EditTripRoute::class) },
@@ -103,7 +116,10 @@ fun PicksmartApp() {
             }
             composable<ReportsRoute> { ReportsScreen() }
             composable<SettingsRoute> {
-                SettingsScreen(onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) })
+                SettingsScreen(
+                    onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) },
+                    onOpenIncome = openIncome,
+                )
             }
             composable<EditVehicleRoute> {
                 EditVehicleScreen(

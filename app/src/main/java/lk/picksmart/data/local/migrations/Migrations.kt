@@ -32,7 +32,30 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 }
 
 /**
+ * Version 3 adds the `fuel_logs` and `expenses` tables. Existing tables are untouched. The SQL is
+ * copied from the exported `3.json` schema.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `fuel_logs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`vehicle_id` INTEGER NOT NULL, `date` TEXT NOT NULL, `litres` REAL NOT NULL, " +
+                "`price_per_litre_cents` INTEGER NOT NULL, `total_cents` INTEGER NOT NULL, `odometer_km` REAL, " +
+                "`full_tank` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_fuel_logs_date` ON `fuel_logs` (`date`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_fuel_logs_vehicle_id` ON `fuel_logs` (`vehicle_id`)")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `expenses` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`vehicle_id` INTEGER, `date` TEXT NOT NULL, `category` TEXT NOT NULL, `amount_cents` INTEGER NOT NULL, " +
+                "`note` TEXT, `odometer_km` REAL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_expenses_date` ON `expenses` (`date`)")
+    }
+}
+
+/**
  * Every schema change after version 1 adds an explicit [Migration] here, plus a
  * `MigrationTestHelper` test. Destructive fallback is never used (CLAUDE.md N7).
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)

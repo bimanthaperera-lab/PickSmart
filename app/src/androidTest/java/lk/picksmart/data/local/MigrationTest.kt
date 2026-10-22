@@ -8,7 +8,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
 import lk.picksmart.data.local.migrations.MIGRATION_1_2
+import lk.picksmart.data.local.migrations.MIGRATION_2_3
+import lk.picksmart.domain.model.IncomeType
+import lk.picksmart.domain.model.TripStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -58,6 +62,65 @@ class MigrationTest {
             assertEquals(2_000L, vehicle.updatedAtMillis)
             assertTrue(db.tripDao().observeAll().first().isEmpty())
             assertTrue(db.otherIncomeDao().observeAll().first().isEmpty())
+        } finally {
+            db.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun migrate2To3KeepsTripsAndIncomeAndAddsEmptyFuelAndExpenseTables() = runTest {
+        helper.createDatabase(dbName, 2).apply {
+            execSQL(
+                """
+                INSERT INTO vehicles (id, name, type, fuel_type, fuel_price_per_litre_cents, fuel_price_source,
+                    fuel_price_effective_date, auto_update_fuel_price, fuel_efficiency_km_per_litre,
+                    maintenance_reserve_per_km_cents, target_profit_per_km_cents, is_sample, archived,
+                    created_at, updated_at)
+                VALUES (1, 'Honda Dio', 'MOTORCYCLE', 'PETROL_92', 30000, 'MANUAL',
+                    NULL, 0, 40.0, 200, NULL, 0, 0, 1000, 1000)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO trips (id, vehicle_id, created_at, updated_at, trip_date_time, platform, status,
+                    fare_cents, fare_mode, commission_type, commission_hundredths, pickup_km, trip_km, return_km,
+                    other_costs_cents, cancellation_fee_cents, notes, fuel_price_per_litre_cents_snapshot,
+                    fuel_efficiency_snapshot, maintenance_reserve_per_km_cents_snapshot,
+                    target_profit_per_km_cents_snapshot)
+                VALUES (3, 1, 1000, 2000, 1792000000000, 'PICKME', 'CANCELLED', 100000, 'GROSS_BEFORE_COMMISSION',
+                    'PERCENT', 2000, 2.5, 0.0, 1.0, 0, 15000, 'Rider no-show', 30000, 40.0, 200, NULL)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO other_income (id, date, type, platform, amount_cents, note, created_at, updated_at)
+                VALUES (4, '2026-10-20', 'BONUS', NULL, 150000, NULL, 1000, 1000)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // Validates the migrated schema against 3.json, including indices.
+        helper.runMigrationsAndValidate(dbName, 3, true, MIGRATION_2_3).close()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.databaseBuilder(context, PicksmartDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
+        try {
+            assertEquals("Honda Dio", db.vehicleDao().get(1)!!.name)
+            val trip = db.tripDao().get(3)!!
+            assertEquals(TripStatus.CANCELLED, trip.status)
+            assertEquals(15_000L, trip.cancellationFeeCents)
+            assertEquals(2.5, trip.pickupKm, 0.0)
+            assertEquals("Rider no-show", trip.notes)
+            assertNull(trip.targetProfitPerKmCentsSnapshot)
+            val income = db.otherIncomeDao().get(4)!!
+            assertEquals(IncomeType.BONUS, income.type)
+            assertEquals(150_000L, income.amountCents)
+            assertTrue(db.fuelLogDao().observeAll().first().isEmpty())
+            assertTrue(db.expenseDao().observeAll().first().isEmpty())
         } finally {
             db.close()
             context.deleteDatabase(dbName)

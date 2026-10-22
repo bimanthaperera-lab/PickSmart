@@ -23,6 +23,36 @@
     <string name="action_retry">Try again</string>
     <string name="action_cancel">Cancel</string>
     <string name="state_loading">Loading</string>
+    <string name="action_view">View</string>
+    <string name="action_ok">OK</string>
+    <string name="action_back">Back</string>
+    <string name="action_delete">Delete</string>
+
+    <!-- Platforms, trip statuses and income types -->
+    <string name="platform_uber">Uber</string>
+    <string name="platform_pickme">PickMe</string>
+    <string name="platform_courier">Courier</string>
+    <string name="platform_own_delivery">Own delivery</string>
+    <string name="platform_other">Other</string>
+    <!-- Two-letter badges in lists -->
+    <string name="platform_uber_initials">UB</string>
+    <string name="platform_pickme_initials">PM</string>
+    <string name="platform_courier_initials">CO</string>
+    <string name="platform_own_delivery_initials">OD</string>
+    <string name="platform_other_initials">OT</string>
+    <string name="trip_status_offer">Offer</string>
+    <string name="trip_status_completed">Completed</string>
+    <string name="trip_status_cancelled">Cancelled</string>
+    <string name="income_type_incentive">Incentive</string>
+    <string name="income_type_tip">Tip</string>
+    <string name="income_type_bonus">Bonus</string>
+    <string name="income_type_other">Other</string>
+    <!-- java.time patterns -->
+    <string name="pattern_date_field">d MMM yyyy</string>
+    <string name="pattern_time">h:mm a</string>
+    <string name="pattern_day">EEE d MMM</string>
+    <string name="pattern_day_with_year">EEE d MMM yyyy</string>
+    <string name="pattern_short_date">d MMM</string>
 
     <!-- Home -->
     <string name="home_title">Today</string>
@@ -63,6 +93,13 @@
     <string name="check_error_percent_above_100">Can\'t be more than 100%</string>
     <string name="check_safety_line">Estimate only. Check offers when you\'re stopped safely.</string>
 
+    <string name="check_save_offer">Save offer</string>
+    <string name="check_took_it">I took it</string>
+    <string name="check_took_it_anyway">Took it anyway</string>
+    <string name="check_saved_offer">Offer saved. It isn\'t counted as income.</string>
+    <string name="check_saved_trip">Trip saved to History.</string>
+    <string name="check_save_failed">Couldn\'t save. Please try again.</string>
+
     <!-- Check a Ride result -->
     <string name="check_result_needs_fare_title">Enter the fare</string>
     <string name="check_result_needs_fare_body">Your estimated profit appears here as you type.</string>
@@ -90,7 +127,83 @@
     <!-- History -->
     <string name="history_title">History</string>
     <string name="history_empty_title">No trips yet</string>
-    <string name="history_empty_body">Rides you check, complete or cancel will be listed here, newest first.</string>
+    <string name="history_empty_body">Save an offer or a trip from Check a Ride, or add a trip you\'ve already done.</string>
+    <string name="history_add_trip">Add trip</string>
+    <string name="history_filter_all">All</string>
+    <string name="history_filter_completed">Completed</string>
+    <string name="history_filter_offers">Offers</string>
+    <string name="history_filter_cancelled">Cancelled</string>
+    <string name="history_filter_empty_title">Nothing here</string>
+    <string name="history_filter_empty_body">No trips match this filter.</string>
+    <!-- Day headers: "Today · Wed 21 Oct" -->
+    <string name="history_today">Today · %1$s</string>
+    <string name="history_yesterday">Yesterday · %1$s</string>
+    <!-- Estimated profit of the day's completed and cancelled trips (offers excluded). -->
+    <string name="history_day_total">Est. profit %1$s</string>
+    <!-- "PickMe · 4:42 PM" -->
+    <string name="history_row_title">%1$s · %2$s</string>
+    <!-- "10.0 km · fare Rs. 1,000.00" -->
+    <string name="history_row_trip">%1$s km · fare %2$s</string>
+    <string name="history_row_cancelled_fee">%1$s km · fee %2$s</string>
+    <string name="history_row_cancelled_no_fee">%1$s km · no fee</string>
+    <string name="history_row_offer_note">Not counted as income</string>
+    <!-- An offer's estimate, which is never income: "-Rs. 50.00 est." -->
+    <string name="history_offer_estimate">%1$s est.</string>
+    <string name="history_row_unavailable">Can\'t calculate</string>
+
+    <!-- Add / edit trip -->
+    <string name="trip_add_title">Add trip</string>
+    <string name="trip_edit_title">Edit trip</string>
+    <string name="trip_delete">Delete trip</string>
+    <string name="trip_delete_title">Delete this trip?</string>
+    <string name="trip_delete_body">It will be removed from History and your totals. This can\'t be undone.</string>
+    <string name="trip_date">Date</string>
+    <string name="trip_time">Time</string>
+    <string name="trip_fare_received">Fare received</string>
+    <string name="trip_cancellation_fee">Cancellation fee</string>
+    <string name="trip_cancellation_fee_help">Leave empty if you weren\'t paid for it.</string>
+    <string name="trip_pickup_driven">Driven to pickup</string>
+    <string name="trip_notes">Note · optional</string>
+    <string name="trip_offer_notice">This is a checked offer, so it isn\'t counted as income. Choose Completed or Cancelled to record what happened.</string>
+    <!-- "Calculated with Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
+    <string name="trip_rates_summary">Calculated with %1$s/L · %2$s km/L · %3$s/km reserve</string>
+    <string name="trip_net_profit">Net profit</string>
+    <string name="trip_net_estimate_offer">Estimate · not counted as income</string>
+    <string name="trip_save">Save trip</string>
+    <string name="trip_error_fare_required">Enter the fare</string>
+    <string name="trip_not_found_title">Trip not found</string>
+    <string name="trip_not_found_body">This trip is no longer on this phone.</string>
+    <string name="trip_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
+    <string name="trip_no_vehicle_body">Add your vehicle first, so the trip has fuel and maintenance rates.</string>
+
+    <!-- Other income -->
+    <string name="income_title">Other income</string>
+    <string name="income_month_total">Extra income this month</string>
+    <string name="income_month_note">Counted on top of your trip earnings</string>
+    <string name="income_recent">Recent</string>
+    <string name="income_help">Add money that isn\'t tied to a single trip, like bonuses, tips and incentives. Cancellation fees go on the cancelled trip, so they\'re never counted twice.</string>
+    <string name="income_add">Add income</string>
+    <string name="income_empty_title">No other income yet</string>
+    <string name="income_add_title">Add income</string>
+    <string name="income_edit_title">Edit income</string>
+    <string name="income_type">Type</string>
+    <string name="income_platform">Platform · optional</string>
+    <string name="income_platform_none">None</string>
+    <string name="income_amount">Amount</string>
+    <string name="income_date">Date</string>
+    <string name="income_note">Note · optional</string>
+    <string name="income_note_placeholder">e.g. 20 trips done</string>
+    <string name="income_save">Save income</string>
+    <string name="income_delete">Delete income</string>
+    <string name="income_delete_title">Delete this income?</string>
+    <string name="income_delete_body">It will be removed from your totals. This can\'t be undone.</string>
+    <string name="income_error_amount_required">Enter the amount</string>
+    <string name="income_error_amount_zero">Must be more than 0</string>
+    <string name="income_not_found_title">Income not found</string>
+    <string name="income_not_found_body">This entry is no longer on this phone.</string>
+    <string name="income_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
+    <!-- "20 Oct · 20 trips done" -->
+    <string name="income_row_subtitle">%1$s · %2$s</string>
 
     <!-- Reports -->
     <string name="reports_title">Reports</string>
@@ -178,6 +291,9 @@
     <string name="settings_add_vehicle">Add your vehicle</string>
     <string name="settings_add_vehicle_body">Needed to estimate fuel and maintenance for each ride.</string>
     <string name="settings_sample_body">Your estimates use example numbers. Enter your own fuel price, km per litre and maintenance so they match your real costs.</string>
+    <string name="settings_section_records">Records</string>
+    <string name="settings_other_income">Other income</string>
+    <string name="settings_other_income_body">Bonuses, tips and incentives</string>
     <string name="settings_section_app">App</string>
     <string name="settings_section_about">About</string>
     <string name="settings_theme">Theme</string>

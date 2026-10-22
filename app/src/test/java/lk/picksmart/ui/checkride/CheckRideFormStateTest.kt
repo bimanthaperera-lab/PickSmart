@@ -9,8 +9,10 @@ import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleType
+import lk.picksmart.domain.model.rates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,14 +50,14 @@ class CheckRideFormStateTest {
     )
 
     private fun result(form: CheckRideFormState, v: Vehicle = vehicle): ProfitResult =
-        when (val outcome = form.evaluate(v, calculator)) {
+        when (val outcome = form.evaluate(v.rates(), calculator)) {
             is CheckRideOutcome.Calculated -> outcome.result
             else -> throw AssertionError("Expected a result, got $outcome")
         }
 
     private fun invalid(form: CheckRideFormState): CheckRideOutcome.Invalid =
-        form.evaluate(vehicle, calculator) as? CheckRideOutcome.Invalid
-            ?: throw AssertionError("Expected invalid, got ${form.evaluate(vehicle, calculator)}")
+        form.evaluate(vehicle.rates(), calculator) as? CheckRideOutcome.Invalid
+            ?: throw AssertionError("Expected invalid, got ${form.evaluate(vehicle.rates(), calculator)}")
 
     @Test
     fun `G1 typed into the form gives the golden result`() {
@@ -88,7 +90,7 @@ class CheckRideFormStateTest {
             commissionType = CommissionType.PERCENT,
             commission = "150",
         )
-        assertTrue(form.evaluate(vehicle, calculator) is CheckRideOutcome.Calculated)
+        assertTrue(form.evaluate(vehicle.rates(), calculator) is CheckRideOutcome.Calculated)
     }
 
     @Test
@@ -126,8 +128,8 @@ class CheckRideFormStateTest {
 
     @Test
     fun `an empty fare waits for input instead of showing a result`() {
-        assertEquals(CheckRideOutcome.NeedsFare, g1Form.copy(fare = "").evaluate(vehicle, calculator))
-        assertEquals(CheckRideOutcome.NeedsFare, CheckRideFormState().evaluate(vehicle, calculator))
+        assertEquals(CheckRideOutcome.NeedsFare, g1Form.copy(fare = "").evaluate(vehicle.rates(), calculator))
+        assertEquals(CheckRideOutcome.NeedsFare, CheckRideFormState().evaluate(vehicle.rates(), calculator))
     }
 
     @Test
@@ -188,6 +190,7 @@ class CheckRideFormStateTest {
     @Test
     fun `remembered values pre-fill everything except the fare`() {
         val last = LastCheckInputs(
+            platform = Platform.PICKME,
             fareMode = FareMode.GROSS_BEFORE_COMMISSION,
             commissionType = CommissionType.PERCENT,
             commissionHundredths = 1_250,
@@ -198,6 +201,7 @@ class CheckRideFormStateTest {
         )
         val form = last.toFormState()
         assertEquals("", form.fare)
+        assertEquals(Platform.PICKME, form.platform)
         assertEquals("12.5", form.commission)
         assertEquals("50", form.otherCosts)
         assertEquals("2", form.pickupKm)

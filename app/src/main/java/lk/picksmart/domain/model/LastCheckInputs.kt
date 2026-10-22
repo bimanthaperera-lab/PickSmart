@@ -12,6 +12,7 @@ package lk.picksmart.domain.model
  *   `ProfitInput.commissionHundredths`.
  */
 data class LastCheckInputs(
+    val platform: Platform = Platform.UBER,
     val fareMode: FareMode = FareMode.GROSS_BEFORE_COMMISSION,
     val commissionType: CommissionType = CommissionType.PERCENT,
     val commissionHundredths: Long? = null,

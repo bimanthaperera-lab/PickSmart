@@ -41,6 +41,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     val lastCheckInputs: Flow<LastCheckInputs> = dataStore.data.map { prefs ->
         val defaults = LastCheckInputs()
         LastCheckInputs(
+            platform = prefs[Keys.CHECK_PLATFORM].toEnum(defaults.platform),
             fareMode = prefs[Keys.CHECK_FARE_MODE].toEnum(defaults.fareMode),
             commissionType = prefs[Keys.CHECK_COMMISSION_TYPE].toEnum(defaults.commissionType),
             commissionHundredths = prefs[Keys.CHECK_COMMISSION_HUNDREDTHS]?.takeIf { it >= 0 },
@@ -53,6 +54,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
     suspend fun setLastCheckInputs(inputs: LastCheckInputs) {
         dataStore.edit {
+            it[Keys.CHECK_PLATFORM] = inputs.platform.name
             it[Keys.CHECK_FARE_MODE] = inputs.fareMode.name
             it[Keys.CHECK_COMMISSION_TYPE] = inputs.commissionType.name
             it.setOrRemove(Keys.CHECK_COMMISSION_HUNDREDTHS, inputs.commissionHundredths)
@@ -89,6 +91,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val DEFAULT_VEHICLE_ID = longPreferencesKey("default_vehicle_id")
 
         // Last-used Check a Ride inputs. An absent key means the field was left empty.
+        val CHECK_PLATFORM = stringPreferencesKey("check_platform")
         val CHECK_FARE_MODE = stringPreferencesKey("check_fare_mode")
         val CHECK_COMMISSION_TYPE = stringPreferencesKey("check_commission_type")
         val CHECK_COMMISSION_HUNDREDTHS = longPreferencesKey("check_commission_hundredths")

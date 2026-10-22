@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,14 +19,20 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.domain.model.rates
+import lk.picksmart.domain.usecase.tripInputFromCheck
+import java.time.Clock
 
 sealed interface CheckRideUiState {
     data object Loading : CheckRideUiState
@@ -36,28 +44,38 @@ sealed interface CheckRideUiState {
         val vehicle: Vehicle,
         val form: CheckRideFormState,
         val outcome: CheckRideOutcome,
+        val saving: Boolean = false,
     ) : CheckRideUiState
 }
+
+/** One-off confirmations shown after a save. */
+enum class CheckRideMessage { OFFER_SAVED, TRIP_SAVED, SAVE_FAILED }
 
 /**
  * Check a Ride: recalculates on every keystroke, entirely on the device. The form starts from the
  * last-used values and the default vehicle's rates, and remembers its values (not the fare, not
- * the rate overrides) for next time.
+ * the rate overrides) for next time. A result can be saved as an offer or as a completed trip.
  */
 class CheckRideViewModel(
     vehicles: VehicleRepository,
+    private val trips: TripRepository,
     private val preferences: UserPreferencesRepository,
     private val calculator: ProfitCalculator,
+    private val clock: Clock,
 ) : ViewModel() {
 
     /** Null until the remembered values have loaded. */
     private val form = MutableStateFlow<CheckRideFormState?>(null)
+    private val saving = MutableStateFlow(false)
 
-    val state: StateFlow<CheckRideUiState> = combine(vehicles.defaultVehicle, form) { vehicle, form ->
+    private val _messages = Channel<CheckRideMessage>(Channel.BUFFERED)
+    val messages: Flow<CheckRideMessage> = _messages.receiveAsFlow()
+
+    val state: StateFlow<CheckRideUiState> = combine(vehicles.defaultVehicle, form, saving) { vehicle, form, saving ->
         when {
             form == null -> CheckRideUiState.Loading
             vehicle == null -> CheckRideUiState.NoVehicle
-            else -> CheckRideUiState.Ready(vehicle, form, form.evaluate(vehicle, calculator))
+            else -> CheckRideUiState.Ready(vehicle, form, form.evaluate(vehicle.rates(), calculator), saving)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CheckRideUiState.Loading)
 
@@ -78,6 +96,35 @@ class CheckRideViewModel(
 
     /** Goes back to the vehicle's saved rates. */
     fun clearOverrides() = form.update { it?.copy(overrides = null) }
+
+    /**
+     * Saves the current result as an [TripStatus.OFFER_CHECK] ("Save offer") or a
+     * [TripStatus.COMPLETED] trip ("I took it"), timed now, then starts a new check: the fare and
+     * any rate overrides clear, everything else stays.
+     */
+    fun save(status: TripStatus) {
+        val ready = state.value as? CheckRideUiState.Ready ?: return
+        val calculated = ready.outcome as? CheckRideOutcome.Calculated ?: return
+        if (saving.value) return
+        saving.value = true
+        viewModelScope.launch {
+            val message = try {
+                trips.create(
+                    ready.vehicle.id,
+                    tripInputFromCheck(calculated.input, ready.form.platform, status, clock.instant()),
+                )
+                form.update { it?.copy(fare = "", overrides = null) }
+                if (status == TripStatus.OFFER_CHECK) CheckRideMessage.OFFER_SAVED else CheckRideMessage.TRIP_SAVED
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                CheckRideMessage.SAVE_FAILED
+            } finally {
+                saving.value = false
+            }
+            _messages.send(message)
+        }
+    }
 
     @OptIn(FlowPreview::class)
     private fun rememberInputs() {
@@ -106,7 +153,13 @@ class CheckRideViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as PicksmartApplication).container
-                CheckRideViewModel(container.vehicles, container.userPreferences, container.profitCalculator)
+                CheckRideViewModel(
+                    container.vehicles,
+                    container.trips,
+                    container.userPreferences,
+                    container.profitCalculator,
+                    container.clock,
+                )
             }
         }
     }

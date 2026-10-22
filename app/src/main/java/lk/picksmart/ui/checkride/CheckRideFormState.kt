@@ -9,6 +9,8 @@ import lk.picksmart.domain.calculator.ValidationError
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
@@ -23,6 +25,7 @@ import lk.picksmart.util.parseRupeesToCents
  * @property overrides Rates typed for this check only, or null to use the vehicle's rates.
  */
 data class CheckRideFormState(
+    val platform: Platform = Platform.UBER,
     val fare: String = "",
     val fareMode: FareMode = FareMode.GROSS_BEFORE_COMMISSION,
     val commissionType: CommissionType = CommissionType.PERCENT,
@@ -73,11 +76,11 @@ sealed interface CheckRideOutcome {
 }
 
 /**
- * Turns the form into a [ProfitInput] for [vehicle] and runs [calculator]. The form only checks
+ * Turns the form into a [ProfitInput] with [rates] (unless overridden) and runs [calculator]. The form only checks
  * that each field parses; range rules (percent above 100, efficiency of 0) come from the
  * calculator's own validation, so there is one source of truth for them.
  */
-fun CheckRideFormState.evaluate(vehicle: Vehicle, calculator: ProfitCalculator): CheckRideOutcome {
+fun CheckRideFormState.evaluate(rates: TripRates, calculator: ProfitCalculator): CheckRideOutcome {
     val errors = mutableMapOf<InputField, CheckRideError>()
 
     fun money(text: String, field: InputField): Long =
@@ -105,9 +108,9 @@ fun CheckRideFormState.evaluate(vehicle: Vehicle, calculator: ProfitCalculator):
     val efficiency: Double
     val reserveCents: Long
     if (overrides == null) {
-        fuelPriceCents = vehicle.fuelPricePerLitreCents
-        efficiency = vehicle.fuelEfficiencyKmPerLitre
-        reserveCents = vehicle.maintenanceReservePerKmCents
+        fuelPriceCents = rates.fuelPricePerLitreCents
+        efficiency = rates.fuelEfficiencyKmPerLitre
+        reserveCents = rates.maintenanceReservePerKmCents
     } else {
         fuelPriceCents = required(overrides.fuelPrice, InputField.FUEL_PRICE, ::parseRupeesToCents, 0L)
         efficiency = required(overrides.efficiency, InputField.FUEL_EFFICIENCY, ::parseDecimal, 1.0)
@@ -128,7 +131,7 @@ fun CheckRideFormState.evaluate(vehicle: Vehicle, calculator: ProfitCalculator):
         fuelPricePerLitreCents = fuelPriceCents,
         maintenanceReservePerKmCents = reserveCents,
         otherCostsCents = otherCostsCents,
-        targetProfitPerKmCents = vehicle.targetProfitPerKmCents,
+        targetProfitPerKmCents = rates.targetProfitPerKmCents,
     )
     // Still calculated with an empty fare (as 0), so range errors such as 150% show right away.
     return when (val calculation = calculator.calculate(input)) {
@@ -155,6 +158,7 @@ private fun List<ValidationError>.toOutcome(): CheckRideOutcome.Invalid {
 
 /** Starts a new check from the remembered values. The fare always starts empty. */
 fun LastCheckInputs.toFormState() = CheckRideFormState(
+    platform = platform,
     fareMode = fareMode,
     commissionType = commissionType,
     commission = commissionHundredths?.let(::hundredthsToInput).orEmpty(),
@@ -166,6 +170,7 @@ fun LastCheckInputs.toFormState() = CheckRideFormState(
 
 /** The values to remember for next time. Empty or unparseable fields are stored as empty. */
 fun CheckRideFormState.toLastCheckInputs() = LastCheckInputs(
+    platform = platform,
     fareMode = fareMode,
     commissionType = commissionType,
     commissionHundredths = parseRupeesToCents(commission),

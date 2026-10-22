@@ -81,7 +81,10 @@ fun PicksmartApp() {
             val openCheckRide = { navController.navigateToTopLevel(TopLevelDestination.CHECK_RIDE) }
             composable<HomeRoute> { HomeScreen(onCheckRide = openCheckRide) }
             composable<CheckRideRoute> {
-                CheckRideScreen(onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) })
+                CheckRideScreen(
+                    onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
+                    onOpenHistory = { navController.navigateToTopLevel(TopLevelDestination.HISTORY) },
+                )
             }
             composable<HistoryRoute> { HistoryScreen(onCheckRide = openCheckRide) }
             composable<ReportsRoute> { ReportsScreen() }

@@ -1,10 +1,40 @@
 package lk.picksmart.domain.usecase
 
+import lk.picksmart.domain.calculator.ProfitInput
 import lk.picksmart.domain.model.OtherIncome
 import lk.picksmart.domain.model.OtherIncomeInput
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripInput
+import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
+import java.time.Instant
+
+/**
+ * A trip from a Check a Ride result. The snapshot is the rates the check actually used, including
+ * any per-check overrides, so the saved trip shows exactly what the rider saw.
+ */
+fun tripInputFromCheck(check: ProfitInput, platform: Platform, status: TripStatus, at: Instant) = TripInput(
+    tripDateTime = at,
+    platform = platform,
+    status = status,
+    fareCents = check.fareCents,
+    fareMode = check.fareMode,
+    commissionType = check.commissionType,
+    commissionHundredths = check.commissionHundredths,
+    pickupKm = check.pickupKm,
+    tripKm = check.tripKm,
+    returnKm = check.returnKm,
+    otherCostsCents = check.otherCostsCents,
+    cancellationFeeCents = null,
+    notes = null,
+    rates = TripRates(
+        fuelPricePerLitreCents = check.fuelPricePerLitreCents,
+        fuelEfficiencyKmPerLitre = check.fuelEfficiencyKmPerLitre,
+        maintenanceReservePerKmCents = check.maintenanceReservePerKmCents,
+        targetProfitPerKmCents = check.targetProfitPerKmCents,
+    ),
+)
 
 /** A new trip from the rider's input, with the rates snapshot it was calculated with. */
 fun newTrip(input: TripInput, vehicleId: Long, nowMillis: Long): Trip {

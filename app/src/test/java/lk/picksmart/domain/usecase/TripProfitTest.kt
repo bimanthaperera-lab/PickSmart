@@ -1,6 +1,7 @@
 package lk.picksmart.domain.usecase
 
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.calculator.ProfitInput
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelPriceSource
@@ -118,5 +119,27 @@ class TripProfitTest {
         assertEquals(500L, edited.updatedAtMillis)
         assertEquals(120_000L, edited.fareCents)
         assertNull(edited.notes)
+    }
+
+    @Test
+    fun `a saved check keeps its inputs and the rates it was checked with`() {
+        val check = ProfitInput(
+            fareCents = 100_000,
+            fareMode = FareMode.GROSS_BEFORE_COMMISSION,
+            commissionType = CommissionType.AMOUNT,
+            commissionHundredths = 20_000,
+            pickupKm = 2.0,
+            tripKm = 8.0,
+            fuelEfficiencyKmPerLitre = 20.0,
+            fuelPricePerLitreCents = 40_000,
+            maintenanceReservePerKmCents = 0,
+            targetProfitPerKmCents = 6_000,
+        )
+        val at = Instant.parse("2026-10-21T11:12:00Z")
+        val trip = newTrip(tripInputFromCheck(check, Platform.UBER, TripStatus.OFFER_CHECK, at), vehicleId = 3, nowMillis = 1)
+        assertEquals(TripRates(40_000, 20.0, 0, 6_000), trip.rates)
+        assertEquals(at, trip.tripDateTime)
+        assertEquals(TripStatus.OFFER_CHECK, trip.status)
+        assertEquals(check, trip.profitInput())
     }
 }

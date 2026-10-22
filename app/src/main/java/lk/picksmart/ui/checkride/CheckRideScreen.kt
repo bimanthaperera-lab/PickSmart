@@ -33,6 +33,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,6 +51,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,11 +70,15 @@ import lk.picksmart.domain.calculator.InputField
 import lk.picksmart.domain.calculator.ResultBand
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PicksmartCard
+import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.components.TabScreen
@@ -77,6 +86,7 @@ import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.style
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.trip.label
 import lk.picksmart.ui.vehicle.vehicleRatesSummary
 import lk.picksmart.util.formatDecimal
 
@@ -88,9 +98,26 @@ import lk.picksmart.util.formatDecimal
 @Composable
 fun CheckRideScreen(
     onAddVehicle: () -> Unit,
+    onOpenHistory: () -> Unit,
     viewModel: CheckRideViewModel = viewModel(factory = CheckRideViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val resources = LocalResources.current
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            val text = resources.getString(
+                when (message) {
+                    CheckRideMessage.OFFER_SAVED -> R.string.check_saved_offer
+                    CheckRideMessage.TRIP_SAVED -> R.string.check_saved_trip
+                    CheckRideMessage.SAVE_FAILED -> R.string.check_save_failed
+                },
+            )
+            val action = if (message == CheckRideMessage.SAVE_FAILED) null else resources.getString(R.string.action_view)
+            val result = snackbar.showSnackbar(text, actionLabel = action, duration = SnackbarDuration.Short)
+            if (result == SnackbarResult.ActionPerformed) onOpenHistory()
+        }
+    }
 
     BoxWithConstraints(
         Modifier
@@ -122,13 +149,15 @@ fun CheckRideScreen(
             (state as? CheckRideUiState.Ready)?.let {
                 ResultPanel(
                     it,
-                    Modifier
+                    onSave = viewModel::save,
+                    modifier = Modifier
                         .padding(horizontal = Spacing.screen)
                         .padding(bottom = Spacing.m)
                         .heightIn(max = panelMaxHeight),
                 )
             }
         }
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -154,6 +183,13 @@ private fun CheckRideForm(
         fareFocus.requestFocus()
         keyboard?.show()
     }
+
+    ChoiceChips(
+        options = Platform.entries,
+        selected = form.platform,
+        optionLabel = { stringResource(it.label) },
+        onSelect = { onChange(form.copy(platform = it)) },
+    )
 
     FareModeSelector(form.fareMode) { onChange(form.copy(fareMode = it)) }
 
@@ -435,7 +471,7 @@ private fun FieldRow(stacked: Boolean, fields: List<@Composable (Modifier) -> Un
 }
 
 @Composable
-private fun ResultPanel(state: CheckRideUiState.Ready, modifier: Modifier) {
+private fun ResultPanel(state: CheckRideUiState.Ready, onSave: (TripStatus) -> Unit, modifier: Modifier) {
     when (val outcome = state.outcome) {
         CheckRideOutcome.NeedsFare -> MessagePanel(
             title = stringResource(R.string.check_result_needs_fare_title),
@@ -448,7 +484,13 @@ private fun ResultPanel(state: CheckRideUiState.Ready, modifier: Modifier) {
             modifier = modifier,
             isError = true,
         )
-        is CheckRideOutcome.Calculated -> CalculatedPanel(outcome, state.vehicle.targetProfitPerKmCents, modifier)
+        is CheckRideOutcome.Calculated -> CalculatedPanel(
+            outcome = outcome,
+            targetCents = outcome.input.targetProfitPerKmCents,
+            saving = state.saving,
+            onSave = onSave,
+            modifier = modifier,
+        )
     }
 }
 
@@ -477,7 +519,13 @@ private fun MessagePanel(title: String, body: String?, modifier: Modifier, isErr
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CalculatedPanel(outcome: CheckRideOutcome.Calculated, targetCents: Long?, modifier: Modifier) {
+private fun CalculatedPanel(
+    outcome: CheckRideOutcome.Calculated,
+    targetCents: Long?,
+    saving: Boolean,
+    onSave: (TripStatus) -> Unit,
+    modifier: Modifier,
+) {
     val result = outcome.result
     val style = result.band.style()
     val money = rememberMoneyFormatter()
@@ -525,8 +573,31 @@ private fun CalculatedPanel(outcome: CheckRideOutcome.Calculated, targetCents: L
                 HorizontalDivider(color = style.content.copy(alpha = 0.3f))
                 Breakdown(outcome, style.onContainer)
             }
+            SaveButtons(isLoss = result.band == ResultBand.LOSS, enabled = !saving, onSave = onSave)
         }
     }
+}
+
+/** "Save offer" keeps it as an offer (never income); "I took it" records a completed trip now. */
+@Composable
+private fun SaveButtons(isLoss: Boolean, enabled: Boolean, onSave: (TripStatus) -> Unit) {
+    val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
+    FieldRow(
+        stacked,
+        listOf(
+            { m ->
+                SecondaryButton(stringResource(R.string.check_save_offer), { onSave(TripStatus.OFFER_CHECK) }, m, enabled = enabled)
+            },
+            { m ->
+                // Taking a loss-making ride is allowed but not encouraged: no yellow fill.
+                if (isLoss) {
+                    SecondaryButton(stringResource(R.string.check_took_it_anyway), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                } else {
+                    PrimaryButton(stringResource(R.string.check_took_it), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                }
+            },
+        ),
+    )
 }
 
 @Composable

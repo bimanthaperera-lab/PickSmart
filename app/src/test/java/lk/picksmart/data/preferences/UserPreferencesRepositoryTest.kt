@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.ThemeMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -79,6 +80,7 @@ class UserPreferencesRepositoryTest {
     fun `last check inputs round trip, and clearing a field removes it`() = runTest {
         val prefs = UserPreferencesRepository(store())
         val full = LastCheckInputs(
+            platform = Platform.OWN_DELIVERY,
             fareMode = FareMode.PAYOUT_AFTER_COMMISSION,
             commissionType = CommissionType.AMOUNT,
             commissionHundredths = 20_000,
@@ -99,6 +101,7 @@ class UserPreferencesRepositoryTest {
     fun `unknown or invalid stored check values fall back to defaults`() = runTest {
         val dataStore = store()
         dataStore.edit {
+            it[stringPreferencesKey("check_platform")] = "BOLT"
             it[stringPreferencesKey("check_fare_mode")] = "SOMETHING_NEW"
             it[stringPreferencesKey("check_commission_type")] = "PER_KM"
             it[longPreferencesKey("check_commission_hundredths")] = -5

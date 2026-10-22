@@ -1,6 +1,8 @@
-# Picksmart — Claude Code Project Instructions
+# CLAUDE.md
 
-This file holds rules that are always true for this project. The roadmap and current status live in `PLAN.md`. Decisions made during development are recorded in `docs/decisions.md`.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+**Picksmart — project instructions.** This file holds rules that are always true for this project. The roadmap and current status live in `PLAN.md`. Decisions made during development are recorded in `docs/decisions.md`.
 
 **At the start of every session:** read `PLAN.md` to find the current phase and next step, and skim `docs/decisions.md` (create it if missing).
 **At the end of every phase:** update the checkboxes and status in `PLAN.md`, add any new decisions to `docs/decisions.md`, and give the phase report described in section 13.
@@ -18,8 +20,8 @@ These rules override everything else in this file. Other sections refer back to 
 - **N5. Driver apps are never read or automated.** Picksmart never reads another app's screen or acts inside it. This rules out, for any purpose: AccessibilityService reading of Uber, PickMe or courier apps; MediaProjection or screen-capture frame-grabbing of them; overlays that read or sit on top of their controls; and any automated tap or action. The rider always types or confirms the numbers. The reasons are in section 9a.
 - **N6. OCR output is untrusted.** The rider always reviews and confirms extracted values before anything is calculated or saved.
 - **N7. Records are never destroyed silently.** No destructive Room migrations, and every delete needs confirmation. A rider's data survives every app update: each schema change ships a tested `Migration`, `fallbackToDestructiveMigration` is never used in any build type, and an update never resets, clears or re-onboards a rider who already has data.
-- **N9. Offline-first.** Every core screen (Check a Ride, History, Reports, fuel log, expenses, income, alerts inbox) works with no internet, using data on the device. The online features are the fuel price download (section 8a), which degrades to the last saved price, and account sign-in and sync (section 14), which is optional and runs in the background; neither ever blocks a core screen. Sign-in and verification themselves need internet and say so.
 - **N8. Results are verified, not claimed.** Never say a build or test passed unless you ran it and saw it pass.
+- **N9. Offline-first.** Every core screen (Check a Ride, History, Reports, fuel log, expenses, income, alerts inbox) works with no internet, using data on the device. The online features are the fuel price download (section 8a), which degrades to the last saved price, and account sign-in and sync (section 14), which is optional and runs in the background; neither ever blocks a core screen. Sign-in and verification themselves need internet and say so.
 
 ## 1. Project overview
 
@@ -80,7 +82,18 @@ Build debug APK:   ./gradlew assembleDebug
 Unit tests:        ./gradlew testDebugUnitTest
 Device tests:      ./gradlew connectedDebugAndroidTest   (only when a device or emulator is available)
 Lint:              ./gradlew lint
+Single unit test:  ./gradlew testDebugUnitTest --tests "lk.picksmart.domain.calculator.ProfitCalculatorTest"
+Single device test: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=lk.picksmart.data.local.SchemaTest
 ```
+
+On this Windows machine (Git Bash):
+
+- `java` is not on `PATH`. Before Gradle, run `export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"` (JDK 25; bytecode targets Java 17, see `docs/decisions.md`).
+- The emulator is the AVD `Pixel_8_Pro`. Start it in the background with `"$LOCALAPPDATA/Android/Sdk/emulator/emulator" -avd Pixel_8_Pro -no-snapshot-save -no-audio` before device tests.
+- `connectedDebugAndroidTest` uninstalls the app when it finishes; reinstall before testing by hand.
+- Git Bash rewrites `/sdcard/...` in `adb shell` arguments. Set `MSYS_NO_PATHCONV=1` for those, and then give local files to adb as Windows paths (`C:/Users/...`).
+- `local.properties` must escape the drive colon (`sdk.dir=C\:/Users/USER/AppData/Local/Android/Sdk`), or lint reports `PropertyEscape`.
+- Known, accepted lint warnings (generated logo paths, `mipmap-anydpi-v26`, DataStore version) are listed in `docs/decisions.md`. Lint must stay at 0 errors.
 
 If a command cannot run in the current environment (for example, no SDK or no emulator), say so plainly instead of implying it passed.
 
@@ -253,6 +266,19 @@ Actual efficiency = km between two full-tank fills ÷ litres added after the fir
 **DataStore**
 `defaultVehicleId`, `onboardingComplete`, `themeMode`, last-used Check a Ride inputs, and the last valid fuel price list (`effectiveFrom`, `fetchedAt`, prices per fuel type).
 
+### Migrations (N7)
+
+- `exportSchema = true`, with schemas committed to the repository.
+- Every schema change after version 1 gets an explicit `Migration` and a `MigrationTestHelper` test.
+- `fallbackToDestructiveMigration` is never used, in any build type.
+
+### Surviving app updates (N7)
+
+- A new app version must open the existing database and keep every trip, fuel log, expense, income, vehicle, alert and setting. There is a test that opens a database created by the previous schema version and asserts the rows are intact after migration.
+- Onboarding runs only when `onboardingComplete` is false; an update never flips it back, so an existing rider is never sent through setup again or given sample values over their own.
+- DataStore keys are only added or migrated, never silently dropped. Renaming a key ships a read-old-write-new migration.
+- Before a release, the update path is tested by installing the previous build, adding data, then installing the new build over it and checking the data and settings are unchanged.
+
 ## 8a. Fuel price updates
 
 The app can offer the current published Sri Lankan pump price, but the rider's own number always wins.
@@ -297,19 +323,6 @@ The app can offer the current published Sri Lankan pump price, but the rider's o
 ### Tests
 
 Parsing a valid file, each rejection rule, the 12-hour throttle, a manual price never being overwritten when auto-update is off, and past trip results staying unchanged after a price update.
-
-### Migrations (N7)
-
-- `exportSchema = true`, with schemas committed to the repository.
-- Every schema change after version 1 gets an explicit `Migration` and a `MigrationTestHelper` test.
-- `fallbackToDestructiveMigration` is never used, in any build type.
-
-### Surviving app updates (N7)
-
-- A new app version must open the existing database and keep every trip, fuel log, expense, income, vehicle, alert and setting. There is a test that opens a database created by the previous schema version and asserts the rows are intact after migration.
-- Onboarding runs only when `onboardingComplete` is false; an update never flips it back, so an existing rider is never sent through setup again or given sample values over their own.
-- DataStore keys are only added or migrated, never silently dropped. Renaming a key ships a read-old-write-new migration.
-- Before a release, the update path is tested by installing the previous build, adding data, then installing the new build over it and checking the data and settings are unchanged.
 
 ## 9. UI and UX
 
@@ -426,6 +439,57 @@ The approved path to the same value is section 9a (shift reminder, tile, bubble)
 - No ads on the Check a Ride screen, near data-entry controls, or anywhere the rider may be making a quick decision. No interstitials during ride checking.
 - Adding ads changes the Data safety disclosure; update the privacy policy at the same time.
 
+## 13. Code structure and phase reports
+
+```text
+app/src/main/java/<package>/
+  AppContainer.kt
+  data/
+    local/        (dao/, entity/, PicksmartDatabase.kt, migrations/)
+    preferences/
+    remote/       (FuelPriceSource: fetch, validate, cache)
+    repository/
+  domain/
+    model/
+    calculator/
+    usecase/
+  ui/
+    navigation/  theme/  components/
+    onboarding/  home/  checkride/  history/
+    fuel/  fuelprice/  expenses/  income/  reports/  settings/  ocr/
+    notifications/   (channels, shift reminder, scheduled WorkManager jobs)
+    glance/          (Quick Settings tile service, floating bubble service)
+    account/         (auth screens, AccountProvider, SyncProvider; Firebase impls, no-op impl)
+    profile/         (profile screen: tier, daily ride counts, lifetime stats)
+    plan/            (PlanProvider, feature flags, Play Billing, Premium screen)
+  util/
+```
+
+Keep business logic out of the UI. Prefer small, focused classes and files.
+
+At the end of each phase, report:
+
+- Files created or changed
+- Features completed
+- Commands run and their actual results
+- Known issues and decisions still needed
+- The recommended next step (also written into `PLAN.md`)
+
+## 13a. Architecture as built
+
+How the pieces fit today. Read this before adding a screen, a table or a setting.
+
+- **Wiring.** `PicksmartApplication` creates one `AppContainer`, which lazily builds the database, `UserPreferencesRepository`, repositories, use cases, `ProfitCalculator` and a UTC `Clock`. Each ViewModel has a companion `Factory` (`viewModelFactory { initializer { ... } }`) that takes what it needs from the container via `APPLICATION_KEY`, plus `createSavedStateHandle()` when it reads route arguments.
+- **Start-up gate.** `MainActivity` draws nothing until both the stored `themeMode` and `onboardingComplete` have loaded (the window background shows meanwhile), then shows `OnboardingScreen` or `PicksmartApp`. Finishing onboarding flips the DataStore flag, which switches the root automatically; nothing ever sets it back.
+- **Navigation.** Routes are `@Serializable` types in `ui/navigation/Destinations.kt`. The `TopLevelDestination` enum drives the bottom bar, which shows only on those five tabs; switching tabs pops to Home and restores tab state. Detail screens (for example `EditVehicleRoute(vehicleId)`, where `0` means "add") hide the bar and are registered in `PicksmartApp.kt`.
+- **Layers.** Room entities in `data/local/entity` carry `toDomain()` / `toEntity()` mappers; repositories return domain models from `domain/model`. Business rules are pure functions in `domain/usecase` (for example `applyVehicleEdit`, which enforces the manual fuel price rule from section 8a) so they are tested on the JVM; use-case classes there only orchestrate repositories (`CompleteOnboarding`).
+- **Money in code.** `ProfitInput.commissionHundredths` stores the commission as one `Long` in hundredths of its unit (cents for `AMOUNT`, hundredths of a percent for `PERCENT`). Text in forms is parsed with `util/Parsing.kt` and cleaned while typing by `sanitizeDecimalInput` (used inside `NumberField`). Display goes through `rememberMoneyFormatter()`, which reads the translatable `currency_prefix` string.
+- **Forms.** Form state keeps raw text; a pure `validate()` returns either a typed input or per-field errors (see `ui/vehicle/VehicleFormState.kt`). Onboarding and Edit vehicle share `VehicleFormFields`.
+- **Theme.** Material roles plus `PicksmartTheme.status` for profit, loss and below-target colours. In light mode `primary` is a dark amber for text, focus and selection, while `primaryContainer` stays brand yellow for filled buttons; use `PrimaryButton` rather than raw `Button`. Use `BrandMark` for the pin: it adds the near-black circle on light backgrounds.
+- **Large fonts.** Screens scroll (`TabScreen`), bottom-bar labels auto-shrink to one line, and `ChoiceGrid` drops to one column when a label would wrap mid-word. Check new screens on a 360 dp-wide emulator at 200% font.
+- **Database changes.** Bump the version in `PicksmartDatabase`, add the `Migration` to `ALL_MIGRATIONS` in `data/local/migrations/Migrations.kt`, commit the new schema JSON, and add a `MigrationTestHelper` test next to `SchemaTest` (device test). The Room Gradle plugin supplies `app/schemas` to device tests.
+- **Generated assets.** `ic_launcher_foreground`, `ic_launcher_monochrome`, `picksmart_mark` and `picksmart_logo` are traced from `design/brand/picksmart-logo.jpeg` by the scripts in `design/brand/` (see its README). Regenerate rather than hand-edit. Other icons are hand-written 24-unit stroke vectors in `res/drawable/ic_*.xml`; there is no icon library.
+
 ## 14. Optional account and cloud backup
 
 An account exists for one reason: so a rider who loses or changes their phone does not lose their income history. It is never required.
@@ -509,39 +573,3 @@ Assumptions: ~30 writes + 30 reads per signed-in active user per day, ~0.5 MB st
 ### Sustainability check
 
 - Even a 2% Premium conversion at 100k users (~2,000 subscribers × Rs. 490 × 0.85 after the Play cut ≈ LKR 830k/month) far exceeds the ~LKR 130k infrastructure cost at that scale. The model is viable as long as sync stays efficient and SMS fraud is controlled.
-
-## 13. Code structure and phase reports
-
-```text
-app/src/main/java/<package>/
-  AppContainer.kt
-  data/
-    local/        (dao/, entity/, PicksmartDatabase.kt, migrations/)
-    preferences/
-    remote/       (FuelPriceSource: fetch, validate, cache)
-    repository/
-  domain/
-    model/
-    calculator/
-    usecase/
-  ui/
-    navigation/  theme/  components/
-    onboarding/  home/  checkride/  history/
-    fuel/  fuelprice/  expenses/  income/  reports/  settings/  ocr/
-    notifications/   (channels, shift reminder, scheduled WorkManager jobs)
-    glance/          (Quick Settings tile service, floating bubble service)
-    account/         (auth screens, AccountProvider, SyncProvider; Firebase impls, no-op impl)
-    profile/         (profile screen: tier, daily ride counts, lifetime stats)
-    plan/            (PlanProvider, feature flags, Play Billing, Premium screen)
-  util/
-```
-
-Keep business logic out of the UI. Prefer small, focused classes and files.
-
-At the end of each phase, report:
-
-- Files created or changed
-- Features completed
-- Commands run and their actual results
-- Known issues and decisions still needed
-- The recommended next step (also written into `PLAN.md`)

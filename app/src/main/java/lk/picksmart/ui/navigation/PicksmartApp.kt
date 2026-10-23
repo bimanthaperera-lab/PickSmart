@@ -69,7 +69,12 @@ fun PicksmartApp() {
                         selected = selected,
                         onClick = { navController.navigateToTopLevel(destination) },
                         // The label below names the tab, so the icon needs no description of its own.
-                        icon = { Icon(painterResource(destination.icon), contentDescription = null) },
+                        icon = {
+                            Icon(
+                                painterResource(if (selected) destination.selectedIcon else destination.icon),
+                                contentDescription = null,
+                            )
+                        },
                         label = { NavLabel(stringResource(destination.label)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,

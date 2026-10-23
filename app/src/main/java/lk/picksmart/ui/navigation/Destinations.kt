@@ -77,15 +77,19 @@ data class EditExpenseRoute(val expenseId: Long) {
 /** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
 @Serializable data object FuelPriceRoute
 
-/** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
+/**
+ * The five bottom-bar tabs (CLAUDE.md section 9), in display order. The selected tab shows
+ * [selectedIcon], a filled version of [icon].
+ */
 enum class TopLevelDestination(
     val route: Any,
     @StringRes val label: Int,
     @DrawableRes val icon: Int,
+    @DrawableRes val selectedIcon: Int,
 ) {
-    HOME(HomeRoute, R.string.nav_home, R.drawable.ic_nav_home),
-    CHECK_RIDE(CheckRideRoute, R.string.nav_check_ride, R.drawable.ic_nav_check_ride),
-    HISTORY(HistoryRoute, R.string.nav_history, R.drawable.ic_nav_history),
-    REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_nav_reports),
-    ACCOUNT(AccountRoute, R.string.nav_account, R.drawable.ic_nav_account),
+    HOME(HomeRoute, R.string.nav_home, R.drawable.ic_nav_home, R.drawable.ic_nav_home_filled),
+    CHECK_RIDE(CheckRideRoute, R.string.nav_check_ride, R.drawable.ic_nav_check_ride, R.drawable.ic_nav_check_ride_filled),
+    HISTORY(HistoryRoute, R.string.nav_history, R.drawable.ic_nav_history, R.drawable.ic_nav_history_filled),
+    REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_nav_reports, R.drawable.ic_nav_reports_filled),
+    ACCOUNT(AccountRoute, R.string.nav_account, R.drawable.ic_nav_account, R.drawable.ic_nav_account_filled),
 }

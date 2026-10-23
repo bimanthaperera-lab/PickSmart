@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Outline icon on a 24 grid, 2-unit stroke. Tinted by Compose. -->
+<!-- Outline icon on a 24 grid, 2-unit stroke. Tinted by Compose. A clock with a turn-back arrow. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M9,6H20M9,12H20M9,18H20"
+        android:pathData="M3.5,12A8.5,8.5 0,1 0,6 6L3.5,8.5"
         android:strokeWidth="2"
         android:strokeColor="#FF000000"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M4.5,6h0.01M4.5,12h0.01M4.5,18h0.01"
+        android:pathData="M3.5,4.5V8.5H7.5"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M12,8V12L14.5,14.5"
         android:strokeWidth="2"
         android:strokeColor="#FF000000"
         android:strokeLineCap="round"

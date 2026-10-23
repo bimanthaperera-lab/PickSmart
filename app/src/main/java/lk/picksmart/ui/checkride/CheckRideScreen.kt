@@ -1,5 +1,6 @@
 package lk.picksmart.ui.checkride
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -65,7 +66,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -93,7 +101,8 @@ import lk.picksmart.ui.components.style
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.trip.label
-import lk.picksmart.ui.vehicle.vehicleRatesSummary
+import lk.picksmart.ui.vehicle.icon
+import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.formatDecimal
 
 /**
@@ -326,14 +335,42 @@ private fun CheckRideForm(
         )
     }
 
+    SafetyLine()
+}
+
+/**
+ * "Estimate only. Check offers when you're stopped safely.", starting with a small shield. The
+ * shield sits inside the text, so it stays next to the first word when the line wraps.
+ */
+@Composable
+private fun SafetyLine() {
+    val text = buildAnnotatedString {
+        appendInlineContent(SHIELD_ID)
+        append(" ")
+        append(stringResource(R.string.check_safety_line))
+    }
+    val shield = mapOf(
+        SHIELD_ID to InlineTextContent(Placeholder(1.3.em, 1.3.em, PlaceholderVerticalAlign.TextCenter)) {
+            // Decorative: the text says it all.
+            Icon(
+                painterResource(R.drawable.ic_shield),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxSize(),
+            )
+        },
+    )
     Text(
-        stringResource(R.string.check_safety_line),
+        text,
+        inlineContent = shield,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
     )
 }
+
+private const val SHIELD_ID = "shield"
 
 @Composable
 internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {
@@ -395,25 +432,103 @@ internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> U
     }
 }
 
-/** "Honda Dio · Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve", a Sample label, and "Change". */
+/**
+ * The vehicle this check uses, as a small card: its icon, name (with a Sample label), and its fuel
+ * price, km per litre and maintenance reserve, each with an icon, plus "Change" (for this check
+ * only). At large font sizes "Change" moves under the rates so they keep their width.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
-    val changeDescription = stringResource(R.string.check_change_rates_description)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(
-                stringResource(R.string.check_vehicle_rates, vehicle.name, vehicleRatesSummary(vehicle)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (vehicle.isSample) SampleLabel()
+    val money = rememberMoneyFormatter()
+    val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
+    val change = @Composable {
+        ChangeRatesButton(onChangeRates)
+    }
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(start = Spacing.m, top = Spacing.m, bottom = Spacing.m, end = Spacing.xs)) {
+            Row(
+                // Stacked rates are tall; the tile then stays by the name instead of floating.
+                verticalAlignment = if (stacked) Alignment.Top else Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+            ) {
+                Box(
+                    Modifier
+                        .size(44.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.medium),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // Decorative: the name and type are read out with the text.
+                    Icon(
+                        painterResource(vehicle.type.icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .semantics(mergeDescendants = true) {},
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        Text(
+                            vehicle.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        if (vehicle.isSample) SampleLabel()
+                    }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+                    ) {
+                        RateItem(R.drawable.ic_fuel, stringResource(R.string.check_rate_fuel_price, money.format(vehicle.fuelPricePerLitreCents)))
+                        RateItem(R.drawable.ic_gauge, stringResource(R.string.check_rate_efficiency, decimalToInput(vehicle.fuelEfficiencyKmPerLitre)))
+                        RateItem(R.drawable.ic_wrench, stringResource(R.string.check_rate_reserve, money.format(vehicle.maintenanceReservePerKmCents)))
+                    }
+                }
+                if (!stacked) change()
+            }
+            if (stacked) {
+                Box(Modifier.align(Alignment.End)) { change() }
+            }
         }
-        TextButton(
-            onClick = onChangeRates,
-            modifier = Modifier.semantics { contentDescription = changeDescription },
-        ) {
-            Text(stringResource(R.string.check_change_rates), style = MaterialTheme.typography.labelLarge)
-        }
+    }
+}
+
+/** One rate on the vehicle card, e.g. a fuel pump and "Rs. 300.00/L". The icon grows with the text. */
+@Composable
+private fun RateItem(@DrawableRes icon: Int, text: String) {
+    val style = MaterialTheme.typography.bodyMedium
+    val iconSize = with(LocalDensity.current) { style.fontSize.toDp() } * 1.1f
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        // Decorative: the text carries the unit.
+        Icon(
+            painterResource(icon),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(iconSize),
+        )
+        Text(text, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun ChangeRatesButton(onClick: () -> Unit) {
+    val description = stringResource(R.string.check_change_rates_description)
+    TextButton(onClick = onClick, modifier = Modifier.semantics { contentDescription = description }) {
+        Icon(painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(Spacing.xs))
+        Text(stringResource(R.string.check_change_rates), style = MaterialTheme.typography.labelLarge)
     }
 }
 

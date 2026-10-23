@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Outline icon on a 24 grid, 2-unit stroke. Tinted by Compose. A small van, for any other vehicle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M7,15.5A2,2 0,1 1,7,19.5A2,2 0,1 1,7,15.5Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M17,15.5A2,2 0,1 1,17,19.5A2,2 0,1 1,17,15.5Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M5,17.5H3.5C3.2,17.5 3,17.3 3,17V6C3,5.4 3.4,5 4,5H14V17.5"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M14,9H17.6C18,9 18.4,9.2 18.6,9.6L20.8,13.4C20.9,13.6 21,13.8 21,14V17C21,17.3 20.8,17.5 20.5,17.5H19"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M9,17.5H15"
+        android:strokeWidth="2"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

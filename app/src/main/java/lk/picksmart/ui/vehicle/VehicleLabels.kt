@@ -1,5 +1,6 @@
 package lk.picksmart.ui.vehicle
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -17,6 +18,16 @@ val VehicleType.label: Int
         VehicleType.THREE_WHEELER -> R.string.vehicle_type_three_wheeler
         VehicleType.CAR -> R.string.vehicle_type_car
         VehicleType.OTHER -> R.string.vehicle_type_other
+    }
+
+/** The vehicle drawn in its icon tile, e.g. a scooter or a three-wheeler. */
+@get:DrawableRes
+val VehicleType.icon: Int
+    get() = when (this) {
+        VehicleType.MOTORCYCLE -> R.drawable.ic_vehicle_motorcycle
+        VehicleType.THREE_WHEELER -> R.drawable.ic_vehicle_three_wheeler
+        VehicleType.CAR -> R.drawable.ic_vehicle_car
+        VehicleType.OTHER -> R.drawable.ic_vehicle_other
     }
 
 @get:StringRes

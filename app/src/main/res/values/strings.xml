@@ -97,7 +97,10 @@
     <string name="check_optional">Optional</string>
     <string name="unit_km">km</string>
     <!-- "Honda Dio · Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
-    <string name="check_vehicle_rates">%1$s · %2$s</string>
+    <!-- Rates on the Check a Ride vehicle card. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
+    <string name="check_rate_fuel_price">%1$s/L</string>
+    <string name="check_rate_efficiency">%1$s km/L</string>
+    <string name="check_rate_reserve">%1$s/km reserve</string>
     <string name="check_sample_label">Sample</string>
     <string name="check_change_rates">Change</string>
     <string name="check_change_rates_description">Change rates for this check</string>

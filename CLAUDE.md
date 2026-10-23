@@ -359,6 +359,15 @@ Bottom navigation: Home, Check Ride, History, Reports, Account. The Account tab 
 
 On first launch, a short setup asks for vehicle type, fuel price, fuel efficiency and maintenance reserve (with a "skip, use sample values" option clearly labelled as samples), then shows the one-line safety notice.
 
+### Vehicles
+
+- A rider can have several vehicles (for example a motorcycle and a three-wheeler). One is the **active vehicle** (`defaultVehicleId`); its rates pre-fill Check a Ride and new trips.
+- **Switching:** a vehicle chip at the top of Check a Ride, and the Vehicles list on the Account tab (add, edit, set active, archive). Switching is one tap and never changes a saved trip, because each trip keeps its own `vehicleId` and rate snapshot (section 8).
+- **Limit:** up to 3 active (not archived) vehicles on Free and Signed in; unlimited on Premium (section 15). Archived vehicles don't count, and their trips stay in History and Reports. Archiving the active vehicle asks which one becomes active; the last active vehicle can't be archived.
+- Adding a vehicle past the limit opens a "More vehicles with Premium" screen instead of the form. The limit is a feature gate, never a reason to block checking or recording rides on any vehicle the rider already has.
+- Fuel log and expense forms pick a vehicle, defaulting to the active one. Reports combine all vehicles; a per-vehicle filter can come later.
+- Fuel prices: the Home notice, the prompt and the Fuel price screen follow the active vehicle. Automatic updates apply to every vehicle that has auto-update on.
+
 ## 9a. Glance surfaces and notifications
 
 The goal is a near-instant read on an offer without ever reading the ride app. Every surface below takes numbers the rider types or confirms.
@@ -557,7 +566,7 @@ Recommended feature gating (owner can adjust the split, not the no-cap rule):
 | Reports range | current week | full history | full history |
 | Cloud backup & multi-device | — | ✓ | ✓ |
 | CSV / Excel export | — | ✓ | ✓ |
-| Vehicles | 1 | 1 | multiple |
+| Vehicles (active, not archived) | 3 | 3 | unlimited |
 | Screenshot OCR auto-fill | — | — | ✓ |
 | Shift widget & Quick Settings tile | — | — | ✓ |
 | Tax & monthly summaries | — | — | ✓ |
@@ -567,6 +576,8 @@ Recommended feature gating (owner can adjust the split, not the no-cap rule):
 - Premium is billed through Google Play Billing (not a custom payment flow). Prices shown in the UI (Rs. 490/month, Rs. 4,900/year) are placeholders to confirm.
 - Entitlement is cached locally so Premium features work offline once verified; the app re-checks when online. Losing network never silently downgrades a paid rider mid-session.
 - Downgrading never deletes data: a lapsed Premium rider keeps all their trips and still sees them; only the gated features turn off.
+- A lapsed Premium rider with more than 3 vehicles keeps all of them and can still switch between them and record trips on each; they just can't add another until they are under the limit (section 9, "Vehicles").
+- Until Premium exists (Phase 8d), the vehicle limit comes from a single constant that `PlanProvider` will replace, and the Premium screen says "coming soon".
 
 ## 16. Cost and scaling
 

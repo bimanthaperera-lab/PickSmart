@@ -142,3 +142,13 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 - **Mobile number.** Optional, typed by the rider on Register or Profile, labelled "Not verified" since there is no OTP. Kept on the device and in the rider's own Firestore profile; never used for SMS. *Owner.*
 - **Profile photo.** The Google account photo for Google sign-in, initials otherwise; no upload for now (it would need Cloud Storage and Blaze). Cached on the device so the card works offline. *Default.*
 - **Order.** Only the docs changed so far. Phase 8c keeps its place after Phase 7 until the owner says to move it. *Default.*
+
+## 2026-10-23 — Multiple vehicles
+
+- **Limit.** Free and Signed in riders can keep up to 3 active vehicles; Premium is unlimited. This replaces the earlier split in CLAUDE.md section 15 (1 / 1 / multiple). It is a feature gate, not a ride cap. *Owner.*
+- **Phase 6c.** Multiple vehicles is built before Phase 7, because Reports and the Account tab both depend on how vehicles work. *Owner.*
+- **Archived vehicles don't count** toward the limit, and their trips stay in History and Reports. The last active vehicle can't be archived. *Default.*
+- **Lapsed Premium** riders keep every vehicle and can still switch and record on each; only adding past 3 is blocked. *Default.*
+- **Switching** is a vehicle chip on Check a Ride plus the Vehicles list in Settings (Account tab later). It sets `defaultVehicleId`; saved trips keep their own vehicle and rate snapshot. *Default.*
+- **Before Premium exists**, the limit is one constant that `PlanProvider` replaces in Phase 8d, and the 4th "Add vehicle" opens a Premium screen saying "coming soon". *Default.*
+- **Fuel prices** follow the active vehicle for the prompt and screen; automatic updates apply to every vehicle with auto-update on (today only the default vehicle is checked). *Default.*

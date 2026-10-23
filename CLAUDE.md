@@ -438,6 +438,17 @@ The approved path to the same value is section 9a (shift reminder, tile, bubble)
 - **Backup:** Android Auto Backup is enabled with explicit rules that include the Room database and DataStore and exclude caches. This is disclosed in the privacy policy. CSV export is the user's manual backup.
 - Before release, check the current Google Play policies, Data safety requirements and AdMob requirements; they change.
 
+### App and revenue protection
+
+The aim is to make Picksmart hard to copy or crack without giving up offline use, speed or privacy.
+
+- **Logic and data stay on the device.** Do not move the calculator, reports or records to a server to stop copying. The profit formula is simple arithmetic anyone can rebuild, a server cannot stop someone cloning the screens, and it would break N4 and N9, slow Check a Ride, and add backend cost for every install. Only the features in section 14 and below use the server.
+- **Code.** Release builds keep R8 on (`isMinifyEnabled` and `isShrinkResources`). Keep `proguard-rules.pro` to the rules reflection or serialization actually needs. Upload each release's R8 mapping file to Play Console so crash reports stay readable; never ship or commit it.
+- **No secrets in the APK.** No server keys, admin credentials, service-account JSON or Play Developer API credentials in the app or the repository; anything privileged runs on the server. `google-services.json` only identifies the Firebase project and is not a secret (it stays git-ignored anyway); protection comes from Firestore security rules and App Check.
+- **Firebase App Check with the Play Integrity provider** guards Firestore (and Cloud Functions) from the first release with sync, so a modified or repackaged APK can't use cloud backup. It never affects local use: if the check fails, only backup stops, with a plain message.
+- **Premium is verified on the server.** A Cloud Function verifies each Play purchase with the Google Play Developer API, acknowledges it, and stores the entitlement under the rider's user id; the app trusts that verified entitlement (cached for offline use, section 15), never a local flag alone. Cloud Functions need the Blaze plan (section 16).
+- **Brand.** Code and design are protected by copyright automatically. The owner registers the "Picksmart" name and logo as a trademark in Sri Lanka (National Intellectual Property Office), so a copy using the name or logo can be reported and removed from Play; confirm the details with a lawyer. Keep the app's source repository private (the fuel price file lives in its own public repository).
+
 ## 11. OCR rules
 
 - ML Kit Text Recognition supports Latin script only. Screenshots in Sinhala or Tamil will not parse; the app must handle this gracefully and fall back to manual entry.
@@ -616,7 +627,7 @@ Phone OTP is not shipped (section 14). These rules apply only if it is added lat
 
 ### Plan upgrade (Spark → Blaze)
 
-- Start on Spark (free, no card). Move to Blaze (pay-as-you-go) when Cloud Storage, phone auth (not planned), or usage above the Firestore daily quota is needed. Email/password and Google sign-in work on Spark.
+- Start on Spark (free, no card). Move to Blaze (pay-as-you-go) when Cloud Functions (Premium purchase verification, Phase 8d), Cloud Storage, phone auth (not planned), or usage above the Firestore daily quota is needed. Email/password and Google sign-in work on Spark.
 - Blaze still includes all free quotas; it bills only above them, so enabling Blaze is not itself a charge.
 - Set budget alerts at 50% / 80% / 100%. Alerts notify only; they do not stop reads or downloads, so also cap runaway paths in code (rate limits, pagination, no per-screen Firestore reads).
 

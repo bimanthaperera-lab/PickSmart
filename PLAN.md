@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** 6b — Fuel price updates is done except the owner's step (publish the price file and set its URL); next is Phase 6c — Multiple vehicles, then Phase 7 — Dashboard, reports and export
 - **Next step:** Owner: publish the fuel price file and set `picksmart.fuelPriceUrl` (see `docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on Settings (Account tab later) and the active-vehicle switch, then Phase 7.
-- **Last updated:** 2026-10-23 (vehicle limit 1 / 3 / unlimited; sample values removed from onboarding)
+- **Last updated:** 2026-10-23 (app and revenue protection plan added to Phases 8c, 8d and 9)
 
 ## Open questions for the owner
 
@@ -196,6 +196,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Firebase Auth: email/password (with verification email and reset) and Google; no phone OTP; Firebase budget alerts at 50/80/100%
 - [ ] Create an account later from the Account tab without losing local data
 - [ ] Firestore per-user storage with security rules isolating each rider; offline persistence on
+- [ ] Firebase App Check with the Play Integrity provider on Firestore; a failed check stops only backup, with a plain message, never local use
 - [ ] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud
 - [ ] Sign-out keeps local data; "Delete account and cloud data" action
 - [ ] Play Data safety form and privacy policy updated; marketing promise reworded
@@ -210,6 +211,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Profile screen additions (the screen itself comes in 8c): tier badge, rides-per-day chart, lifetime stats
 - [ ] Premium screen listing the three tiers; Google Play Billing integration
 - [ ] Feature gates wired: reports range, export, vehicle limit (1 / 3 / unlimited), OCR, widgets, tax summaries, ads
+- [ ] Server-side purchase verification: a Cloud Function checks each Play purchase with the Google Play Developer API, acknowledges it and stores the entitlement under the user id (needs the Blaze plan, with budget alerts)
+- [ ] App Check (Play Integrity) on that function; the app trusts only the server-verified entitlement, never a local flag alone
 - [ ] Entitlement cached locally so Premium works offline once verified; re-check when online
 - [ ] No ride or ride-check caps anywhere (core rule); downgrade never deletes data
 
@@ -221,6 +224,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Ads kept away from Check a Ride and data entry; no interstitials during ride checks
 - [ ] Privacy policy and Data safety answers that match the actual app
 - [ ] Check the current Play target API and policy requirements
+- [ ] Protection check: release build has R8 minify and resource shrinking on; the R8 mapping file is uploaded to Play Console; no keys, credentials or service-account files in the APK or repository
+- [ ] Owner: register the "Picksmart" name and logo as a trademark in Sri Lanka (NIPO), and confirm the app's source repository is private
 - [ ] App icon, store screenshots, store description
 - [ ] Release checklist run on a low-end device: offline use, small screen, large fonts, back navigation, ad failure
 

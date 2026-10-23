@@ -184,3 +184,10 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 - **New riders see it too.** The app can't know a rider is new until settings load, so the splash now shows before the welcome screen as well. *Default.*
 - **Checked on the emulator (API 37)** in dark and light, at normal speed and with animations slowed 5–10× to see the frames in between: the pin is on screen from the tap, with no blank or dimmed frame, then moves smoothly into the final layout and Home. *Default.*
 
+## 2026-10-23 — App and revenue protection
+
+- **Logic and data stay on the device.** The owner asked about moving the logic and user data to a backend so the app can't be copied. Not done: the profit formula is simple arithmetic anyone can rebuild, a backend can't stop someone cloning the screens, and it would break offline use (N4, N9), slow Check a Ride and add Firebase cost for every install. *Owner agreed.*
+- **What protects the app instead** (CLAUDE.md section 10, "App and revenue protection"): R8 minify and resource shrinking in release builds (already on), mapping files uploaded to Play Console, no secrets in the APK, Firebase App Check with Play Integrity on Firestore and Cloud Functions, Premium purchases verified on the server, and a Sri Lankan trademark for the name and logo. *Owner agreed; the details are the default.*
+- **Where it lands.** App Check in Phase 8c with sync; server-side purchase verification in Phase 8d with Premium; the release check and the trademark (owner task) in Phase 9. *Default.*
+- **Blaze plan.** Server-side purchase verification needs Cloud Functions, which need the Blaze plan, so Premium is what moves the project off Spark. Budget alerts are set at the same time (section 16). *Default.*
+- **Repository visibility** couldn't be checked from this machine (the GitHub CLI isn't installed). The owner confirms the app's repository is private; only the fuel price file's repository is public. *Default.*

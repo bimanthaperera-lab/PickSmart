@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import lk.picksmart.R
 import lk.picksmart.ui.theme.BrandYellow
-import lk.picksmart.ui.theme.LightAccent
 import lk.picksmart.ui.theme.NearBlack
 import lk.picksmart.ui.theme.OffWhite
 import lk.picksmart.util.MoneyFormatter
@@ -48,15 +47,15 @@ fun BrandMark(modifier: Modifier = Modifier, size: Dp = 44.dp) {
 }
 
 /**
- * The "Picksmart" wordmark: "Pick" off-white and "smart" brand yellow on dark backgrounds. On light
- * ones "Pick" turns near-black and "smart" the darker amber accent, since off-white and yellow
- * would vanish there. Its two halves are separate drawables tinted here, drawn on top of each other.
+ * The "Picksmart" wordmark: "Pick" off-white on dark backgrounds and near-black on light ones, where
+ * off-white would vanish; "smart" is always brand yellow. Its two halves are separate drawables
+ * tinted here, drawn on top of each other.
  */
 @Composable
 fun Wordmark(modifier: Modifier = Modifier) {
     val onLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
     val pick = if (onLight) NearBlack else OffWhite
-    val smart = if (onLight) LightAccent else BrandYellow
+    val smart = BrandYellow
     Box(modifier.semantics(mergeDescendants = true) {}) {
         Image(
             painterResource(R.drawable.picksmart_word_pick),

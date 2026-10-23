@@ -8,6 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -91,17 +97,28 @@ class MainActivity : ComponentActivity() {
         PicksmartTheme(darkTheme = darkTheme) {
             // Setup runs only while the flag is false; finishing it flips the flag and this
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
-            when {
-                showSplash -> SplashScreen()
-                onboardingComplete -> PicksmartApp()
-                else -> OnboardingScreen()
+            // The splash fades out, growing slightly, while the app fades in underneath it.
+            AnimatedContent(
+                targetState = showSplash,
+                transitionSpec = {
+                    fadeIn(tween(SplashExitMillis)) togetherWith
+                        (fadeOut(tween(SplashExitMillis)) + scaleOut(tween(SplashExitMillis), targetScale = 1.04f))
+                },
+                label = "splash",
+            ) { splash ->
+                when {
+                    splash -> SplashScreen()
+                    onboardingComplete -> PicksmartApp()
+                    else -> OnboardingScreen()
+                }
             }
         }
     }
 
     private companion object {
         /** Kept short: riders often open the app to check an offer quickly. */
-        const val SplashMillis = 700L
+        const val SplashMillis = 800L
+        const val SplashExitMillis = 300
 
         // Scrims for three-button navigation on older Android versions, where the bar can't be fully transparent.
         val LightScrim = Color.argb(0xE6, 0xFF, 0xFF, 0xFF)

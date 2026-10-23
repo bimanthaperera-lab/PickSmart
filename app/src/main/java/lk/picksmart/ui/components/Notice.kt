@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +73,34 @@ fun NoticeCard(
                     .align(Alignment.End)
                     .padding(top = Spacing.m),
             )
+        }
+    }
+}
+
+/**
+ * A quiet, neutral note with an info icon, e.g. why a report may be incomplete. Unlike
+ * [NoticeCard] it doesn't ask for attention; the optional action is a text button.
+ */
+@Composable
+fun InfoNote(
+    text: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int = R.drawable.ic_info,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    PicksmartCard(modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m), verticalAlignment = Alignment.Top) {
+            Icon(
+                painterResource(iconRes),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (actionLabel != null && onAction != null) {
+            TextButton(onClick = onAction, modifier = Modifier.align(Alignment.End)) { Text(actionLabel) }
         }
     }
 }

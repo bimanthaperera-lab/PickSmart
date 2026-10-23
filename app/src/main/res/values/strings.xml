@@ -319,6 +319,58 @@
     <string name="reports_title">Reports</string>
     <string name="reports_empty_title">No reports yet</string>
     <string name="reports_empty_body">Your daily, weekly and monthly profit will appear here once you record trips.</string>
+    <string name="reports_period_day">Day</string>
+    <string name="reports_period_week">Week</string>
+    <string name="reports_period_month">Month</string>
+    <string name="reports_view_estimated">Estimated</string>
+    <string name="reports_view_cash">Cash</string>
+    <string name="reports_previous">Previous</string>
+    <string name="reports_next">Next</string>
+    <string name="reports_range">%1$s – %2$s</string>
+    <string name="pattern_day_of_month">d</string>
+    <string name="pattern_month">MMMM yyyy</string>
+    <string name="reports_estimated_title">Estimated net profit</string>
+    <string name="reports_cash_title">Cash profit</string>
+    <string name="reports_title_so_far">%1$s · %2$s</string>
+    <string name="reports_so_far_day">today so far</string>
+    <string name="reports_so_far_week">week so far</string>
+    <string name="reports_so_far_month">month so far</string>
+    <plurals name="reports_estimated_line">
+        <item quantity="one">%1$s per km over %2$s km · %3$d trip</item>
+        <item quantity="other">%1$s per km over %2$s km · %3$d trips</item>
+    </plurals>
+    <plurals name="reports_trips_line">
+        <item quantity="one">%1$d trip</item>
+        <item quantity="other">%1$d trips</item>
+    </plurals>
+    <plurals name="reports_cash_line">
+        <item quantity="one">%1$s received · %2$d trip</item>
+        <item quantity="other">%1$s received · %2$d trips</item>
+    </plurals>
+    <string name="reports_line_gross">Gross earnings</string>
+    <string name="reports_line_fees">Platform fees</string>
+    <string name="reports_line_estimated_fuel">Fuel (estimated)</string>
+    <string name="reports_line_reserve">Maintenance reserve</string>
+    <string name="reports_line_trip_costs">Other trip costs</string>
+    <string name="reports_line_other_income">Incentives &amp; tips</string>
+    <string name="reports_line_expenses">Expenses</string>
+    <string name="reports_line_fuel_bought">Fuel bought</string>
+    <string name="reports_line_net">Net profit</string>
+    <string name="reports_estimated_basis">Estimated: trips after platform fees, estimated fuel and maintenance reserve, plus other income. Expenses and fill-ups are in Cash.</string>
+    <string name="reports_cash_basis">Cash: money you received, minus the expenses and fuel you recorded. No estimates.</string>
+    <string name="reports_period_empty_title">Nothing recorded</string>
+    <string name="reports_period_empty_body">No trips, income, expenses or fill-ups in this period.</string>
+    <plurals name="reports_incomplete_distance">
+        <item quantity="one">%1$d trip in this period has no distance, so it has no fuel or maintenance reserve, and per km uses the %2$s km that were recorded.</item>
+        <item quantity="other">%1$d trips in this period have no distance, so they have no fuel or maintenance reserve, and per km uses the %2$s km that were recorded.</item>
+    </plurals>
+    <string name="reports_incomplete_fuel">No fill-ups are recorded in this period, so cash profit doesn\'t include fuel. Fuel bought on another day, or not logged, makes it look higher.</string>
+    <string name="reports_open_fuel_log">Open fuel log</string>
+    <plurals name="reports_offers_note">
+        <item quantity="one">%1$d checked offer in this period is not counted. Only rides you took count.</item>
+        <item quantity="other">%1$d checked offers in this period are not counted. Only rides you took count.</item>
+    </plurals>
+    <string name="reports_chart_description">%1$s by day from %2$s to %3$s. Highest %4$s on %5$s. Lowest %6$s on %7$s.</string>
 
     <!-- Units, used as field suffixes and in summaries -->
     <string name="unit_per_litre">per litre</string>

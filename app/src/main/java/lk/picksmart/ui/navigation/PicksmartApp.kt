@@ -163,7 +163,7 @@ fun PicksmartApp() {
                     onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
                 )
             }
-            composable<ReportsRoute> { ReportsScreen() }
+            composable<ReportsRoute> { ReportsScreen(onCheckRide = openCheckRide, onOpenFuelLog = openFuelLog) }
             composable<AccountRoute> {
                 AccountScreen(
                     onSignUp = { navController.navigate(RegisterRoute) },

@@ -67,4 +67,17 @@ class FormattersTest {
         assertEquals("2.68", formatDecimal(2.675, 2))
         assertEquals("1,235", formatDecimal(1234.5, 0))
     }
+
+    @Test
+    fun `compact chart amounts`() {
+        assertEquals("0", formatCompactRupees(0))
+        assertEquals("950", formatCompactRupees(95_000))
+        assertEquals("1.0k", formatCompactRupees(99_960)) // 999.60 rounds up to 1,000
+        assertEquals("4.1k", formatCompactRupees(412_300))
+        assertEquals("12.0k", formatCompactRupees(1_200_000))
+        assertEquals("1.0M", formatCompactRupees(99_996_000))
+        assertEquals("-350", formatCompactRupees(-35_000))
+        assertEquals("-1.2k", formatCompactRupees(-123_400))
+        assertEquals("0", formatCompactRupees(-40)) // -0.40 rounds to 0, with no sign
+    }
 }

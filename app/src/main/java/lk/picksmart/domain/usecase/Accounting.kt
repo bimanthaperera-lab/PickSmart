@@ -37,8 +37,8 @@ val Trip.colomboDate: LocalDate get() = tripDateTime.atZone(ColomboZone).toLocal
  *
  * **Estimated profit** ([estimatedProfitCents]) = [tripProfitCents] + [otherIncomeCents].
  * [tripProfitCents] is the calculator's net for each completed and cancelled trip, from the trip's
- * own rate snapshot, and equals [tripEarningsCents] − [estimatedFuelCents] − [reserveCents] −
- * [tripOtherCostsCents] exactly. Recorded expenses and fuel logs are not part of it.
+ * own rate snapshot, and equals [tripGrossCents] − [commissionCents] − [estimatedFuelCents] −
+ * [reserveCents] − [tripOtherCostsCents] exactly. Recorded expenses and fuel logs are not part of it.
  *
  * **Cash profit** ([cashProfitCents]) = [cashIncomeCents] − [expensesCents] − [fuelLogCents].
  * [cashIncomeCents] = [tripEarningsCents] + [otherIncomeCents]. The maintenance reserve and the
@@ -48,7 +48,9 @@ val Trip.colomboDate: LocalDate get() = tripDateTime.atZone(ColomboZone).toLocal
  *
  * Offers ([TripStatus.OFFER_CHECK]) are never counted in either view (N1); [offers] only counts them.
  *
- * @property tripEarningsCents Completed trips' fare after the platform fee, plus cancellation fees.
+ * @property tripGrossCents Completed trips' fares as entered (already after the fee in payout mode),
+ *   plus cancellation fees.
+ * @property commissionCents Platform fees taken from [tripGrossCents]; 0 for payout-mode fares.
  * @property distanceKm Distance actually driven on counted trips: all of a completed trip, the
  *   pickup and return of a cancelled one.
  * @property tripProfitPerKmCents [tripProfitCents] ÷ [distanceKm], rounded half up; other income is
@@ -60,7 +62,8 @@ data class PeriodSummary(
     val range: DateRange,
     val tripProfitCents: Long,
     val otherIncomeCents: Long,
-    val tripEarningsCents: Long,
+    val tripGrossCents: Long,
+    val commissionCents: Long,
     val estimatedFuelCents: Long,
     val reserveCents: Long,
     val tripOtherCostsCents: Long,
@@ -74,6 +77,8 @@ data class PeriodSummary(
     val tripProfitPerKmCents: Long?,
     val tripsWithoutDistance: Int,
 ) {
+    /** Completed trips' fares after the platform fee, plus cancellation fees. */
+    val tripEarningsCents: Long get() = tripGrossCents - commissionCents
     val estimatedProfitCents: Long get() = tripProfitCents + otherIncomeCents
     val cashIncomeCents: Long get() = tripEarningsCents + otherIncomeCents
     val cashProfitCents: Long get() = cashIncomeCents - expensesCents - fuelLogCents
@@ -110,7 +115,8 @@ fun ProfitCalculator.summarizePeriod(
 ): PeriodSummary {
     val inRange = trips.filter { it.colomboDate in range }
     var tripProfit = 0L
-    var tripEarnings = 0L
+    var gross = 0L
+    var commission = 0L
     var fuel = 0L
     var reserve = 0L
     var tripOther = 0L
@@ -121,7 +127,8 @@ fun ProfitCalculator.summarizePeriod(
         val input = trip.profitInput()
         val result = (calculate(input) as? CalculationResult.Success)?.result ?: continue
         tripProfit += result.netProfitCents
-        tripEarnings += input.fareCents - result.commissionCents
+        gross += input.fareCents
+        commission += result.commissionCents
         fuel += result.fuelCostCents
         reserve += result.maintenanceReserveCents
         tripOther += input.otherCostsCents
@@ -134,7 +141,8 @@ fun ProfitCalculator.summarizePeriod(
         range = range,
         tripProfitCents = tripProfit,
         otherIncomeCents = otherIncome.filter { it.date in range }.sumOf { it.amountCents },
-        tripEarningsCents = tripEarnings,
+        tripGrossCents = gross,
+        commissionCents = commission,
         estimatedFuelCents = fuel,
         reserveCents = reserve,
         tripOtherCostsCents = tripOther,

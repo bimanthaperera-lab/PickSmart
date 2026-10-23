@@ -135,6 +135,8 @@ class AccountingTest {
         assertEquals(201_250L, s.estimatedProfitCents)
         // Its parts: earned 800 + 800 + 150 = 1,750.00; fuel 75 + 75 + 37.50; reserve 20 + 20 + 10.
         assertEquals(175_000L, s.tripEarningsCents)
+        assertEquals(195_000L, s.tripGrossCents) // 1,000 gross + 800 payout + 150 fee
+        assertEquals(20_000L, s.commissionCents) // only the gross-mode trip has a fee
         assertEquals(18_750L, s.estimatedFuelCents)
         assertEquals(5_000L, s.reserveCents)
         // Cash: 1,750.00 + 500.00 − 300.00 − 1,000.00 = 950.00
@@ -155,7 +157,7 @@ class AccountingTest {
         assertEquals(4_321L, s.tripOtherCostsCents)
         assertEquals(
             s.tripProfitCents,
-            s.tripEarningsCents - s.estimatedFuelCents - s.reserveCents - s.tripOtherCostsCents,
+            s.tripGrossCents - s.commissionCents - s.estimatedFuelCents - s.reserveCents - s.tripOtherCostsCents,
         )
     }
 

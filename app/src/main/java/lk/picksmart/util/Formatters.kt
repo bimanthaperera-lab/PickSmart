@@ -41,3 +41,19 @@ private fun formatDecimal(value: BigDecimal, decimals: Int): String {
     return DecimalFormat(pattern, SYMBOLS).apply { roundingMode = RoundingMode.HALF_UP }
         .format(value)
 }
+
+/**
+ * A short rupee amount for chart labels, with no prefix: `950`, `4.1k`, `12.0k`, `1.2M`, `-350`.
+ * Rounded half up; the full amount is always shown elsewhere.
+ */
+fun formatCompactRupees(cents: Long): String {
+    val rupees = BigDecimal.valueOf(cents, 2).abs()
+    val sign = if (cents < 0 && rupees.setScale(0, RoundingMode.HALF_UP).signum() != 0) "-" else ""
+    val thousand = BigDecimal(1_000)
+    val million = BigDecimal(1_000_000)
+    return sign + when {
+        rupees.setScale(0, RoundingMode.HALF_UP) < thousand -> formatDecimal(rupees, 0)
+        rupees.divide(thousand).setScale(1, RoundingMode.HALF_UP) < thousand -> formatDecimal(rupees.divide(thousand), 1) + "k"
+        else -> formatDecimal(rupees.divide(million), 1) + "M"
+    }
+}

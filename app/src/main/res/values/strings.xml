@@ -474,20 +474,24 @@
     <string name="account_open_profile">open your profile</string>
 
     <!-- Sign in, register and password reset -->
-    <string name="auth_sign_in_title">Sign in</string>
-    <string name="auth_sign_in_body">Sign in to back up your data and add up to 3 vehicles. Everything else works without an account.</string>
-    <string name="auth_register_title">Create account</string>
-    <string name="auth_register_body">An account backs up your trips and records, so you keep them if you change phones.</string>
+    <string name="auth_sign_in_title">Welcome back</string>
+    <string name="auth_register_title">Create an account</string>
+    <string name="auth_register_body">Optional. It backs up your trips so you don\'t lose them if you change phones.</string>
     <string name="auth_name">Name</string>
+    <string name="auth_name_placeholder">Your name</string>
     <string name="auth_email">Email</string>
+    <string name="auth_email_placeholder">you@example.com</string>
     <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">Your password</string>
     <string name="auth_confirm_password">Confirm password</string>
+    <string name="auth_confirm_password_placeholder">Type the password again</string>
     <string name="auth_mobile_optional">Mobile number (optional)</string>
+    <string name="auth_mobile_placeholder">077 123 4567</string>
     <string name="auth_mobile_hint">Not verified. Never used to send SMS.</string>
     <!-- %1$d: minimum number of characters, e.g. 8 -->
     <string name="auth_password_hint">At least %1$d characters</string>
-    <string name="auth_show_password">Show</string>
-    <string name="auth_hide_password">Hide</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
     <string name="auth_forgot_password">Forgot password?</string>
     <string name="auth_sign_in_action">Sign in</string>
     <string name="auth_signing_in">Signing in…</string>
@@ -495,10 +499,12 @@
     <string name="auth_creating_account">Creating account…</string>
     <string name="auth_or">or</string>
     <string name="auth_continue_google">Continue with Google</string>
-    <string name="auth_to_register">New to Picksmart? Create an account</string>
-    <string name="auth_to_sign_in">Already have an account? Sign in</string>
+    <!-- Top-right links that swap between the sign-in and create-account forms -->
+    <string name="auth_to_register">Create account</string>
+    <string name="auth_to_sign_in">Sign in</string>
     <string name="auth_skip">Skip — use without an account</string>
     <string name="auth_needs_internet">Signing in needs internet. The rest of the app works offline.</string>
+    <string name="auth_register_later">You can create an account later from the Account tab. Without one, your data stays only on this phone.</string>
     <string name="auth_reset_title">Reset password</string>
     <string name="auth_reset_body">Enter your account email and we\'ll send you a link to choose a new password.</string>
     <string name="auth_reset_action">Send reset link</string>

@@ -1,19 +1,29 @@
 package lk.picksmart.ui.account
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
+import lk.picksmart.ui.theme.Spacing
 
 /**
  * Sign in with email and password or Google (CLAUDE.md section 14). [onSkip] and the back arrow
@@ -33,25 +43,48 @@ fun LoginScreen(
     LaunchedEffect(status.done) { if (status.done) onSignedIn() }
     val errors = if (showErrors) form.errors() else emptyMap()
 
-    AuthPage(stringResource(R.string.auth_sign_in_title), onSkip) {
-        Intro(R.string.auth_sign_in_body)
+    AuthFormPage(
+        onBack = onSkip,
+        switchLabel = stringResource(R.string.auth_to_register),
+        onSwitch = onRegister,
+        switchEnabled = !status.busy,
+        footer = {
+            SkipLink(onSkip)
+            AuthNote(R.string.auth_needs_internet)
+        },
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = Spacing.l, bottom = Spacing.s),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Spacing.xl),
+        ) {
+            BrandMark(size = 64.dp)
+            Title(R.string.auth_sign_in_title, TextAlign.Center)
+        }
         AuthTextField(
             form.email,
             { viewModel.update(form.copy(email = it)) },
             stringResource(R.string.auth_email),
             AuthInput.EMAIL,
+            placeholder = stringResource(R.string.auth_email_placeholder),
             error = errors[AuthField.EMAIL]?.let { stringResource(it.message) },
         )
-        AuthTextField(
-            form.password,
-            { viewModel.update(form.copy(password = it)) },
-            stringResource(R.string.auth_password),
-            AuthInput.PASSWORD,
-            error = errors[AuthField.PASSWORD]?.let { stringResource(it.message) },
-            imeAction = ImeAction.Done,
-            onDone = viewModel::submit,
-        )
-        AuthLink(stringResource(R.string.auth_forgot_password), { onForgotPassword(form.email.trim()) }, enabled = !status.busy)
+        // "Forgot password?" sits close under its field, on the right.
+        Column(horizontalAlignment = Alignment.End) {
+            AuthTextField(
+                form.password,
+                { viewModel.update(form.copy(password = it)) },
+                stringResource(R.string.auth_password),
+                AuthInput.PASSWORD,
+                placeholder = stringResource(R.string.auth_password_placeholder),
+                error = errors[AuthField.PASSWORD]?.let { stringResource(it.message) },
+                imeAction = ImeAction.Done,
+                onDone = viewModel::submit,
+            )
+            AuthLink(stringResource(R.string.auth_forgot_password), { onForgotPassword(form.email.trim()) }, enabled = !status.busy)
+        }
         FormMessage(status.message)
         PrimaryButton(
             stringResource(if (status.busy) R.string.auth_signing_in else R.string.auth_sign_in_action),
@@ -61,9 +94,6 @@ fun LoginScreen(
         )
         OrDivider()
         GoogleButton(viewModel, enabled = !status.busy)
-        AuthLink(stringResource(R.string.auth_to_register), onRegister, enabled = !status.busy)
-        AuthLink(stringResource(R.string.auth_skip), onSkip)
-        InternetNote()
     }
 }
 
@@ -81,13 +111,27 @@ fun RegisterScreen(
     LaunchedEffect(status.done) { if (status.done) onRegistered() }
     val errors = if (showErrors) form.errors() else emptyMap()
 
-    AuthPage(stringResource(R.string.auth_register_title), onSkip) {
-        Intro(R.string.auth_register_body)
+    AuthFormPage(
+        onBack = onSkip,
+        switchLabel = stringResource(R.string.auth_to_sign_in),
+        onSwitch = onSignIn,
+        switchEnabled = !status.busy,
+        footer = {
+            SkipLink(onSkip)
+            AuthNote(R.string.auth_register_later)
+            AuthNote(R.string.auth_needs_internet)
+        },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Title(R.string.auth_register_title, TextAlign.Start)
+            Intro(R.string.auth_register_body)
+        }
         AuthTextField(
             form.name,
             { viewModel.update(form.copy(name = it)) },
             stringResource(R.string.auth_name),
             AuthInput.NAME,
+            placeholder = stringResource(R.string.auth_name_placeholder),
             error = errors[AuthField.NAME]?.let { stringResource(it.message) },
         )
         AuthTextField(
@@ -95,6 +139,7 @@ fun RegisterScreen(
             { viewModel.update(form.copy(email = it)) },
             stringResource(R.string.auth_email),
             AuthInput.EMAIL,
+            placeholder = stringResource(R.string.auth_email_placeholder),
             error = errors[AuthField.EMAIL]?.let { stringResource(it.message) },
         )
         AuthTextField(
@@ -102,6 +147,7 @@ fun RegisterScreen(
             { viewModel.update(form.copy(mobile = it)) },
             stringResource(R.string.auth_mobile_optional),
             AuthInput.MOBILE,
+            placeholder = stringResource(R.string.auth_mobile_placeholder),
             error = errors[AuthField.MOBILE]?.let { stringResource(it.message) },
             supportingText = stringResource(R.string.auth_mobile_hint),
         )
@@ -110,14 +156,15 @@ fun RegisterScreen(
             { viewModel.update(form.copy(password = it)) },
             stringResource(R.string.auth_password),
             AuthInput.NEW_PASSWORD,
+            placeholder = stringResource(R.string.auth_password_hint, MIN_PASSWORD_LENGTH),
             error = errors[AuthField.PASSWORD]?.let { stringResource(it.message, MIN_PASSWORD_LENGTH) },
-            supportingText = stringResource(R.string.auth_password_hint, MIN_PASSWORD_LENGTH),
         )
         AuthTextField(
             form.confirmPassword,
             { viewModel.update(form.copy(confirmPassword = it)) },
             stringResource(R.string.auth_confirm_password),
             AuthInput.NEW_PASSWORD,
+            placeholder = stringResource(R.string.auth_confirm_password_placeholder),
             error = errors[AuthField.CONFIRM_PASSWORD]?.let { stringResource(it.message) },
             imeAction = ImeAction.Done,
             onDone = viewModel::submit,
@@ -131,9 +178,6 @@ fun RegisterScreen(
         )
         OrDivider()
         GoogleButton(viewModel, enabled = !status.busy)
-        AuthLink(stringResource(R.string.auth_to_sign_in), onSignIn, enabled = !status.busy)
-        AuthLink(stringResource(R.string.auth_skip), onSkip)
-        InternetNote()
     }
 }
 
@@ -166,6 +210,7 @@ fun ForgotPasswordScreen(
             viewModel::update,
             stringResource(R.string.auth_email),
             AuthInput.EMAIL,
+            placeholder = stringResource(R.string.auth_email_placeholder),
             error = if (showErrors) emailError(email)?.let { stringResource(it.message) } else null,
             imeAction = ImeAction.Done,
             onDone = viewModel::submit,
@@ -184,4 +229,21 @@ fun ForgotPasswordScreen(
 @Composable
 private fun Intro(text: Int) {
     Text(stringResource(text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+private fun Title(text: Int, align: TextAlign) {
+    Text(
+        stringResource(text),
+        style = MaterialTheme.typography.headlineLarge,
+        textAlign = align,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { heading() },
+    )
+}
+
+@Composable
+private fun SkipLink(onSkip: () -> Unit) {
+    AuthLink(stringResource(R.string.auth_skip), onSkip, color = MaterialTheme.colorScheme.onSurface)
 }

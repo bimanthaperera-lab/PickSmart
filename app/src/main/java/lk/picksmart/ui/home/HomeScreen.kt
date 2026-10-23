@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
-import lk.picksmart.domain.usecase.DaySummary
+import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.PublishedPriceAction
 import lk.picksmart.ui.components.BrandMark
@@ -154,7 +154,7 @@ private fun HomeHeader() {
  * is labelled "Estimated" because fuel and maintenance are estimates from each trip's rates.
  */
 @Composable
-private fun NetProfitCard(summary: DaySummary, vehicleName: String?) {
+private fun NetProfitCard(summary: PeriodSummary, vehicleName: String?) {
     val money = rememberMoneyFormatter()
     val status = PicksmartTheme.status
     val net = summary.estimatedProfitCents
@@ -221,7 +221,7 @@ private fun NetProfitCard(summary: DaySummary, vehicleName: String?) {
 }
 
 @Composable
-private fun TodayStats(summary: DaySummary) {
+private fun TodayStats(summary: PeriodSummary) {
     val money = rememberMoneyFormatter()
     StatGrid(
         listOf(

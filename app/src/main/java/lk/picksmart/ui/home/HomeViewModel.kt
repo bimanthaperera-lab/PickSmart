@@ -16,7 +16,7 @@ import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
-import lk.picksmart.domain.usecase.DaySummary
+import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.FuelPriceUpdates
 import lk.picksmart.domain.usecase.estimate
@@ -34,7 +34,7 @@ sealed interface HomeUiState {
      * @property recent The newest few trips of any day, offers included (they are marked as such).
      */
     data class Loaded(
-        val summary: DaySummary,
+        val summary: PeriodSummary,
         val vehicleName: String?,
         val recent: List<HistoryRow>,
     ) : HomeUiState

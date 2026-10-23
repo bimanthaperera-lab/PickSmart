@@ -4,8 +4,8 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 7 — Dashboard, reports and export, built (2026-10-23) apart from the rest of the emulator check. Phase 6c still has two open items: the onboarding CPC price pre-fill, and the rest of its emulator check.
-- **Next step:** Owner: try Reports (Day, Week, Month, Estimated and Cash) and the export icon on a phone; sign-up and sign-in checks from 8c; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 7 and 6c emulator checks when the emulator is free (export share sheet, month and day views, dark theme, 200% font), pre-fill the CPC price on onboarding, then Phase 8.
+- **Current phase:** 7 — Dashboard, reports and export, done (2026-10-23). Phase 6c still has two open items: the onboarding CPC price pre-fill, and the rest of its emulator check.
+- **Next step:** Owner: try Reports (Day, Week, Month, Estimated and Cash) and the export icon on a phone; sign-up and sign-in checks from 8c; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 6c emulator check, pre-fill the CPC price on onboarding, then Phase 8.
 - **Last updated:** 2026-10-23 (Phase 7: one accounting use case for Home and Reports; Reports built from the week mockup with Estimated / Cash, a daily Canvas chart and incomplete-data notes; CSV export through the share sheet)
 
 ## Open questions for the owner
@@ -157,9 +157,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [x] Simple Canvas charts (a bar per day for a week or month; amounts on week bars; losses below the line)
 - [x] Clear notice when data is incomplete (trips with no distance; cash with no fill-ups; offers not counted)
 - [x] CSV export of trips, income, fuel and expenses through the share sheet (download icon on Reports; `CsvExportTest`)
-- [ ] Checked on the emulator
-  - Done 2026-10-23, on the owner's data: Week, Estimated showed Rs. 330.00, the same as Home (600.00 − 20.00 fee − 250.00 fuel − 0.00 reserve); Cash showed −Rs. 4,420.00 (600.00 − 20.00 − 5,000.00 fuel bought), with the loss bar below the line; light theme. Unit tests check a hand-calculated week in both views.
-  - Still to check: the export share sheet and the files in a spreadsheet, Day and Month, previous / next, the incomplete-data notes, dark theme, 360 dp at 200% font. Stopped because the owner was using the emulator at the same time.
+- [x] Checked on the emulator (2026-10-23, on the owner's data): Week, Estimated showed Rs. 330.00, the same as Home (600.00 − 20.00 fee − 250.00 fuel − 0.00 reserve); Cash showed −Rs. 4,420.00 (600.00 − 20.00 − 5,000.00 fuel bought) with the loss bar below the line; Day (no chart), previous to an empty day ("Nothing recorded", Next enabled again), Month with date ticks; light and dark themes. Export opened the share sheet with 4 files, and the files read from the app's cache had the byte order mark, CRLF rows, and the trip's fuel 250.00 and net 330.00. At 360 dp and 200% font two problems were fixed: "Month" broke mid-word (segment labels now shrink to one line) and the weekday labels ran together (they switch to M T W and shrink to fit). "October 2026" also pushed the view toggle to its own row, so the month label is now "Oct 2026". Unit tests check a hand-calculated week in both views. Not checked on screen: the incomplete-data notes (the owner's data has none; the rules are unit-tested), and opening the files in a spreadsheet app.
 
 **Done when:** dashboard and reports agree with each other and with hand-calculated test data.
 

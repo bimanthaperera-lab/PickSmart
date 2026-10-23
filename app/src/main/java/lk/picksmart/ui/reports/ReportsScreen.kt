@@ -219,8 +219,8 @@ private fun PeriodNavigator(s: ReportsUiState.Loaded, onPrevious: () -> Unit, on
 }
 
 /**
- * "Fri 23 Oct", "19 – 25 Oct", "29 Sep – 5 Oct" or "October 2026". The year shows only where it
- * isn't this year's.
+ * "Fri 23 Oct", "19 – 25 Oct", "29 Sep – 5 Oct" or "Oct 2026", short so the view toggle stays
+ * beside it. The year shows only where it isn't this year's.
  */
 @Composable
 private fun periodLabel(s: ReportsUiState.Loaded): String {

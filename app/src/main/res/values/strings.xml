@@ -328,7 +328,7 @@
     <string name="reports_next">Next</string>
     <string name="reports_range">%1$s – %2$s</string>
     <string name="pattern_day_of_month">d</string>
-    <string name="pattern_month">MMMM yyyy</string>
+    <string name="pattern_month">MMM yyyy</string>
     <string name="reports_estimated_title">Estimated net profit</string>
     <string name="reports_cash_title">Cash profit</string>
     <string name="reports_title_so_far">%1$s · %2$s</string>

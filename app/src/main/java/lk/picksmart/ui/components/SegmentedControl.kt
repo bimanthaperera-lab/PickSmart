@@ -8,16 +8,19 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import lk.picksmart.ui.theme.Spacing
 
 /**
@@ -65,15 +68,26 @@ fun <T> SegmentedControl(
                     Box(
                         Modifier
                             .defaultMinSize(minHeight = Spacing.touchTarget)
-                            .padding(horizontal = Spacing.m, vertical = Spacing.s),
+                            .padding(horizontal = if (fill) Spacing.s else Spacing.m, vertical = Spacing.s),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(
+                        // One line, shrinking to fit its share of the width at large font sizes, so
+                        // "Month" never breaks mid-word. The floor is in dp so it stays small.
+                        val style = MaterialTheme.typography.titleSmall
+                        BasicText(
                             optionLabel(option),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) colors.onSurface else colors.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
+                            style = style.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) colors.onSurface else colors.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            ),
+                            maxLines = 1,
+                            softWrap = false,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = with(LocalDensity.current) { 10.dp.toSp() },
+                                maxFontSize = style.fontSize,
+                                stepSize = 0.5.sp,
+                            ),
                         )
                     }
                 }

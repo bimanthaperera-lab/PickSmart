@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.drawText
@@ -47,6 +48,7 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
     val dayPattern = stringResource(R.string.pattern_day)
     val dayFormat = remember(dayPattern, locale) { DateTimeFormatter.ofPattern(dayPattern, locale) }
     val axisFormat = remember(period, locale) { DateTimeFormatter.ofPattern(if (period == ReportPeriod.WEEK) "EEE" else "d", locale) }
+    val narrowFormat = remember(locale) { DateTimeFormatter.ofPattern("EEEEE", locale) }
     val week = period == ReportPeriod.WEEK
 
     val values = days.map { if (view == ReportView.ESTIMATED) it.estimatedProfitCents else it.cashProfitCents }
@@ -74,6 +76,9 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
     val todayStyle = labelStyle.copy(color = colors.onSurface, fontWeight = FontWeight.Bold)
     val labelHeight = with(LocalDensity.current) { measurer.measure("0", labelStyle).size.height.toDp() }
 
+    fun widest(texts: List<String>, style: TextStyle): Float =
+        texts.maxOfOrNull { measurer.measure(it, style).size.width.toFloat() }?.takeIf { it > 0f } ?: 1f
+
     PicksmartCard(Modifier.fillMaxWidth()) {
         Canvas(
             Modifier
@@ -95,6 +100,17 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
             val barWidth = slot * if (week) 0.8f else 0.7f
             val corner = CornerRadius(minOf(barWidth / 4f, 6.dp.toPx()))
             val stub = 4.dp.toPx()
+            // At large font sizes "Mon Tue" or "12.5k" can be wider than a bar's slot: use
+            // one-letter days ("M T W"), then shrink what still doesn't fit, so labels never collide.
+            val fitWidth = slot - 2.dp.toPx()
+            val axisTexts = days.map { axisFormat.format(it.range.start) }
+            val axisLabels = if (week && widest(axisTexts, todayStyle) > fitWidth) {
+                days.map { narrowFormat.format(it.range.start) }
+            } else {
+                axisTexts
+            }
+            val axisScale = if (week) minOf(1f, fitWidth / widest(axisLabels, todayStyle)) else 1f
+            val valueScale = if (week) minOf(1f, fitWidth / widest(values.map(::formatCompactRupees), todayStyle)) else 1f
 
             days.forEachIndexed { i, day ->
                 val date = day.range.start
@@ -120,13 +136,13 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
                         cornerRadius = corner,
                     )
                     if (week) {
-                        val text = measurer.measure(formatCompactRupees(value), if (isToday) todayStyle else labelStyle)
+                        val text = measurer.measure(formatCompactRupees(value), (if (isToday) todayStyle else labelStyle).scaled(valueScale))
                         val y = if (value > 0) barTop - gap - text.size.height else barTop + h + gap
                         drawText(text, topLeft = Offset((centre - text.size.width / 2f).coerceIn(0f, size.width - text.size.width), y))
                     }
                 }
                 if (week || date.dayOfMonth % 7 == 1) {
-                    val text = measurer.measure(axisFormat.format(date), if (isToday) todayStyle else labelStyle)
+                    val text = measurer.measure(axisLabels[i], (if (isToday) todayStyle else labelStyle).scaled(axisScale))
                     val left = (centre - text.size.width / 2f).coerceIn(0f, size.width - text.size.width)
                     drawText(text, topLeft = Offset(left, CHART_HEIGHT.toPx() + Spacing.s.toPx()))
                 }
@@ -139,3 +155,5 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
 }
 
 private val CHART_HEIGHT = 180.dp
+
+private fun TextStyle.scaled(factor: Float): TextStyle = if (factor >= 1f) this else copy(fontSize = fontSize * factor)

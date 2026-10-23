@@ -20,6 +20,8 @@ enum class FuelPriceSource {
  *
  * @property isSample True while the rates are the onboarding sample values; the UI marks them
  *   "Sample" until the rider saves their own.
+ * @property plateNumber Optional number plate such as "WP CAB-1234", cleaned by
+ *   `normalizePlateNumber`. Null when the rider left it empty.
  */
 data class Vehicle(
     val id: Long,
@@ -37,6 +39,7 @@ data class Vehicle(
     val archived: Boolean,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
+    val plateNumber: String? = null,
 )
 
 /** The values a rider sets on the vehicle form, already parsed and validated. */
@@ -48,4 +51,5 @@ data class VehicleInput(
     val fuelEfficiencyKmPerLitre: Double,
     val maintenanceReservePerKmCents: Long,
     val targetProfitPerKmCents: Long?,
+    val plateNumber: String? = null,
 )

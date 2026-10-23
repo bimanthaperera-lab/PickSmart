@@ -39,6 +39,7 @@ fun newVehicle(input: VehicleInput, isSample: Boolean, nowMillis: Long): Vehicle
     archived = false,
     createdAtMillis = nowMillis,
     updatedAtMillis = nowMillis,
+    plateNumber = input.plateNumber,
 )
 
 /**
@@ -58,6 +59,7 @@ fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long, pub
         fuelEfficiencyKmPerLitre = input.fuelEfficiencyKmPerLitre,
         maintenanceReservePerKmCents = input.maintenanceReservePerKmCents,
         targetProfitPerKmCents = input.targetProfitPerKmCents,
+        plateNumber = input.plateNumber,
         isSample = false,
         updatedAtMillis = nowMillis,
     )

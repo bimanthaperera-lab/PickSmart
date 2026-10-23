@@ -83,4 +83,25 @@ class VehicleFormStateTest {
         assertEquals("300.00", vehicle.toFormState().fuelPrice)
         assertEquals("40", vehicle.toFormState().efficiency)
     }
+
+    @Test
+    fun `the number plate is optional and tidied`() {
+        assertEquals(null, valid(filled.copy(plateNumber = "   ")).plateNumber)
+        assertEquals("WP CAB-1234", valid(filled.copy(plateNumber = " wp  cab-1234 ")).plateNumber)
+    }
+
+    @Test
+    fun `any plate format is kept, up to the length limit`() {
+        assertEquals("253-1234", normalizePlateNumber("253-1234"))
+        assertEquals("18 ශ්‍රී 1234", normalizePlateNumber("18  ශ්‍රී 1234"))
+        assertEquals("ABCDEFGHIJ 1234", normalizePlateNumber("abcdefghij 12345678"))
+        assertEquals("ABCDEFGHIJKLMN", normalizePlateNumber("abcdefghijklmn x"))
+    }
+
+    @Test
+    fun `a saved plate comes back into the form`() {
+        val input = valid(filled.copy(plateNumber = "CAB-1234"))
+        val vehicle = lk.picksmart.domain.usecase.newVehicle(input, isSample = false, nowMillis = 1_000)
+        assertEquals("CAB-1234", vehicle.toFormState().plateNumber)
+    }
 }

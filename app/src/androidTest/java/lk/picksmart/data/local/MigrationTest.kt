@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
 import lk.picksmart.data.local.migrations.MIGRATION_1_2
 import lk.picksmart.data.local.migrations.MIGRATION_2_3
+import lk.picksmart.data.local.migrations.MIGRATION_3_4
 import lk.picksmart.domain.model.IncomeType
 import lk.picksmart.domain.model.TripStatus
 import org.junit.Assert.assertEquals
@@ -121,6 +122,51 @@ class MigrationTest {
             assertEquals(150_000L, income.amountCents)
             assertTrue(db.fuelLogDao().observeAll().first().isEmpty())
             assertTrue(db.expenseDao().observeAll().first().isEmpty())
+        } finally {
+            db.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun migrate3To4KeepsVehiclesAndAddsAnEmptyPlateNumber() = runTest {
+        helper.createDatabase(dbName, 3).apply {
+            execSQL(
+                """
+                INSERT INTO vehicles (id, name, type, fuel_type, fuel_price_per_litre_cents, fuel_price_source,
+                    fuel_price_effective_date, auto_update_fuel_price, fuel_efficiency_km_per_litre,
+                    maintenance_reserve_per_km_cents, target_profit_per_km_cents, is_sample, archived,
+                    created_at, updated_at)
+                VALUES (2, 'Bajaj RE', 'THREE_WHEELER', 'AUTO_DIESEL', 39200, 'PUBLISHED',
+                    '2026-10-01', 1, 30.0, 150, 5000, 0, 1, 1000, 3000)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO fuel_logs (id, vehicle_id, date, litres, price_per_litre_cents, total_cents, odometer_km,
+                    full_tank, created_at, updated_at)
+                VALUES (5, 2, '2026-10-21', 4.5, 39200, 176400, 12345.6, 1, 1000, 1000)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // Validates the migrated schema against 4.json.
+        helper.runMigrationsAndValidate(dbName, 4, true, MIGRATION_3_4).close()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.databaseBuilder(context, PicksmartDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
+        try {
+            val vehicle = db.vehicleDao().get(2)!!
+            assertEquals("Bajaj RE", vehicle.name)
+            assertEquals(39_200L, vehicle.fuelPricePerLitreCents)
+            assertEquals(5_000L, vehicle.targetProfitPerKmCents)
+            assertTrue(vehicle.archived)
+            assertEquals(3_000L, vehicle.updatedAtMillis)
+            assertNull(vehicle.plateNumber)
+            assertEquals(176_400L, db.fuelLogDao().get(5)!!.totalCents)
         } finally {
             db.close()
             context.deleteDatabase(dbName)

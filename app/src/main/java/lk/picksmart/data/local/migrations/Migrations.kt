@@ -54,8 +54,15 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+/** Version 4 adds the optional `plate_number` to vehicles. Existing vehicles get NULL. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `vehicles` ADD COLUMN `plate_number` TEXT")
+    }
+}
+
 /**
  * Every schema change after version 1 adds an explicit [Migration] here, plus a
  * `MigrationTestHelper` test. Destructive fallback is never used (CLAUDE.md N7).
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)

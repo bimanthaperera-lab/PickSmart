@@ -30,6 +30,7 @@ data class VehicleEntity(
     @ColumnInfo(defaultValue = "0") val archived: Boolean,
     @ColumnInfo(name = "created_at") val createdAtMillis: Long,
     @ColumnInfo(name = "updated_at") val updatedAtMillis: Long,
+    @ColumnInfo(name = "plate_number") val plateNumber: String? = null,
 )
 
 fun VehicleEntity.toDomain() = Vehicle(
@@ -48,6 +49,7 @@ fun VehicleEntity.toDomain() = Vehicle(
     archived = archived,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    plateNumber = plateNumber,
 )
 
 fun Vehicle.toEntity() = VehicleEntity(
@@ -66,4 +68,5 @@ fun Vehicle.toEntity() = VehicleEntity(
     archived = archived,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    plateNumber = plateNumber,
 )

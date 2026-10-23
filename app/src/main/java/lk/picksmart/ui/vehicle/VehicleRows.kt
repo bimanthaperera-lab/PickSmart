@@ -1,5 +1,6 @@
 package lk.picksmart.ui.vehicle
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,8 +38,8 @@ import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 
 /**
- * One of the rider's other vehicles in the Vehicles list: its type's icon, the name (with "Sample"
- * while it has sample rates), its type and fuel, then its rates with icons. Opens the vehicle.
+ * One of the rider's other vehicles in the Vehicles list: its type's icon, the name (with its
+ * number plate, and "Sample" while it has sample rates), its type and fuel, then its rates with icons. Opens the vehicle.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -61,6 +62,7 @@ fun VehicleRow(vehicle: Vehicle, onClick: () -> Unit) {
                 itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(vehicle.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                vehicle.plateNumber?.let { PlateTag(it) }
                 if (vehicle.isSample) SampleTag()
             }
             Text(
@@ -110,6 +112,7 @@ fun ActiveVehicleCard(vehicle: Vehicle, onOpen: () -> Unit, onSwitch: (() -> Uni
                     itemVerticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(vehicle.name, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                    vehicle.plateNumber?.let { PlateTag(it) }
                     if (vehicle.isSample) SampleTag()
                 }
                 Text(
@@ -169,7 +172,8 @@ fun SwitchVehicleDialog(vehicles: List<Vehicle>, activeId: Long, onSelect: (vehi
                         Column(Modifier.weight(1f)) {
                             Text(vehicle.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                             Text(
-                                stringResource(vehicle.type.label),
+                                vehicle.plateNumber?.let { stringResource(R.string.vehicle_type_and_plate, stringResource(vehicle.type.label), it) }
+                                    ?: stringResource(vehicle.type.label),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -181,6 +185,23 @@ fun SwitchVehicleDialog(vehicles: List<Vehicle>, activeId: Long, onSelect: (vehi
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+/** The number plate as a small outlined tag, like the plate itself. */
+@Composable
+private fun PlateTag(plate: String) {
+    Surface(
+        shape = MaterialTheme.shapes.extraSmall,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Text(
+            plate,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = Spacing.s, vertical = 2.dp),
+        )
+    }
 }
 
 @Composable

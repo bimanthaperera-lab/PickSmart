@@ -51,6 +51,13 @@ class VehicleEditsTest {
     }
 
     @Test
+    fun `editing sets and clears the number plate`() {
+        val withPlate = applyVehicleEdit(published, input.copy(plateNumber = "WP CAB-1234"), nowMillis = 2_000)
+        assertEquals("WP CAB-1234", withPlate.plateNumber)
+        assertNull(applyVehicleEdit(withPlate, input, nowMillis = 3_000).plateNumber)
+    }
+
+    @Test
     fun `editing the fuel price by hand makes it manual and turns auto-update off`() {
         val edited = applyVehicleEdit(published, input.copy(fuelPricePerLitreCents = 39_900), nowMillis = 2_000)
         assertEquals(39_900L, edited.fuelPricePerLitreCents)

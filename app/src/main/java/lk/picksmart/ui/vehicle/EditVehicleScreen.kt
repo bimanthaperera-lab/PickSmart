@@ -105,6 +105,7 @@ fun EditVehicleScreen(
                     errors = s.errors,
                     onChange = viewModel::updateForm,
                     fuelPriceSuggestions = s.fuelPriceSuggestions,
+                    showPlateNumber = true,
                 )
                 if (s.saveFailed) ErrorState(stringResource(R.string.vehicle_save_failed))
                 val defaultName = stringResource(s.form.type.label)

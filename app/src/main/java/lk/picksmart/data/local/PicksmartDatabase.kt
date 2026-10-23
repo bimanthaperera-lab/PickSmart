@@ -25,7 +25,7 @@ import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
         FuelLogEntity::class,
         ExpenseEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

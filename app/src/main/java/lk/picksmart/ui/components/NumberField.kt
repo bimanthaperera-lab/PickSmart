@@ -73,6 +73,7 @@ fun TextInputField(
     supportingText: String? = null,
     maxLength: Int = 40,
     imeAction: ImeAction = ImeAction.Next,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.Words,
 ) {
     OutlinedTextField(
         value = value,
@@ -82,7 +83,7 @@ fun TextInputField(
         supportingText = supportingText?.let { { Text(it) } },
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge,
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = imeAction),
+        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction),
         shape = MaterialTheme.shapes.medium,
         colors = fieldColors(),
         modifier = modifier.fillMaxWidth(),

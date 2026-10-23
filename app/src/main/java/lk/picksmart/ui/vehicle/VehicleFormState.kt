@@ -8,6 +8,7 @@ import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.parseDecimal
 import lk.picksmart.util.parseRupeesToCents
+import java.util.Locale
 
 /**
  * What the rider has typed on the vehicle form (onboarding and Edit vehicle). Number fields stay
@@ -21,7 +22,11 @@ data class VehicleFormState(
     val efficiency: String = "",
     val maintenance: String = "",
     val target: String = "",
+    val plateNumber: String = "",
 )
+
+/** Longest number plate the form accepts, e.g. "WP CAB-1234" is 11. */
+const val PLATE_NUMBER_MAX_LENGTH = 15
 
 enum class VehicleField { FUEL_PRICE, EFFICIENCY, MAINTENANCE, TARGET }
 
@@ -43,7 +48,7 @@ sealed interface VehicleFormResult {
 
 /**
  * Checks the form. Fuel price and efficiency are required; maintenance may be left empty (0);
- * the target is optional (null when empty). A blank name becomes [defaultName].
+ * the target and number plate are optional (null when empty). A blank name becomes [defaultName].
  */
 fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
     val errors = mutableMapOf<VehicleField, FieldError>()
@@ -97,6 +102,7 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
             fuelEfficiencyKmPerLitre = kmPerLitre,
             maintenanceReservePerKmCents = reserve,
             targetProfitPerKmCents = targetCents,
+            plateNumber = normalizePlateNumber(plateNumber),
         ),
     )
 }
@@ -117,4 +123,12 @@ fun Vehicle.toFormState() = VehicleFormState(
     efficiency = decimalToInput(fuelEfficiencyKmPerLitre),
     maintenance = centsToInput(maintenanceReservePerKmCents),
     target = targetProfitPerKmCents?.let(::centsToInput).orEmpty(),
+    plateNumber = plateNumber.orEmpty(),
 )
+
+/**
+ * Tidies a typed number plate: capitals, single spaces, no spaces at the ends, so " wp  cab-1234 "
+ * is saved as "WP CAB-1234". Any format is accepted (old plates use Sinhala letters). Null when blank.
+ */
+fun normalizePlateNumber(text: String): String? =
+    text.trim().replace(Regex("\\s+"), " ").uppercase(Locale.ROOT).take(PLATE_NUMBER_MAX_LENGTH).trimEnd().ifEmpty { null }

@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** UI polish (owner asked for it before 6b), then 6b — Fuel price updates
-- **Next step:** Build `FuelPriceSource` in `data/remote` (parse, validate, cache the last valid list in DataStore) with the section 8a tests, using a local JSON fixture until the owner publishes the real file and its URL.
-- **Last updated:** 2026-10-22 (Phase 6 done; Home dashboard and record icons brought forward)
+- **Current phase:** 6b — Fuel price updates is done except the owner's step (publish the price file and set its URL); next is Phase 7 — Dashboard, reports and export
+- **Next step:** Owner: publish the fuel price file and set `picksmart.fuelPriceUrl` (see `docs/fuel-price-file.md`). Claude: start Phase 7 with the accounting use case for the Estimated and Cash views (CLAUDE.md section 7) and its no-double-counting tests.
+- **Last updated:** 2026-10-23 (Phase 6b done apart from publishing the file)
 
 ## Open questions for the owner
 
@@ -117,16 +117,17 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 6b — Fuel price updates
 
-- [ ] Publish the first fuel price file (owner) and add its URL as a `BuildConfig` field
+- [ ] Publish the first fuel price file (owner). The `BuildConfig.FUEL_PRICE_URL` field exists and reads the Gradle property `picksmart.fuelPriceUrl`; steps in `docs/fuel-price-file.md`
 - [x] Vehicle fields: `fuelType`, `fuelPriceSource`, `fuelPriceEffectiveDate`, `autoUpdateFuelPrice` (included in database v1 in Phase 3, so no migration is needed)
-- [ ] `FuelPriceSource` in `data/remote`: fetch, validate, cache the last valid list in DataStore
-- [ ] 12-hour throttle; silent failure; offline uses the last valid list
-- [ ] Fuel price screen: fuel type, current price with its source and date, auto-update switch
-- [ ] "New price" prompt with both prices and the change in fuel cost per km
-- [ ] Hand-edited price switches the source to manual and turns auto-update off
-- [ ] "May be out of date" label after 45 days
-- [ ] Tests from `CLAUDE.md` section 8a
-- [ ] Privacy policy and Data safety answers updated for the download
+- [x] `FuelPriceSource` in `data/remote`: fetch, validate, cache the last valid list in DataStore
+- [x] 12-hour throttle; silent failure; offline uses the last valid list
+- [x] Fuel price screen: fuel type, current price with its source and date, auto-update switch
+- [x] "New price" prompt with both prices and the change in fuel cost per km (also a notice on Home and the price on Settings)
+- [x] Hand-edited price switches the source to manual and turns auto-update off
+- [x] "May be out of date" label after 45 days
+- [x] Tests from `CLAUDE.md` section 8a (`FuelPriceParserTest`, `FuelPriceSourceTest`, `PublishedFuelPriceTest`, plus `FuelCostTest`, `FuelPriceFormStateTest` and new `UserPreferencesRepositoryTest` cases)
+- [x] Privacy policy and Data safety answers drafted for the download (`docs/privacy.md`, owner to review)
+- [x] Checked on the emulator (2026-10-23) against a local test file: update from the Phase 6 build kept every record and setting; Home notice → prompt with both prices and per-km cost; Update set "CPC price from 15 Oct"; with auto-update on, a newer list was applied with a one-time Home notice; a typed price turned auto-update off, and the next list was only offered; Keep hid it; past trips' profits unchanged throughout; 360 × 640 dp at 200% font. Not checked: a real HTTPS host (no file is published yet).
 
 **Done when:** a new published price reaches the rider as a prompt (or automatically, if they chose that), never overwrites a price they set by hand, and never changes a past trip.
 

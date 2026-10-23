@@ -20,7 +20,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val preferences = (application as PicksmartApplication).container.userPreferences
+        val container = (application as PicksmartApplication).container
+        val preferences = container.userPreferences
+        // App start: check the published fuel price in the background (CLAUDE.md section 8a).
+        if (savedInstanceState == null) container.refreshFuelPrices()
 
         setContent {
             // Wait for the stored theme and setup flag before drawing, so a rider never sees a

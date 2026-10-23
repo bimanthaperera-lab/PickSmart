@@ -8,9 +8,14 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
+import lk.picksmart.domain.model.FuelPriceList
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.ThemeMode
 
@@ -64,6 +69,59 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[Keys.DISMISSED_EFFICIENCY_LOG_ID] = id }
     }
 
+    /**
+     * The last valid published fuel price list (CLAUDE.md section 8a), or null before the first
+     * successful download. A list with any part missing reads as null rather than half a list.
+     */
+    val fuelPriceList: Flow<FuelPriceList?> = dataStore.data.map { prefs ->
+        val effectiveFrom = prefs[Keys.FUEL_PRICE_EFFECTIVE_FROM]?.toLocalDateOrNull() ?: return@map null
+        val fetchedAt = prefs[Keys.FUEL_PRICE_FETCHED_AT] ?: return@map null
+        val prices = FuelType.entries.associateWith { prefs[Keys.fuelPriceCents(it)] ?: return@map null }
+        FuelPriceList(effectiveFrom, fetchedAt, prices)
+    }.distinctUntilChanged()
+
+    /** Saves a list that passed validation. Replaces the previous one in a single write. */
+    suspend fun setFuelPriceList(list: FuelPriceList) {
+        dataStore.edit { prefs ->
+            prefs[Keys.FUEL_PRICE_EFFECTIVE_FROM] = list.effectiveFrom.toString()
+            prefs[Keys.FUEL_PRICE_FETCHED_AT] = list.fetchedAtMillis
+            FuelType.entries.forEach { type -> list.priceFor(type)?.let { prefs[Keys.fuelPriceCents(type)] = it } }
+        }
+    }
+
+    /** When the price file last answered (UTC epoch millis), for the 12-hour throttle. */
+    val fuelPriceLastCheckAt: Flow<Long?> = dataStore.data
+        .map { it[Keys.FUEL_PRICE_LAST_CHECK_AT] }
+        .distinctUntilChanged()
+
+    suspend fun setFuelPriceLastCheckAt(millis: Long) {
+        dataStore.edit { it[Keys.FUEL_PRICE_LAST_CHECK_AT] = millis }
+    }
+
+    /**
+     * Published prices the rider chose to keep their own price over, as keys from
+     * `keptFuelPriceKey`. The prompt is not shown again for those.
+     */
+    val keptFuelPrices: Flow<Set<String>> = dataStore.data
+        .map { it[Keys.FUEL_PRICE_KEPT].orEmpty() }
+        .distinctUntilChanged()
+
+    suspend fun addKeptFuelPrice(key: String) {
+        dataStore.edit { it[Keys.FUEL_PRICE_KEPT] = it[Keys.FUEL_PRICE_KEPT].orEmpty() + key }
+    }
+
+    /**
+     * Set when a published price was applied automatically and the rider hasn't seen the notice
+     * yet: the vehicle id, so the notice shows once. Cleared when the rider dismisses it.
+     */
+    val fuelPriceAutoNoticeVehicleId: Flow<Long?> = dataStore.data
+        .map { it[Keys.FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID] }
+        .distinctUntilChanged()
+
+    suspend fun setFuelPriceAutoNoticeVehicleId(id: Long?) {
+        dataStore.edit { it.setOrRemove(Keys.FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID, id) }
+    }
+
     suspend fun setLastCheckInputs(inputs: LastCheckInputs) {
         dataStore.edit {
             it[Keys.CHECK_PLATFORM] = inputs.platform.name
@@ -113,6 +171,15 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val CHECK_RETURN_KM = doublePreferencesKey("check_return_km")
 
         val DISMISSED_EFFICIENCY_LOG_ID = longPreferencesKey("dismissed_efficiency_log_id")
+
+        // Published fuel prices (CLAUDE.md section 8a). The list is stored as separate keys, one
+        // price per fuel type, so adding a fuel type later only adds a key.
+        val FUEL_PRICE_EFFECTIVE_FROM = stringPreferencesKey("fuel_price_effective_from")
+        val FUEL_PRICE_FETCHED_AT = longPreferencesKey("fuel_price_fetched_at")
+        fun fuelPriceCents(type: FuelType) = longPreferencesKey("fuel_price_cents_${type.name.lowercase()}")
+        val FUEL_PRICE_LAST_CHECK_AT = longPreferencesKey("fuel_price_last_check_at")
+        val FUEL_PRICE_KEPT = stringSetPreferencesKey("fuel_price_kept")
+        val FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID = longPreferencesKey("fuel_price_auto_notice_vehicle_id")
     }
 }
 
@@ -121,3 +188,9 @@ private inline fun <reified E : Enum<E>> String?.toEnum(default: E): E =
     this?.let { stored -> enumValues<E>().firstOrNull { it.name == stored } } ?: default
 
 private fun Double?.validKm(): Double? = this?.takeIf { it.isFinite() && it >= 0 }
+
+private fun String.toLocalDateOrNull(): LocalDate? = try {
+    LocalDate.parse(this)
+} catch (e: DateTimeParseException) {
+    null
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: lets the emulator fetch a test price file from the computer over plain
+     HTTP, set with -Ppicksmart.fuelPriceUrl. Use 127.0.0.1 with `adb reverse tcp:PORT tcp:PORT`
+     (10.0.2.2 can time out when the emulator's app traffic goes over its Wi-Fi network).
+     Release builds allow HTTPS only. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

@@ -104,6 +104,7 @@ fun CheckRideScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val resources = LocalResources.current
+    LaunchedEffect(viewModel) { viewModel.onShown() }
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { message ->
             val text = resources.getString(

@@ -62,6 +62,7 @@ class CheckRideViewModel(
     private val preferences: UserPreferencesRepository,
     private val calculator: ProfitCalculator,
     private val clock: Clock,
+    private val refreshFuelPrices: () -> Unit,
 ) : ViewModel() {
 
     /** Null until the remembered values have loaded. */
@@ -86,6 +87,12 @@ class CheckRideViewModel(
         }
         rememberInputs()
     }
+
+    /**
+     * The rider opened Check a Ride: check the published fuel price in the background (throttled
+     * to every 12 hours). The form never waits for it.
+     */
+    fun onShown() = refreshFuelPrices()
 
     fun updateForm(newForm: CheckRideFormState) {
         form.value = newForm
@@ -159,6 +166,7 @@ class CheckRideViewModel(
                     container.userPreferences,
                     container.profitCalculator,
                     container.clock,
+                    container::refreshFuelPrices,
                 )
             }
         }

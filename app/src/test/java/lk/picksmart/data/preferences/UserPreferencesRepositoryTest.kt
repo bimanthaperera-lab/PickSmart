@@ -10,6 +10,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
+import lk.picksmart.domain.model.FuelPriceList
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.ThemeMode
@@ -21,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.time.LocalDate
 
 class UserPreferencesRepositoryTest {
 
@@ -117,5 +120,48 @@ class UserPreferencesRepositoryTest {
         assertNull(prefs.dismissedEfficiencyLogId.first())
         prefs.setDismissedEfficiencyLogId(12)
         assertEquals(12L, prefs.dismissedEfficiencyLogId.first())
+    }
+
+    private val priceList = FuelPriceList(
+        effectiveFrom = LocalDate.of(2026, 10, 1),
+        fetchedAtMillis = 1_760_000_000_000,
+        pricesCentsPerLitre = mapOf(
+            FuelType.PETROL_92 to 41_400,
+            FuelType.PETROL_95 to 47_500,
+            FuelType.AUTO_DIESEL to 39_200,
+            FuelType.SUPER_DIESEL to 52_800,
+        ),
+    )
+
+    @Test
+    fun `the last valid fuel price list is saved and read back`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        assertNull(prefs.fuelPriceList.first())
+        prefs.setFuelPriceList(priceList)
+        assertEquals(priceList, prefs.fuelPriceList.first())
+    }
+
+    @Test
+    fun `a fuel price list with a part missing reads as no list`() = runTest {
+        val dataStore = store()
+        val prefs = UserPreferencesRepository(dataStore)
+        prefs.setFuelPriceList(priceList)
+        dataStore.edit { it.remove(longPreferencesKey("fuel_price_cents_super_diesel")) }
+        assertNull(prefs.fuelPriceList.first())
+        prefs.setFuelPriceList(priceList)
+        dataStore.edit { it[stringPreferencesKey("fuel_price_effective_from")] = "not a date" }
+        assertNull(prefs.fuelPriceList.first())
+    }
+
+    @Test
+    fun `kept prices and the auto-update notice are remembered`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.addKeptFuelPrice("1@2026-10-01")
+        prefs.addKeptFuelPrice("1@2026-11-01")
+        assertEquals(setOf("1@2026-10-01", "1@2026-11-01"), prefs.keptFuelPrices.first())
+        prefs.setFuelPriceAutoNoticeVehicleId(1)
+        assertEquals(1L, prefs.fuelPriceAutoNoticeVehicleId.first())
+        prefs.setFuelPriceAutoNoticeVehicleId(null)
+        assertNull(prefs.fuelPriceAutoNoticeVehicleId.first())
     }
 }

@@ -15,6 +15,8 @@ import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.domain.usecase.FuelPriceState
+import lk.picksmart.domain.usecase.FuelPriceUpdates
 
 sealed interface VehicleSection {
     data object Loading : VehicleSection
@@ -25,6 +27,7 @@ sealed interface VehicleSection {
 class SettingsViewModel(
     private val preferences: UserPreferencesRepository,
     vehicles: VehicleRepository,
+    fuelPriceUpdates: FuelPriceUpdates,
 ) : ViewModel() {
 
     /** Null until the stored value has loaded. */
@@ -35,6 +38,10 @@ class SettingsViewModel(
         .map { it?.let(VehicleSection::Loaded) ?: VehicleSection.None }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), VehicleSection.Loading)
 
+    /** The vehicle's fuel price next to the published list; null until loaded. */
+    val fuelPrices: StateFlow<FuelPriceState?> = fuelPriceUpdates.state
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { preferences.setThemeMode(mode) }
     }
@@ -43,7 +50,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as PicksmartApplication).container
-                SettingsViewModel(container.userPreferences, container.vehicles)
+                SettingsViewModel(container.userPreferences, container.vehicles, container.fuelPriceUpdates)
             }
         }
     }

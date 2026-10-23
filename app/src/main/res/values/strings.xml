@@ -401,4 +401,54 @@
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <!-- Fuel price (published CPC prices, CLAUDE.md section 8a) -->
+    <string name="fuel_price_title">Fuel price</string>
+    <string name="fuel_price_new_label">NEW CPC PRICE</string>
+    <!-- "Petrol 92 Octane is now Rs. 414.00 per litre" -->
+    <string name="fuel_price_new_title">%1$s is now %2$s per litre</string>
+    <!-- "From 1 Oct 2026" -->
+    <string name="fuel_price_from">From %1$s</string>
+    <string name="fuel_price_yours">Your price</string>
+    <string name="fuel_price_new">New price</string>
+    <!-- Fuel cost of one km at that price: "Rs. 10.35 per km" -->
+    <string name="fuel_price_per_km">%1$s per km</string>
+    <string name="fuel_price_new_note">Only new ride checks use the new price. Your past trips keep the price they were saved with.</string>
+    <!-- "Keep Rs. 300.00" -->
+    <string name="fuel_price_keep">Keep %1$s</string>
+    <string name="fuel_price_update">Update</string>
+    <string name="fuel_price_auto_title">Fuel price updated</string>
+    <!-- "Petrol 92 Octane is now Rs. 414.00 per litre, the CPC price from 1 Oct. Only new ride checks use it." -->
+    <string name="fuel_price_auto_body">%1$s is now %2$s per litre, the CPC price from %3$s. Only new ride checks use it.</string>
+    <!-- "Fuel type · Honda Dio" -->
+    <string name="fuel_price_type_label">Fuel type · %1$s</string>
+    <string name="fuel_price_field">Price you pay</string>
+    <string name="fuel_price_error_required">Enter the price you pay</string>
+    <string name="fuel_price_source_manual">Set by you</string>
+    <!-- "CPC price from 1 Oct" -->
+    <string name="fuel_price_source_published">CPC price from %1$s</string>
+    <!-- "CPC price from 1 Oct · may be out of date": no price list for over 45 days -->
+    <string name="fuel_price_source_stale">%1$s · may be out of date</string>
+    <!-- "Rs. 414.00 · CPC price from 1 Oct" -->
+    <string name="fuel_price_with_source">%1$s · %2$s</string>
+    <string name="fuel_price_auto_switch">Update automatically</string>
+    <string name="fuel_price_auto_switch_body">Use the CPC price whenever it changes. Turns off if you type your own price.</string>
+    <string name="fuel_price_info">Prices are checked when you\'re online. If you fill up at a station with a different price, keep automatic updates off and enter what you pay.</string>
+    <!-- "Last checked 23 Oct, 10:15 AM" -->
+    <string name="fuel_price_last_checked">Last checked %1$s</string>
+    <!-- Date and time of the last check: "23 Oct, 10:15 AM" -->
+    <string name="fuel_price_checked_at">%1$s, %2$s</string>
+    <string name="fuel_price_never_checked">Not checked yet.</string>
+    <string name="fuel_price_not_configured">Published prices aren\'t available in this version yet, so enter the price you pay.</string>
+    <string name="fuel_price_save">Save price</string>
+    <string name="fuel_price_save_failed">Couldn\'t save. Try again.</string>
+    <string name="fuel_price_no_vehicle_body">Add your vehicle first, then set the fuel price it uses.</string>
+    <!-- Home notice -->
+    <string name="home_fuel_price_new_title">New CPC fuel price</string>
+    <!-- "Petrol 92 Octane is now Rs. 414.00 per litre. You use Rs. 300.00." -->
+    <string name="home_fuel_price_new_body">%1$s is now %2$s per litre. You use %3$s.</string>
+    <string name="home_fuel_price_review">Review</string>
+    <!-- Settings row -->
+    <string name="settings_fuel_price">Fuel price</string>
+    <!-- "New CPC price: Rs. 414.00" -->
+    <string name="settings_fuel_price_new">New CPC price: %1$s</string>
 </resources>

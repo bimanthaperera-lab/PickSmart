@@ -35,6 +35,7 @@ import lk.picksmart.ui.expenses.EditExpenseScreen
 import lk.picksmart.ui.expenses.ExpenseListScreen
 import lk.picksmart.ui.fuel.EditFuelScreen
 import lk.picksmart.ui.fuel.FuelLogScreen
+import lk.picksmart.ui.fuelprice.FuelPriceScreen
 import lk.picksmart.ui.history.HistoryScreen
 import lk.picksmart.ui.income.EditIncomeScreen
 import lk.picksmart.ui.income.IncomeListScreen
@@ -91,6 +92,7 @@ fun PicksmartApp() {
             val openFuelLog = { navController.navigate(FuelLogRoute) }
             val openExpenses = { navController.navigate(ExpensesRoute) }
             val addVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) }
+            val openFuelPrice = { navController.navigate(FuelPriceRoute) }
             composable<HomeRoute> {
                 HomeScreen(
                     onCheckRide = openCheckRide,
@@ -99,6 +101,7 @@ fun PicksmartApp() {
                     onOpenIncome = openIncome,
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,
+                    onOpenFuelPrice = openFuelPrice,
                 )
             }
             composable<CheckRideRoute> {
@@ -157,7 +160,11 @@ fun PicksmartApp() {
                     onOpenIncome = openIncome,
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,
+                    onOpenFuelPrice = openFuelPrice,
                 )
+            }
+            composable<FuelPriceRoute> {
+                FuelPriceScreen(onBack = { navController.popIfOn(FuelPriceRoute::class) }, onAddVehicle = addVehicle)
             }
             composable<EditVehicleRoute> {
                 EditVehicleScreen(

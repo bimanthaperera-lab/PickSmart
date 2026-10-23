@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "source": "Test fixture. Example values, not real prices.",
+  "effectiveFrom": "2026-10-01",
+  "pricesCentsPerLitre": {
+    "PETROL_92": 41400,
+    "PETROL_95": 47500,
+    "AUTO_DIESEL": 39200,
+    "SUPER_DIESEL": 52800
+  }
+}

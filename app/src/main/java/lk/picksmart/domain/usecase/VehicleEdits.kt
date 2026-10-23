@@ -50,21 +50,31 @@ fun newVehicle(input: VehicleInput, isSample: Boolean, nowMillis: Long): Vehicle
  *   price they set (CLAUDE.md section 8a). An unchanged price keeps its source.
  * - Past trips are unaffected: they keep their own rate snapshot.
  */
-fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long): Vehicle {
-    val priceTouched = input.fuelPricePerLitreCents != current.fuelPricePerLitreCents ||
-        input.fuelType != current.fuelType
-    return current.copy(
+fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long): Vehicle =
+    applyFuelPriceEdit(current, input.fuelType, input.fuelPricePerLitreCents, nowMillis).copy(
         name = input.name,
         type = input.type,
-        fuelType = input.fuelType,
-        fuelPricePerLitreCents = input.fuelPricePerLitreCents,
-        fuelPriceSource = if (priceTouched) FuelPriceSource.MANUAL else current.fuelPriceSource,
-        fuelPriceEffectiveDate = if (priceTouched) null else current.fuelPriceEffectiveDate,
-        autoUpdateFuelPrice = if (priceTouched) false else current.autoUpdateFuelPrice,
         fuelEfficiencyKmPerLitre = input.fuelEfficiencyKmPerLitre,
         maintenanceReservePerKmCents = input.maintenanceReservePerKmCents,
         targetProfitPerKmCents = input.targetProfitPerKmCents,
         isSample = false,
+        updatedAtMillis = nowMillis,
+    )
+
+/**
+ * Sets the fuel type and price the rider chose by hand (the Fuel price screen). If either
+ * changed, the price becomes [FuelPriceSource.MANUAL] and auto-update turns off, so a published
+ * price never overwrites it (CLAUDE.md section 8a). With nothing changed, the vehicle is returned
+ * as it was. Other rates, and the "Sample" label on them, stay as they were.
+ */
+fun applyFuelPriceEdit(current: Vehicle, fuelType: FuelType, priceCents: Long, nowMillis: Long): Vehicle {
+    if (fuelType == current.fuelType && priceCents == current.fuelPricePerLitreCents) return current
+    return current.copy(
+        fuelType = fuelType,
+        fuelPricePerLitreCents = priceCents,
+        fuelPriceSource = FuelPriceSource.MANUAL,
+        fuelPriceEffectiveDate = null,
+        autoUpdateFuelPrice = false,
         updatedAtMillis = nowMillis,
     )
 }

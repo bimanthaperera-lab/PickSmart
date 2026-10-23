@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Only for the read-only fuel price download (CLAUDE.md section 8a). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Auto Backup is on, limited by explicit rules (CLAUDE.md section 10). -->
     <application
         android:name=".PicksmartApplication"

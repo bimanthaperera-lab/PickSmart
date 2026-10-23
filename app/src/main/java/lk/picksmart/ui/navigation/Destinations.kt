@@ -61,6 +61,9 @@ data class EditExpenseRoute(val expenseId: Long) {
     }
 }
 
+/** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
+@Serializable data object FuelPriceRoute
+
 /** The five bottom-bar tabs (CLAUDE.md section 9), in display order. */
 enum class TopLevelDestination(
     val route: Any,

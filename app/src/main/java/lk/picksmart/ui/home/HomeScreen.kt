@@ -30,8 +30,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
 import lk.picksmart.domain.usecase.DaySummary
+import lk.picksmart.domain.usecase.FuelPriceState
+import lk.picksmart.domain.usecase.PublishedPriceAction
 import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.LoadingState
+import lk.picksmart.ui.components.NoticeCard
+import lk.picksmart.ui.components.rememberRecordDate
+import lk.picksmart.ui.vehicle.label
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.RecordsGroup
 import lk.picksmart.ui.components.ScreenTitle
@@ -60,9 +65,11 @@ fun HomeScreen(
     onOpenIncome: () -> Unit,
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
+    onOpenFuelPrice: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     TabScreen {
         HomeHeader()
         when (val s = state) {
@@ -76,6 +83,7 @@ fun HomeScreen(
                     Modifier.fillMaxWidth(),
                     iconRes = R.drawable.ic_nav_check_ride,
                 )
+                fuelPrices?.let { FuelPriceNotice(it, onOpenFuelPrice, viewModel::dismissFuelPriceNotice) }
                 if (s.recent.isNotEmpty()) RecentTrips(s.recent, onOpenHistory, onOpenTrip)
             }
         }
@@ -83,6 +91,45 @@ fun HomeScreen(
             SectionLabel(stringResource(R.string.settings_section_records))
             RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
         }
+    }
+}
+
+/**
+ * A new published fuel price waiting for the rider ("Review" opens Fuel price), or the one-time
+ * notice after one was applied automatically. Nothing otherwise.
+ */
+@Composable
+private fun FuelPriceNotice(prices: FuelPriceState, onReview: () -> Unit, onDismiss: () -> Unit) {
+    val vehicle = prices.vehicle ?: return
+    val money = rememberMoneyFormatter()
+    val fuel = stringResource(vehicle.fuelType.label)
+    val offer = prices.action as? PublishedPriceAction.Offer
+    val effectiveFrom = vehicle.fuelPriceEffectiveDate
+    when {
+        offer != null -> NoticeCard(
+            title = stringResource(R.string.home_fuel_price_new_title),
+            body = stringResource(
+                R.string.home_fuel_price_new_body,
+                fuel,
+                money.format(offer.priceCents),
+                money.format(vehicle.fuelPricePerLitreCents),
+            ),
+            iconRes = R.drawable.ic_fuel,
+            actionLabel = stringResource(R.string.home_fuel_price_review),
+            onAction = onReview,
+        )
+        prices.autoApplied && effectiveFrom != null -> NoticeCard(
+            title = stringResource(R.string.fuel_price_auto_title),
+            body = stringResource(
+                R.string.fuel_price_auto_body,
+                fuel,
+                money.format(vehicle.fuelPricePerLitreCents),
+                rememberRecordDate(effectiveFrom, todayInColombo()),
+            ),
+            iconRes = R.drawable.ic_fuel,
+            actionLabel = stringResource(R.string.action_ok),
+            onAction = onDismiss,
+        )
     }
 }
 

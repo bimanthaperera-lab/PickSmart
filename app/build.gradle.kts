@@ -18,6 +18,11 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // The published fuel price file (CLAUDE.md section 8a). Empty until the owner publishes it;
+        // set `picksmart.fuelPriceUrl` in gradle.properties (or with -P) to turn price checks on.
+        val fuelPriceUrl = providers.gradleProperty("picksmart.fuelPriceUrl").orElse("").get()
+        buildConfigField("String", "FUEL_PRICE_URL", "\"$fuelPriceUrl\"")
     }
 
     buildTypes {

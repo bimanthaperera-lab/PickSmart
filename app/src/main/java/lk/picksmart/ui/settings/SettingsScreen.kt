@@ -29,6 +29,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.BuildConfig
 import lk.picksmart.R
 import lk.picksmart.domain.model.ThemeMode
+import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.domain.usecase.FuelPriceState
+import lk.picksmart.domain.usecase.PublishedPriceAction
 import lk.picksmart.ui.components.ListGroup
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
@@ -37,6 +40,8 @@ import lk.picksmart.ui.components.ListRow
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SectionLabel
 import lk.picksmart.ui.components.TabScreen
+import lk.picksmart.ui.components.rememberMoneyFormatter
+import lk.picksmart.ui.fuelprice.fuelPriceSourceText
 import lk.picksmart.ui.navigation.EditVehicleRoute
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.vehicleKindSummary
@@ -48,16 +53,18 @@ fun SettingsScreen(
     onOpenIncome: () -> Unit,
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
+    onOpenFuelPrice: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val vehicle by viewModel.vehicle.collectAsStateWithLifecycle()
+    val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     TabScreen {
         ScreenTitle(stringResource(R.string.settings_title))
         Column {
-            VehicleSettings(vehicle, onEditVehicle)
+            VehicleSettings(vehicle, fuelPrices, onEditVehicle, onOpenFuelPrice)
             SectionLabel(stringResource(R.string.settings_section_records))
             RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
             SectionLabel(stringResource(R.string.settings_section_app))
@@ -93,7 +100,12 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun VehicleSettings(section: VehicleSection, onEditVehicle: (Long) -> Unit) {
+private fun VehicleSettings(
+    section: VehicleSection,
+    fuelPrices: FuelPriceState?,
+    onEditVehicle: (Long) -> Unit,
+    onOpenFuelPrice: () -> Unit,
+) {
     SectionLabel(stringResource(R.string.settings_section_vehicle))
     when (section) {
         VehicleSection.Loading -> LoadingState()
@@ -118,16 +130,39 @@ private fun VehicleSettings(section: VehicleSection, onEditVehicle: (Long) -> Un
                 )
             }
             ListGroup(
-                rows = listOf {
-                    ListRow(
-                        title = if (v.isSample) stringResource(R.string.vehicle_name_sample, v.name) else v.name,
-                        subtitle = vehicleKindSummary(v) + "\n" + vehicleRatesSummary(v),
-                        onClick = { onEditVehicle(v.id) },
-                    )
-                },
+                rows = listOf(
+                    {
+                        ListRow(
+                            title = if (v.isSample) stringResource(R.string.vehicle_name_sample, v.name) else v.name,
+                            subtitle = vehicleKindSummary(v) + "\n" + vehicleRatesSummary(v),
+                            onClick = { onEditVehicle(v.id) },
+                        )
+                    },
+                    { FuelPriceRow(v, fuelPrices, onOpenFuelPrice) },
+                ),
             )
         }
     }
+}
+
+/** "Rs. 300.00 · Set by you", or the new CPC price while one is waiting for the rider. */
+@Composable
+private fun FuelPriceRow(vehicle: Vehicle, fuelPrices: FuelPriceState?, onOpen: () -> Unit) {
+    val money = rememberMoneyFormatter()
+    val offer = fuelPrices?.action as? PublishedPriceAction.Offer
+    ListRow(
+        title = stringResource(R.string.settings_fuel_price),
+        subtitle = if (offer != null) {
+            stringResource(R.string.settings_fuel_price_new, money.format(offer.priceCents))
+        } else {
+            stringResource(
+                R.string.fuel_price_with_source,
+                money.format(vehicle.fuelPricePerLitreCents),
+                fuelPriceSourceText(vehicle, fuelPrices?.listStale == true),
+            )
+        },
+        onClick = onOpen,
+    )
 }
 
 @Composable

@@ -10,10 +10,17 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,12 +37,12 @@ import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 
 /**
- * One vehicle in the Vehicles list: its type's icon, the name with an "Active" tag on the active
- * one (and "Sample" while it has sample rates), then its type, fuel and rates. Opens the vehicle.
+ * One of the rider's other vehicles in the Vehicles list: its type's icon, the name (with "Sample"
+ * while it has sample rates), then its type, fuel and rates. Opens the vehicle.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun VehicleRow(vehicle: Vehicle, isActive: Boolean, onClick: () -> Unit) {
+fun VehicleRow(vehicle: Vehicle, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -54,7 +61,6 @@ fun VehicleRow(vehicle: Vehicle, isActive: Boolean, onClick: () -> Unit) {
                 itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(vehicle.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                if (isActive) ActiveTag()
                 if (vehicle.isSample) SampleTag()
             }
             Text(
@@ -72,18 +78,108 @@ fun VehicleRow(vehicle: Vehicle, isActive: Boolean, onClick: () -> Unit) {
     }
 }
 
-/** "Active": the vehicle whose rates Check a Ride uses. */
+/**
+ * The vehicle in use, as in the Settings mockup: "Honda Dio", "Motorcycle · default vehicle", and
+ * a Switch button when [onSwitch] is set (there is another vehicle). Tapping the card opens it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ActiveTag() {
-    val status = PicksmartTheme.status
-    Surface(shape = MaterialTheme.shapes.extraSmall, color = status.profitContainer) {
-        Text(
-            stringResource(R.string.vehicle_active_tag),
-            style = MaterialTheme.typography.labelMedium,
-            color = status.onProfitContainer,
-            modifier = Modifier.padding(horizontal = Spacing.s, vertical = 2.dp),
-        )
+fun ActiveVehicleCard(vehicle: Vehicle, onOpen: () -> Unit, onSwitch: (() -> Unit)?) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier
+                .clickable(role = Role.Button, onClick = onOpen)
+                .defaultMinSize(minHeight = 72.dp)
+                .padding(start = Spacing.l, end = Spacing.m, top = Spacing.m, bottom = Spacing.m),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+        ) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .semantics(mergeDescendants = true) {},
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            ) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(vehicle.name, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                    if (vehicle.isSample) SampleTag()
+                }
+                Text(
+                    stringResource(R.string.vehicle_default_summary, stringResource(vehicle.type.label)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (onSwitch != null) {
+                OutlinedButton(
+                    onClick = onSwitch,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                    modifier = Modifier.defaultMinSize(minHeight = Spacing.touchTarget),
+                ) {
+                    Text(stringResource(R.string.vehicle_switch), style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
     }
+}
+
+/**
+ * Pick the vehicle in use: one tap on a vehicle switches to it and closes. Its rates fill Check a
+ * Ride and new records; saved records keep their own.
+ */
+@Composable
+fun SwitchVehicleDialog(vehicles: List<Vehicle>, activeId: Long, onSelect: (vehicleId: Long) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.vehicle_switch_title)) },
+        text = {
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                Text(
+                    stringResource(R.string.vehicle_switch_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = Spacing.s),
+                )
+                vehicles.forEach { vehicle ->
+                    val selected = vehicle.id == activeId
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = selected, role = Role.RadioButton, onClick = { onSelect(vehicle.id) })
+                            .defaultMinSize(minHeight = Spacing.touchTarget),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                    ) {
+                        RadioButton(selected = selected, onClick = null)
+                        Icon(
+                            painterResource(vehicle.type.icon),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Column(Modifier.weight(1f)) {
+                            Text(vehicle.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                stringResource(vehicle.type.label),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 @Composable

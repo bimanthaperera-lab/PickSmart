@@ -14,6 +14,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +42,6 @@ import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
-import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.theme.Spacing
 
 @Composable
@@ -55,7 +55,9 @@ fun EditVehicleScreen(
     val saved = (state as? EditVehicleUiState.Editing)?.saved == true
     LaunchedEffect(saved) { if (saved) onClose() }
 
-    val isNew = (state as? EditVehicleUiState.Editing)?.isNew == true
+    val editing = state as? EditVehicleUiState.Editing
+    val isNew = editing?.isNew == true
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
@@ -69,8 +71,17 @@ fun EditVehicleScreen(
             }
             ScreenTitle(
                 stringResource(if (isNew) R.string.vehicle_add_title else R.string.vehicle_edit_title),
-                Modifier.padding(start = Spacing.s),
+                Modifier
+                    .weight(1f)
+                    .padding(start = Spacing.s),
             )
+            // Delete, top right as in the mockup. It removes the vehicle from the list; its
+            // records stay (an archive underneath, CLAUDE.md N7).
+            if (editing != null && editing.archivePlan != null) {
+                IconButton(onClick = { confirmDelete = true }, enabled = !editing.saving) {
+                    Icon(painterResource(R.drawable.ic_delete), contentDescription = stringResource(R.string.vehicle_delete))
+                }
+            }
         }
 
         when (val s = state) {
@@ -103,79 +114,57 @@ fun EditVehicleScreen(
                     Modifier.fillMaxWidth(),
                     enabled = !s.saving,
                 )
-                if (!s.isNew) {
-                    VehicleActions(
-                        name = s.form.name.ifBlank { stringResource(s.form.type.label) },
-                        state = s,
-                        onSetActive = viewModel::setActive,
-                        onArchive = viewModel::archive,
-                    )
-                }
                 Spacer(Modifier.height(Spacing.l))
             }
         }
     }
-}
 
-/**
- * "Use this vehicle" for a vehicle that isn't active, and "Archive vehicle" unless it is the
- * rider's only one. Archiving always asks first; for the active vehicle it also asks which one
- * the rider uses now.
- */
-@Composable
-private fun VehicleActions(
-    name: String,
-    state: EditVehicleUiState.Editing,
-    onSetActive: () -> Unit,
-    onArchive: (newActiveId: Long?) -> Unit,
-) {
-    var confirm by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        if (state.isActive) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                ActiveTag()
-                Text(
-                    stringResource(R.string.vehicle_is_active),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    val plan = editing?.archivePlan
+    if (confirmDelete && editing != null && plan != null) {
+        val name = editing.form.name.ifBlank { stringResource(editing.form.type.label) }
+        if (plan == ArchivePlan.LastVehicle) {
+            OnlyVehicleDialog(onDismiss = { confirmDelete = false })
         } else {
-            SecondaryButton(stringResource(R.string.vehicle_use_this), onSetActive, Modifier.fillMaxWidth(), enabled = !state.saving)
-        }
-        val plan = state.archivePlan
-        if (plan != null && plan != ArchivePlan.LastVehicle) {
-            TextButton(onClick = { confirm = true }, enabled = !state.saving, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.vehicle_archive), style = MaterialTheme.typography.labelLarge)
-            }
-        }
-        if (confirm && plan != null) {
-            ArchiveDialog(
+            DeleteDialog(
                 name = name,
                 plan = plan,
-                onArchive = { newActiveId ->
-                    confirm = false
-                    onArchive(newActiveId)
+                onDelete = { newActiveId ->
+                    confirmDelete = false
+                    viewModel.archive(newActiveId)
                 },
-                onDismiss = { confirm = false },
+                onDismiss = { confirmDelete = false },
             )
         }
     }
 }
 
-/** Confirms archiving; for the active vehicle the rider first picks which one to use now. */
+/** The rider's only vehicle can't go: Check a Ride needs one. */
 @Composable
-private fun ArchiveDialog(name: String, plan: ArchivePlan, onArchive: (newActiveId: Long?) -> Unit, onDismiss: () -> Unit) {
+private fun OnlyVehicleDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.vehicle_delete_only_title)) },
+        text = { Text(stringResource(R.string.vehicle_delete_only_body)) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_ok)) } },
+    )
+}
+
+/**
+ * Confirms deleting; for the active vehicle the rider first picks which one to use now. Its trips,
+ * fuel and expenses stay in History and Reports.
+ */
+@Composable
+private fun DeleteDialog(name: String, plan: ArchivePlan, onDelete: (newActiveId: Long?) -> Unit, onDismiss: () -> Unit) {
     val candidates = (plan as? ArchivePlan.ChooseActive)?.candidates.orEmpty()
     var chosen by rememberSaveable { mutableStateOf(candidates.firstOrNull()?.id) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.vehicle_archive_title, name)) },
+        title = { Text(stringResource(R.string.vehicle_delete_title, name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                Text(stringResource(R.string.vehicle_archive_body))
+                Text(stringResource(R.string.vehicle_delete_body))
                 if (candidates.isNotEmpty()) {
-                    Text(stringResource(R.string.vehicle_archive_choose), style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.vehicle_delete_choose), style = MaterialTheme.typography.titleSmall)
                     Column(Modifier.selectableGroup()) {
                         candidates.forEach { vehicle ->
                             Row(
@@ -194,8 +183,11 @@ private fun ArchiveDialog(name: String, plan: ArchivePlan, onArchive: (newActive
             }
         },
         confirmButton = {
-            TextButton(onClick = { onArchive(chosen.takeIf { candidates.isNotEmpty() }) }) {
-                Text(stringResource(R.string.vehicle_archive_confirm))
+            TextButton(
+                onClick = { onDelete(chosen.takeIf { candidates.isNotEmpty() }) },
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) {
+                Text(stringResource(R.string.vehicle_delete_confirm))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },

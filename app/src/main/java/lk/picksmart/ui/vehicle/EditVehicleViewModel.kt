@@ -33,7 +33,6 @@ sealed interface EditVehicleUiState {
 
     /**
      * @property fuelPriceSuggestions The price to fill in for each fuel type (`fuelPriceSuggestions`).
-     * @property isActive This is the active vehicle (always false while adding one).
      * @property archivePlan What archiving needs; null while adding a vehicle.
      */
     data class Editing(
@@ -41,7 +40,6 @@ sealed interface EditVehicleUiState {
         val isNew: Boolean,
         val isSample: Boolean,
         val fuelPriceSuggestions: Map<FuelType, Long> = emptyMap(),
-        val isActive: Boolean = false,
         val archivePlan: ArchivePlan? = null,
         val errors: Map<VehicleField, FieldError> = emptyMap(),
         val saving: Boolean = false,
@@ -87,22 +85,18 @@ class EditVehicleViewModel(
                     ?: EditVehicleUiState.NotFound
             }
             if (vehicleId == EditVehicleRoute.NEW) return@launch
-            // Once loaded, keep "Use this vehicle" and "Archive" in step with the vehicle list.
+            // Once loaded, keep the delete action in step with the vehicle list.
             combine(vehicles.activeVehicles, preferences.defaultVehicleId) { list, activeId -> list to activeId }
                 .collect { (list, activeId) ->
-                    editing { it.copy(isActive = activeId == vehicleId, archivePlan = archivePlan(list, vehicleId, activeId)) }
+                    editing { it.copy(archivePlan = archivePlan(list, vehicleId, activeId)) }
                 }
         }
     }
 
-    /** Makes this the active vehicle: Check a Ride and new records use its rates. */
-    fun setActive() {
-        viewModelScope.launch { vehicles.setActive(vehicleId) }
-    }
-
     /**
-     * Archives this vehicle after the rider confirmed; when it is the active one, [newActiveId]
-     * becomes active. The screen then closes. Its trips and records stay in History and Reports.
+     * Deletes this vehicle from the list after the rider confirmed (an archive: its trips and
+     * records stay in History and Reports); when it is the active one, [newActiveId] becomes
+     * active. The screen then closes.
      */
     fun archive(newActiveId: Long?) {
         val current = _state.value as? EditVehicleUiState.Editing ?: return

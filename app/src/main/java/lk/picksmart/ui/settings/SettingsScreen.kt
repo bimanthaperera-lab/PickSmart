@@ -42,6 +42,8 @@ import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.fuelprice.fuelPriceSourceText
 import lk.picksmart.ui.navigation.EditVehicleRoute
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.vehicle.ActiveVehicleCard
+import lk.picksmart.ui.vehicle.SwitchVehicleDialog
 import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
@@ -65,7 +67,7 @@ fun SettingsSections(
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     Column {
-        VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, onOpenFuelPrice)
+        VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, viewModel::setActiveVehicle, onOpenFuelPrice)
         SectionLabel(stringResource(R.string.settings_section_records))
         RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
         SectionLabel(stringResource(R.string.settings_section_app))
@@ -105,6 +107,7 @@ private fun VehicleSettings(
     fuelPrices: FuelPriceState?,
     onEditVehicle: (Long) -> Unit,
     onVehicleLimit: () -> Unit,
+    onSwitchVehicle: (Long) -> Unit,
     onOpenFuelPrice: () -> Unit,
 ) {
     SectionLabel(stringResource(R.string.settings_section_vehicles))
@@ -130,8 +133,16 @@ private fun VehicleSettings(
                     modifier = Modifier.padding(bottom = Spacing.m),
                 )
             }
-            val vehicleRows: List<@Composable () -> Unit> = section.vehicles.map { vehicle ->
-                { VehicleRow(vehicle, isActive = vehicle.id == v.id, onClick = { onEditVehicle(vehicle.id) }) }
+            var choosing by rememberSaveable { mutableStateOf(false) }
+            // The vehicle in use, as in the mockup: its name, "Motorcycle · default vehicle", and
+            // Switch when there is another one to switch to. Tapping the card edits it.
+            ActiveVehicleCard(
+                vehicle = v,
+                onOpen = { onEditVehicle(v.id) },
+                onSwitch = if (section.vehicles.size > 1) ({ choosing = true }) else null,
+            )
+            val otherRows: List<@Composable () -> Unit> = section.vehicles.filter { it.id != v.id }.map { vehicle ->
+                { VehicleRow(vehicle, onClick = { onEditVehicle(vehicle.id) }) }
             }
             val addRow: @Composable () -> Unit = {
                 ListRow(
@@ -140,12 +151,23 @@ private fun VehicleSettings(
                     onClick = { if (section.canAdd) onEditVehicle(EditVehicleRoute.NEW) else onVehicleLimit() },
                 )
             }
-            ListGroup(rows = vehicleRows + addRow)
+            ListGroup(modifier = Modifier.padding(top = Spacing.m), rows = otherRows + addRow)
             // The fuel price follows the active vehicle (CLAUDE.md section 9, "Vehicles").
             ListGroup(
                 modifier = Modifier.padding(top = Spacing.m),
                 rows = listOf { FuelPriceRow(v, showName = section.vehicles.size > 1, fuelPrices, onOpenFuelPrice) },
             )
+            if (choosing) {
+                SwitchVehicleDialog(
+                    vehicles = section.vehicles,
+                    activeId = v.id,
+                    onSelect = {
+                        choosing = false
+                        onSwitchVehicle(it)
+                    },
+                    onDismiss = { choosing = false },
+                )
+            }
         }
     }
 }

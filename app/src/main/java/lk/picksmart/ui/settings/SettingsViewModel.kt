@@ -36,7 +36,7 @@ sealed interface VehicleSection {
 
 class SettingsViewModel(
     private val preferences: UserPreferencesRepository,
-    vehicles: VehicleRepository,
+    private val vehicles: VehicleRepository,
     fuelPriceUpdates: FuelPriceUpdates,
     account: AccountProvider,
 ) : ViewModel() {
@@ -58,6 +58,11 @@ class SettingsViewModel(
     /** The vehicle's fuel price next to the published list; null until loaded. */
     val fuelPrices: StateFlow<FuelPriceState?> = fuelPriceUpdates.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** "Switch": Check a Ride and new records use [id]'s rates from now on. */
+    fun setActiveVehicle(id: Long) {
+        viewModelScope.launch { vehicles.setActive(id) }
+    }
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { preferences.setThemeMode(mode) }

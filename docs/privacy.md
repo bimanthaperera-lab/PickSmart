@@ -8,6 +8,7 @@ Last updated: 2026-10-23 (Phase 6b, fuel price download).
 
 - Everything the rider enters (vehicle, trips, offers, fuel log, expenses, other income, settings) is stored only on the phone, in the app's own database and settings files.
 - Android Auto Backup is on. If the rider has Google backup turned on, Android may copy the app's database and settings to the rider's own Google account, as it does for other apps. Caches are never included. Picksmart's developer can't see these backups.
+- **CSV export (Reports).** The rider can export their records as CSV files and choose, in Android's share sheet, which app receives them (email, Drive, WhatsApp and so on). Picksmart sends them nowhere itself. The files are written to the app's cache, which is never backed up, and each export deletes the previous one. Under Play's Data safety rules, data the user chooses to send with the share sheet is not "shared" by the app.
 - The only network request is the fuel price download described below. There is no account, no analytics, no advertising, no crash reporting and no location access.
 
 ## Fuel price download
@@ -24,6 +25,8 @@ Last updated: 2026-10-23 (Phase 6b, fuel price download).
 > Picksmart works on your phone. The trips, fuel, expenses, income and settings you enter stay on your phone. We don't run servers that receive them, and we don't use analytics, advertising or location.
 >
 > **Fuel prices.** When you're online, Picksmart downloads a public list of CPC fuel prices, at most twice a day. This download doesn't include any information about you or your phone. The website that hosts the list sees your IP address, as with any website; Picksmart doesn't collect it.
+>
+> **Exporting.** You can export your records as CSV files from Reports. You choose where they go; Picksmart doesn't send them anywhere itself.
 >
 > **Backups.** If Google backup is on for your phone, Android may back up Picksmart's data to your own Google account. You control this in your phone's settings.
 >

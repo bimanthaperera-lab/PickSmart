@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 6c — Multiple vehicles, built (2026-10-23) apart from two items: the onboarding CPC price pre-fill, and the rest of the emulator check. 8c's first part (sign-in, Account tab) is done; cloud backup comes later. Then Phase 7
-- **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone; with an account, add a 2nd and 3rd vehicle; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 6c emulator check (records and History with two vehicles, archive, 200% font), pre-fill the CPC price on onboarding, then Phase 7.
-- **Last updated:** 2026-10-23 (Phase 6c multiple vehicles; fuel type switch fills the right price everywhere; solid three-wheeler icon; Check a Ride vehicle card and icon set polished; first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
+- **Current phase:** 7 — Dashboard, reports and export, built (2026-10-23) apart from the rest of the emulator check. Phase 6c still has two open items: the onboarding CPC price pre-fill, and the rest of its emulator check.
+- **Next step:** Owner: try Reports (Day, Week, Month, Estimated and Cash) and the export icon on a phone; sign-up and sign-in checks from 8c; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 7 and 6c emulator checks when the emulator is free (export share sheet, month and day views, dark theme, 200% font), pre-fill the CPC price on onboarding, then Phase 8.
+- **Last updated:** 2026-10-23 (Phase 7: one accounting use case for Home and Reports; Reports built from the week mockup with Estimated / Cash, a daily Canvas chart and incomplete-data notes; CSV export through the share sheet)
 
 ## Open questions for the owner
 
@@ -151,12 +151,15 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 7 — Dashboard, reports and export
 
-- [ ] Accounting use case implementing both views from `CLAUDE.md` section 7, with tests including a no-double-counting test
-- [x] Home: today's net profit, gross income, recorded expenses, completed trips, total km, and a large Check a Ride button (brought forward on 2026-10-22; day figures from `summarizeDay`, tested in `DaySummaryTest`)
-- [ ] Reports: daily, weekly (Mon–Sun) and monthly, with an Estimated / Cash toggle
-- [ ] Simple Canvas charts
-- [ ] Clear notice when data is incomplete
-- [ ] CSV export of trips, income, fuel and expenses through the share sheet
+- [x] Accounting use case implementing both views from `CLAUDE.md` section 7, with tests including a no-double-counting test (`summarizePeriod` in `domain/usecase/Accounting.kt`, `AccountingTest`; Home uses it too)
+- [x] Home: today's net profit, gross income, recorded expenses, completed trips, total km, and a large Check a Ride button (brought forward on 2026-10-22; now from `summarizeDay` in `Accounting.kt`)
+- [x] Reports: daily, weekly (Mon–Sun) and monthly, with an Estimated / Cash toggle, laid out as the "Reports — week" mockup (`ReportPeriodsTest` for the periods)
+- [x] Simple Canvas charts (a bar per day for a week or month; amounts on week bars; losses below the line)
+- [x] Clear notice when data is incomplete (trips with no distance; cash with no fill-ups; offers not counted)
+- [x] CSV export of trips, income, fuel and expenses through the share sheet (download icon on Reports; `CsvExportTest`)
+- [ ] Checked on the emulator
+  - Done 2026-10-23, on the owner's data: Week, Estimated showed Rs. 330.00, the same as Home (600.00 − 20.00 fee − 250.00 fuel − 0.00 reserve); Cash showed −Rs. 4,420.00 (600.00 − 20.00 − 5,000.00 fuel bought), with the loss bar below the line; light theme. Unit tests check a hand-calculated week in both views.
+  - Still to check: the export share sheet and the files in a spreadsheet, Day and Month, previous / next, the incomplete-data notes, dark theme, 360 dp at 200% font. Stopped because the owner was using the emulator at the same time.
 
 **Done when:** dashboard and reports agree with each other and with hand-calculated test data.
 

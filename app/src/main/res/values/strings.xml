@@ -366,12 +366,28 @@
     <!-- Onboarding -->
     <string name="tagline">Know your real profit before you ride.</string>
     <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_have_account">I already have an account</string>
+    <!-- How it works: swipeable pages between the welcome screen and vehicle setup -->
+    <string name="intro_skip">Skip</string>
+    <string name="intro_next">Next</string>
+    <string name="intro_done">Set up my vehicle</string>
+    <!-- %1$d: current page, %2$d: number of pages -->
+    <string name="intro_page">Page %1$d of %2$d</string>
+    <string name="intro_check_title">Check an offer in seconds</string>
+    <string name="intro_check_body">When an offer comes in, open Check Ride and type the fare and the distance.</string>
+    <string name="intro_check_tip_costs">See what you keep after the platform fee, fuel and maintenance.</string>
+    <string name="intro_check_tip_bands">Good, Below target or Loss tells you at a glance if it\'s worth taking.</string>
+    <string name="intro_record_title">Save the rides you take</string>
+    <string name="intro_record_body">Tap “I took it” to save a ride, or “Save offer” to keep it for later. Offers never count as income.</string>
+    <string name="intro_record_tip_costs">Add fuel fill-ups and expenses from Home.</string>
+    <string name="intro_record_tip_income">Add tips, bonuses and incentives as other income.</string>
+    <string name="intro_profit_title">Know your real profit</string>
+    <string name="intro_profit_body">Home adds up today\'s profit after every cost, and History keeps each ride you saved.</string>
+    <string name="intro_profit_tip_offline">Everything works without internet, on your phone.</string>
+    <string name="intro_profit_tip_rates">Change your vehicle\'s fuel price and other rates any time from the Account tab.</string>
     <string name="onboarding_step">Step %1$d of %2$d</string>
     <string name="onboarding_vehicle_title">Set up your vehicle</string>
-    <string name="onboarding_vehicle_body">These numbers estimate fuel and maintenance for every ride. You can change them any time in Settings.</string>
-    <string name="onboarding_use_sample">Skip and use sample values</string>
-    <string name="onboarding_sample_note">Sample values stay marked “Sample” until you change them.</string>
-    <string name="onboarding_sample_reminder">Your estimates use example numbers, not your own costs. Change them in Settings → Vehicle when you can.</string>
+    <string name="onboarding_vehicle_body">These numbers estimate fuel and maintenance for every ride. You can change them any time.</string>
     <string name="onboarding_safety_title">Before you ride</string>
     <string name="onboarding_safety_estimates">Results are estimates, based on the numbers you enter.</string>
     <string name="onboarding_safety_stopped">Only check ride offers when you\'re stopped safely.</string>

@@ -234,7 +234,7 @@ private fun NavLabel(text: String) {
  * Closes a detail screen. Guards against a double close (e.g. tapping X as a save finishes)
  * popping past the screen that opened it.
  */
-private fun NavHostController.popIfOn(route: KClass<*>) {
+internal fun NavHostController.popIfOn(route: KClass<*>) {
     if (currentDestination?.hasRoute(route) == true) popBackStack()
 }
 

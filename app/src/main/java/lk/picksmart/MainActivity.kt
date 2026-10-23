@@ -9,6 +9,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -70,12 +72,18 @@ class MainActivity : ComponentActivity() {
             val phoneDark = isSystemInDarkTheme()
             val splashDark = remember { phoneDark }
 
-            // The splash fades out, growing slightly, while the app fades in underneath it.
+            // The splash fades out, growing slightly, while the app fades in underneath it. A new
+            // rider's welcome screen has the logo exactly where the splash leaves it, so there the
+            // switch is instant and only the welcome's buttons fade in.
             AnimatedContent(
                 targetState = !splashDone,
                 transitionSpec = {
-                    fadeIn(tween(SplashExitMillis)) togetherWith
-                        (fadeOut(tween(SplashExitMillis)) + scaleOut(tween(SplashExitMillis), targetScale = 1.04f))
+                    if (onboardingComplete == false) {
+                        EnterTransition.None togetherWith ExitTransition.None
+                    } else {
+                        fadeIn(tween(SplashExitMillis)) togetherWith
+                            (fadeOut(tween(SplashExitMillis)) + scaleOut(tween(SplashExitMillis), targetScale = 1.04f))
+                    }
                 },
                 label = "splash",
             ) { splash ->

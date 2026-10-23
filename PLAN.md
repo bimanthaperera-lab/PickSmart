@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** 8c (first part) — sign-in and the Account tab are built, ahead of 6c by the owner's choice; cloud backup (the rest of 8c) comes later. Next is Phase 6c — Multiple vehicles, then Phase 7
 - **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone, and publish the fuel price file (`docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on the Account tab, the active-vehicle switch and the 1 / 3 limit (now that sign-in exists), then Phase 7.
-- **Last updated:** 2026-10-23 (Account tab, Login, Register, Forgot password and Profile built)
+- **Last updated:** 2026-10-23 (first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
 
 ## Open questions for the owner
 
@@ -139,7 +139,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Add / Edit trip, fuel log and expense forms pick a vehicle, defaulting to the active one
 - [ ] History rows show the vehicle name when the rider has more than one
 - [ ] Adding past the limit opens the upgrade screen: signed out, "Sign in to add up to 3 vehicles" with Sign up / Sign in; signed in, "More vehicles with Premium" ("coming soon" until Phase 8d)
-- [ ] Onboarding: remove "Skip and use sample values"; fields start empty except a saved CPC price for the chosen fuel type; existing sample vehicles keep their label and notice until saved (no re-onboarding)
+- [x] Onboarding: remove "Skip and use sample values"; fields start empty; existing sample vehicles keep their label and notice until saved (no re-onboarding) (done 2026-10-23 with the new welcome and intro)
+- [ ] Onboarding: pre-fill a saved CPC price for the chosen fuel type, with its source shown
 - [ ] Fuel prices: prompt and Fuel price screen follow the active vehicle; automatic updates apply to every vehicle with auto-update on
 - [ ] No schema change expected (vehicles, `vehicleId` and `archived` exist since v1); if one is needed it ships a `Migration` and test
 - [ ] Checked on the emulator: update from the 6b build keeps the vehicle and records (including a sample vehicle, not re-onboarded); fresh install has no sample option; signed out a 2nd vehicle opens the sign-in screen; switch, archive, past trips unchanged; 360 dp at 200% font
@@ -191,7 +192,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] `SyncProvider` interface with a no-op implementation (with sync)
 - [x] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
 - [x] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
-- [x] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"
+- [x] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"; restyled to the mockups without the Phone button
+- [x] First-launch welcome: Get started (three "how it works" pages, then vehicle setup) and I already have an account (Login / Register, then vehicle setup)
 - [x] Profile screen: photo (Google photo or initials, cached), name, email with verified state, optional mobile number marked "Not verified", sign-in method, Edit, Sign out
 - [x] Owner: Firebase project, Android app `lk.picksmart`, SHA-1/SHA-256 fingerprints, `google-services.json` (git-ignored), Email/Password and Google providers enabled
 - [x] Firebase Auth: email/password (with verification email and reset) and Google; no phone OTP

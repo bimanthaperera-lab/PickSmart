@@ -20,10 +20,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.ui.navigation.PicksmartApp
 import lk.picksmart.ui.onboarding.OnboardingScreen
@@ -34,36 +37,60 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Android 12+ fades its splash out over the app, dimming the logo for a moment. The app's
+        // first frame shows the same pin in the same place, so drop the system one at once.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            splashScreen.setOnExitAnimationListener { it.remove() }
+        }
         val container = (application as PicksmartApplication).container
         val preferences = container.userPreferences
         // App start: check the published fuel price in the background (CLAUDE.md section 8a).
         if (savedInstanceState == null) container.refreshFuelPrices()
 
         setContent {
-            // Wait for the stored theme and setup flag before drawing, so a rider never sees a
-            // flash of the wrong theme or of onboarding. The window background shows meanwhile.
+            // The app waits for the stored theme and setup flag, so a rider never sees a flash of
+            // the wrong theme or of onboarding.
             val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = null)
             val onboardingComplete by preferences.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
-            // The brand splash shows once per launch (not again on rotation) for SplashMillis,
-            // counted from when it appears. A new rider skips it: the welcome screen shows the logo.
+
+            // The splash is drawn on the very first frame, before those load, so the logo on the
+            // system splash never gives way to a blank screen. It stays for SplashMillis and until
+            // the settings are ready, then fades into the app. Once per launch: not on rotation.
             var splashDone by rememberSaveable { mutableStateOf(false) }
-            val mode = themeMode
-            val setupDone = onboardingComplete
-            if (mode != null && setupDone != null) {
-                val showSplash = setupDone && !splashDone
-                if (showSplash) {
-                    LaunchedEffect(Unit) {
-                        delay(SplashMillis)
-                        splashDone = true
-                    }
+            if (!splashDone) {
+                LaunchedEffect(Unit) {
+                    delay(SplashMillis)
+                    snapshotFlow { themeMode != null && onboardingComplete != null }.first { it }
+                    splashDone = true
                 }
-                AppContent(mode, setupDone, showSplash)
+            }
+            // Before the stored theme loads, the phone's setting decides. On Android 12+ that is
+            // already the app's own theme (setApplicationNightMode below). Kept for the whole
+            // splash so it never changes colour halfway.
+            val phoneDark = isSystemInDarkTheme()
+            val splashDark = remember { phoneDark }
+
+            // The splash fades out, growing slightly, while the app fades in underneath it.
+            AnimatedContent(
+                targetState = !splashDone,
+                transitionSpec = {
+                    fadeIn(tween(SplashExitMillis)) togetherWith
+                        (fadeOut(tween(SplashExitMillis)) + scaleOut(tween(SplashExitMillis), targetScale = 1.04f))
+                },
+                label = "splash",
+            ) { splash ->
+                val mode = themeMode
+                val setupDone = onboardingComplete
+                when {
+                    splash -> PicksmartTheme(darkTheme = splashDark) { SplashScreen() }
+                    mode != null && setupDone != null -> AppContent(mode, setupDone)
+                }
             }
         }
     }
 
     @Composable
-    private fun AppContent(mode: ThemeMode, onboardingComplete: Boolean, showSplash: Boolean) {
+    private fun AppContent(mode: ThemeMode, onboardingComplete: Boolean) {
         val darkTheme = when (mode) {
             ThemeMode.SYSTEM -> isSystemInDarkTheme()
             ThemeMode.LIGHT -> false
@@ -97,27 +124,13 @@ class MainActivity : ComponentActivity() {
         PicksmartTheme(darkTheme = darkTheme) {
             // Setup runs only while the flag is false; finishing it flips the flag and this
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
-            // The splash fades out, growing slightly, while the app fades in underneath it.
-            AnimatedContent(
-                targetState = showSplash,
-                transitionSpec = {
-                    fadeIn(tween(SplashExitMillis)) togetherWith
-                        (fadeOut(tween(SplashExitMillis)) + scaleOut(tween(SplashExitMillis), targetScale = 1.04f))
-                },
-                label = "splash",
-            ) { splash ->
-                when {
-                    splash -> SplashScreen()
-                    onboardingComplete -> PicksmartApp()
-                    else -> OnboardingScreen()
-                }
-            }
+            if (onboardingComplete) PicksmartApp() else OnboardingScreen()
         }
     }
 
     private companion object {
         /** Kept short: riders often open the app to check an offer quickly. */
-        const val SplashMillis = 800L
+        const val SplashMillis = 900L
         const val SplashExitMillis = 300
 
         // Scrims for three-button navigation on older Android versions, where the bar can't be fully transparent.

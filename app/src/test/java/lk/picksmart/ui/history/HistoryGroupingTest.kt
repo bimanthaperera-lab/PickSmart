@@ -3,10 +3,14 @@ package lk.picksmart.ui.history
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.domain.model.VehicleInput
+import lk.picksmart.domain.model.VehicleType
+import lk.picksmart.domain.usecase.newVehicle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -79,5 +83,29 @@ class HistoryGroupingTest {
     @Test
     fun `no trips gives no days`() {
         assertEquals(emptyList<HistoryDay>(), groupTripsByDay(emptyList(), HistoryFilter.ALL, calculator))
+    }
+
+    /** Sample vehicles for tests. */
+    private fun vehicle(id: Long, name: String, archived: Boolean = false) = newVehicle(
+        VehicleInput(name, VehicleType.MOTORCYCLE, FuelType.PETROL_92, 30_000, 40.0, 200, null),
+        isSample = false,
+        nowMillis = 0,
+    ).copy(id = id, archived = archived)
+
+    @Test
+    fun `one vehicle shows no names on rows`() {
+        assertEquals(emptyMap<Long, String>(), vehicleNamesForRows(listOf(vehicle(1, "Sample bike"))))
+        groupTripsByDay(trips, HistoryFilter.ALL, calculator, vehicleNamesForRows(listOf(vehicle(1, "Sample bike"))))
+            .flatMap { it.rows }
+            .forEach { assertNull(it.vehicleName) }
+    }
+
+    @Test
+    fun `with more than one vehicle each row names its own, archived ones too`() {
+        val names = vehicleNamesForRows(listOf(vehicle(1, "Sample bike", archived = true), vehicle(2, "Sample tuk")))
+        val rows = groupTripsByDay(trips + trip(5, "2026-10-20T04:00:00Z").copy(vehicleId = 2), HistoryFilter.ALL, calculator, names)
+            .flatMap { it.rows }
+        assertEquals("Sample bike", rows.first { it.trip.id == 3L }.vehicleName)
+        assertEquals("Sample tuk", rows.first { it.trip.id == 5L }.vehicleName)
     }
 }

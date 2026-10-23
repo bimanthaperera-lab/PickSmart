@@ -160,6 +160,7 @@ fun CheckRideScreen(
                     is CheckRideUiState.Ready -> CheckRideForm(
                         state = s,
                         onChange = viewModel::updateForm,
+                        onSwitchVehicle = viewModel::switchVehicle,
                         onChangeRates = { viewModel.startOverrides(s.vehicle) },
                         onUseVehicleRates = viewModel::clearOverrides,
                     )
@@ -197,6 +198,7 @@ fun CheckRideScreen(
 private fun CheckRideForm(
     state: CheckRideUiState.Ready,
     onChange: (CheckRideFormState) -> Unit,
+    onSwitchVehicle: (vehicleId: Long) -> Unit,
     onChangeRates: () -> Unit,
     onUseVehicleRates: () -> Unit,
 ) {
@@ -214,6 +216,17 @@ private fun CheckRideForm(
     LaunchedEffect(Unit) {
         fareFocus.requestFocus()
         keyboard?.show()
+    }
+
+    // One tap switches vehicle; only shown when there is more than one.
+    if (state.vehicles.size > 1) {
+        ChoiceChips(
+            options = state.vehicles,
+            selected = state.vehicles.firstOrNull { it.id == state.vehicle.id },
+            optionLabel = { it.name },
+            optionIcon = { it.type.icon },
+            onSelect = { if (it.id != state.vehicle.id) onSwitchVehicle(it.id) },
+        )
     }
 
     ChoiceChips(

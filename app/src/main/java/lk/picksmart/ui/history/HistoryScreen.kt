@@ -192,12 +192,14 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
         DateTimeFormatter.ofPattern(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
     }
     val km = formatDecimal(trip.pickupKm + trip.tripKm + trip.returnKm, 1)
-    val detail = when (trip.status) {
+    val statusDetail = when (trip.status) {
         TripStatus.CANCELLED -> trip.cancellationFeeCents?.let { stringResource(R.string.history_row_cancelled_fee, km, money.format(it)) }
             ?: stringResource(R.string.history_row_cancelled_no_fee, km)
         TripStatus.OFFER_CHECK -> stringResource(R.string.history_row_offer_note)
         TripStatus.COMPLETED -> stringResource(R.string.history_row_trip, km, money.format(trip.fareCents))
     }
+    // With more than one vehicle, the row says which one: "Honda · 5.0 km · fare Rs. 60.00".
+    val detail = row.vehicleName?.let { stringResource(R.string.history_row_with_vehicle, it, statusDetail) } ?: statusDetail
     val net = row.estimate?.netProfitCents
     val amount = when {
         net == null -> stringResource(R.string.history_row_unavailable)

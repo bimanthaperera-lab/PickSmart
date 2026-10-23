@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.model.Expense
 import lk.picksmart.domain.model.ExpenseCategory
 import lk.picksmart.ui.components.ChoiceGrid
@@ -176,7 +177,10 @@ fun EditExpenseScreen(
                     actionLabel = stringResource(R.string.action_close),
                     onAction = onClose,
                 )
-                is EditExpenseUiState.Editing -> ExpenseForm(s, viewModel::updateForm)
+                is EditExpenseUiState.Editing -> {
+                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
+                    ExpenseForm(s, viewModel::updateForm)
+                }
             }
         }
         if (editing != null) {

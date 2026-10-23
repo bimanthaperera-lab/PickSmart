@@ -24,6 +24,7 @@ import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.model.Expense
 import lk.picksmart.ui.components.FieldError
 import lk.picksmart.ui.navigation.EditExpenseRoute
+import lk.picksmart.ui.vehicle.RecordVehicle
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
 import java.time.LocalDate
@@ -54,10 +55,12 @@ sealed interface EditExpenseUiState {
     data object Loading : EditExpenseUiState
     data object NotFound : EditExpenseUiState
 
+    /** @property vehicle The expense's vehicle; picked while adding, fixed once saved. */
     data class Editing(
         val form: ExpenseFormState,
         val isNew: Boolean,
         val today: LocalDate,
+        val vehicle: RecordVehicle = RecordVehicle(),
         val amountError: FieldError? = null,
         val odometerError: FieldError? = null,
         val saving: Boolean = false,
@@ -82,13 +85,29 @@ class EditExpenseViewModel(
     init {
         val today = clock.instant().atZone(ColomboZone).toLocalDate()
         viewModelScope.launch {
+            val choices = vehicles.activeVehicles.first()
             _state.value = if (expenseId == EditExpenseRoute.NEW) {
-                EditExpenseUiState.Editing(ExpenseFormState(date = today), isNew = true, today = today)
+                // A new expense belongs to the active vehicle, when there is one, until the rider picks another.
+                val active = vehicles.defaultVehicle.first()
+                EditExpenseUiState.Editing(
+                    ExpenseFormState(date = today),
+                    isNew = true,
+                    today = today,
+                    vehicle = RecordVehicle(choices, active?.id, active?.name, editable = true),
+                )
             } else {
-                expenses.get(expenseId)?.let { EditExpenseUiState.Editing(it.toFormState(), isNew = false, today = today) }
-                    ?: EditExpenseUiState.NotFound
+                expenses.get(expenseId)?.let { expense ->
+                    val vehicle = RecordVehicle(choices, expense.vehicleId, expense.vehicleId?.let { vehicles.get(it)?.name })
+                    EditExpenseUiState.Editing(expense.toFormState(), isNew = false, today = today, vehicle = vehicle)
+                } ?: EditExpenseUiState.NotFound
             }
         }
+    }
+
+    /** While adding: the expense goes on [id]. */
+    fun selectVehicle(id: Long) = editing { current ->
+        val vehicle = current.vehicle.choices.firstOrNull { it.id == id }
+        if (!current.isNew || vehicle == null) current else current.copy(vehicle = current.vehicle.copy(selectedId = vehicle.id, selectedName = vehicle.name))
     }
 
     fun updateForm(form: ExpenseFormState) =
@@ -104,8 +123,7 @@ class EditExpenseViewModel(
         }
         run(current) {
             if (current.isNew) {
-                // A new expense belongs to the default vehicle, when there is one.
-                expenses.create(vehicles.defaultVehicle.first()?.id, input)
+                expenses.create(current.vehicle.selectedId, input)
                 true
             } else {
                 expenses.update(expenseId, input)

@@ -22,6 +22,7 @@ import lk.picksmart.domain.usecase.FuelPriceUpdates
 import lk.picksmart.domain.usecase.estimate
 import lk.picksmart.domain.usecase.summarizeDay
 import lk.picksmart.ui.history.HistoryRow
+import lk.picksmart.ui.history.vehicleNamesForRows
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
 
@@ -55,12 +56,14 @@ class HomeViewModel(
         otherIncome.all,
         expenses.all,
         vehicles.defaultVehicle,
-    ) { allTrips, income, costs, vehicle ->
+        vehicles.allVehicles,
+    ) { allTrips, income, costs, vehicle, vehicleList ->
+        val names = vehicleNamesForRows(vehicleList)
         val today = clock.instant().atZone(ColomboZone).toLocalDate()
         HomeUiState.Loaded(
             summary = calculator.summarizeDay(today, allTrips, income, costs),
             vehicleName = vehicle?.name,
-            recent = allTrips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it)) },
+            recent = allTrips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it), names[it.vehicleId]) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
 

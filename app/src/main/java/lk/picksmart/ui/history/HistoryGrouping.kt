@@ -4,6 +4,7 @@ import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.usecase.estimate
 import lk.picksmart.domain.usecase.estimatedTripProfitCents
 import lk.picksmart.util.ColomboZone
@@ -17,7 +18,15 @@ enum class HistoryFilter(val statuses: Set<TripStatus>) {
 }
 
 /** One trip with its estimate (null only if the stored values can't be calculated). */
-data class HistoryRow(val trip: Trip, val estimate: ProfitResult?)
+/** One trip in History or on Home; [vehicleName] is set only when the rider has more than one vehicle. */
+data class HistoryRow(val trip: Trip, val estimate: ProfitResult?, val vehicleName: String? = null)
+
+/**
+ * Vehicle names to show on trip rows: none with a single vehicle, where they would only repeat
+ * themselves; every vehicle's (archived ones too, whose trips are still listed) otherwise.
+ */
+fun vehicleNamesForRows(vehicles: List<Vehicle>): Map<Long, String> =
+    if (vehicles.size > 1) vehicles.associate { it.id to it.name } else emptyMap()
 
 /**
  * The trips of one Sri Lankan calendar day, newest first.
@@ -31,15 +40,23 @@ data class HistoryDay(
     val estimatedProfitCents: Long?,
 )
 
-/** Filters [trips] (newest first) and groups them by their Asia/Colombo date. */
-fun groupTripsByDay(trips: List<Trip>, filter: HistoryFilter, calculator: ProfitCalculator): List<HistoryDay> =
+/**
+ * Filters [trips] (newest first) and groups them by their Asia/Colombo date. [vehicleNames] come
+ * from [vehicleNamesForRows].
+ */
+fun groupTripsByDay(
+    trips: List<Trip>,
+    filter: HistoryFilter,
+    calculator: ProfitCalculator,
+    vehicleNames: Map<Long, String> = emptyMap(),
+): List<HistoryDay> =
     trips.filter { it.status in filter.statuses }
         .groupBy { it.tripDateTime.atZone(ColomboZone).toLocalDate() }
         .map { (date, dayTrips) ->
             val counted = dayTrips.filter { it.status != TripStatus.OFFER_CHECK }
             HistoryDay(
                 date = date,
-                rows = dayTrips.map { HistoryRow(it, calculator.estimate(it)) },
+                rows = dayTrips.map { HistoryRow(it, calculator.estimate(it), vehicleNames[it.vehicleId]) },
                 estimatedProfitCents = if (counted.isEmpty()) null else calculator.estimatedTripProfitCents(counted),
             )
         }

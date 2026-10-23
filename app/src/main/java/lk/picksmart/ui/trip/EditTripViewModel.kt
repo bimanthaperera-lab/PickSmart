@@ -27,6 +27,7 @@ import lk.picksmart.domain.model.rates
 import lk.picksmart.ui.checkride.CheckRideError
 import lk.picksmart.ui.checkride.CheckRideOutcome
 import lk.picksmart.ui.navigation.EditTripRoute
+import lk.picksmart.ui.vehicle.RecordVehicle
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
 import java.time.LocalDate
@@ -44,6 +45,7 @@ sealed interface EditTripUiState {
      * @property statuses The statuses the rider can pick. An offer can stay an offer; a completed
      *   or cancelled trip can't go back to being an offer.
      * @property shownErrors Live errors plus, after a save attempt, the "required" ones.
+     * @property vehicle The trip's vehicle; picked while adding, fixed once saved.
      */
     data class Editing(
         val form: TripFormState,
@@ -53,6 +55,7 @@ sealed interface EditTripUiState {
         val today: LocalDate,
         val outcome: CheckRideOutcome,
         val shownErrors: Map<InputField, CheckRideError>,
+        val vehicle: RecordVehicle = RecordVehicle(),
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
         val done: Boolean = false,
@@ -71,6 +74,7 @@ class EditTripViewModel(
 
     private val tripId = savedStateHandle.toRoute<EditTripRoute>().tripId
     private var vehicleId = 0L
+    private var recordVehicle = RecordVehicle()
     private var triedSave = false
 
     private val _state = MutableStateFlow<EditTripUiState>(EditTripUiState.Loading)
@@ -85,6 +89,7 @@ class EditTripViewModel(
                     EditTripUiState.NoVehicle
                 } else {
                     vehicleId = vehicle.id
+                    recordVehicle = RecordVehicle(vehicles.activeVehicles.first(), vehicle.id, vehicle.name, editable = true)
                     val form = newTripForm(preferences.lastCheckInputs.first(), now.toLocalDate(), now.toLocalTime())
                     editing(form, vehicle.rates(), isNew = true, listOf(TripStatus.COMPLETED, TripStatus.CANCELLED), now.toLocalDate())
                 }
@@ -93,6 +98,7 @@ class EditTripViewModel(
                 if (trip == null) {
                     EditTripUiState.NotFound
                 } else {
+                    recordVehicle = RecordVehicle(vehicles.activeVehicles.first(), trip.vehicleId, vehicles.get(trip.vehicleId)?.name)
                     val statuses = if (trip.status == TripStatus.OFFER_CHECK) TripStatus.entries else listOf(TripStatus.COMPLETED, TripStatus.CANCELLED)
                     editing(trip.toFormState(), trip.rates, isNew = false, statuses, now.toLocalDate())
                 }
@@ -106,6 +112,16 @@ class EditTripViewModel(
         } else {
             current
         }
+    }
+
+    /** While adding: the trip goes on [id], and is calculated and saved with that vehicle's rates. */
+    fun selectVehicle(id: Long) {
+        val current = _state.value as? EditTripUiState.Editing ?: return
+        if (!current.isNew || current.saving) return
+        val vehicle = recordVehicle.choices.firstOrNull { it.id == id } ?: return
+        vehicleId = vehicle.id
+        recordVehicle = recordVehicle.copy(selectedId = vehicle.id, selectedName = vehicle.name)
+        _state.value = editing(current.form, vehicle.rates(), current.isNew, current.statuses, current.today)
     }
 
     fun save() {
@@ -167,7 +183,7 @@ class EditTripViewModel(
         } else {
             live
         }
-        return EditTripUiState.Editing(form, rates, isNew, statuses, today, outcome, shown)
+        return EditTripUiState.Editing(form, rates, isNew, statuses, today, outcome, shown, recordVehicle)
     }
 
     companion object {

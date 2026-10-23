@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.calculator.InputField
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.Platform
@@ -139,7 +140,10 @@ fun EditTripScreen(
                     actionLabel = stringResource(R.string.settings_add_vehicle),
                     onAction = onAddVehicle,
                 )
-                is EditTripUiState.Editing -> TripForm(s, viewModel::updateForm)
+                is EditTripUiState.Editing -> {
+                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
+                    TripForm(s, viewModel::updateForm)
+                }
             }
         }
 

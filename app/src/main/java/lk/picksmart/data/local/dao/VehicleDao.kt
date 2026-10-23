@@ -23,6 +23,10 @@ interface VehicleDao {
     @Query("SELECT * FROM vehicles WHERE id = :id")
     fun observe(id: Long): Flow<VehicleEntity?>
 
+    /** Every vehicle, archived ones included (their trips still show in History). */
+    @Query("SELECT * FROM vehicles ORDER BY created_at, id")
+    fun observeAll(): Flow<List<VehicleEntity>>
+
     @Query("SELECT * FROM vehicles WHERE archived = 0 ORDER BY created_at, id")
     fun observeActive(): Flow<List<VehicleEntity>>
 }

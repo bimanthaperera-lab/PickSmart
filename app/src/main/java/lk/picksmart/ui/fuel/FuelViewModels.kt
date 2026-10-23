@@ -28,7 +28,10 @@ import lk.picksmart.domain.usecase.latestEfficiency
 import lk.picksmart.domain.usecase.suggestsEfficiencyUpdate
 import lk.picksmart.ui.components.FieldError
 import lk.picksmart.ui.navigation.EditFuelLogRoute
+import lk.picksmart.ui.vehicle.RecordVehicle
 import lk.picksmart.util.ColomboZone
+import lk.picksmart.util.centsToInput
+import lk.picksmart.util.parseRupeesToCents
 import java.time.Clock
 import java.time.LocalDate
 import java.time.YearMonth
@@ -117,10 +120,12 @@ sealed interface EditFuelUiState {
     data object NoVehicle : EditFuelUiState
 
     /** @property errors Shown once the rider has tried to save, and kept up to date after that. */
+    /** @property vehicle The fill-up's vehicle; picked while adding, fixed once saved. */
     data class Editing(
         val form: FuelFormState,
         val isNew: Boolean,
         val today: LocalDate,
+        val vehicle: RecordVehicle = RecordVehicle(),
         val errors: Map<FuelField, FieldError> = emptyMap(),
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
@@ -132,7 +137,7 @@ sealed interface EditFuelUiState {
 class EditFuelViewModel(
     savedStateHandle: SavedStateHandle,
     private val fuelLogs: FuelLogRepository,
-    vehicles: VehicleRepository,
+    private val vehicles: VehicleRepository,
     clock: Clock,
 ) : ViewModel() {
 
@@ -152,13 +157,41 @@ class EditFuelViewModel(
                     EditFuelUiState.NoVehicle
                 } else {
                     vehicleId = vehicle.id
-                    EditFuelUiState.Editing(newFuelForm(today, vehicle.fuelPricePerLitreCents), isNew = true, today = today)
+                    EditFuelUiState.Editing(
+                        newFuelForm(today, vehicle.fuelPricePerLitreCents),
+                        isNew = true,
+                        today = today,
+                        vehicle = RecordVehicle(vehicles.activeVehicles.first(), vehicle.id, vehicle.name, editable = true),
+                    )
                 }
             } else {
-                fuelLogs.get(fuelLogId)?.let { EditFuelUiState.Editing(it.toFormState(), isNew = false, today = today) }
-                    ?: EditFuelUiState.NotFound
+                fuelLogs.get(fuelLogId)?.let { log ->
+                    EditFuelUiState.Editing(
+                        log.toFormState(),
+                        isNew = false,
+                        today = today,
+                        vehicle = RecordVehicle(vehicles.activeVehicles.first(), log.vehicleId, vehicles.get(log.vehicleId)?.name),
+                    )
+                } ?: EditFuelUiState.NotFound
             }
         }
+    }
+
+    /**
+     * While adding: the fill-up goes on [id]. A price still showing the old vehicle's price
+     * switches to the new vehicle's; one the rider typed stays.
+     */
+    fun selectVehicle(id: Long) = editing { current ->
+        val vehicle = current.vehicle.choices.firstOrNull { it.id == id }
+        val previous = current.vehicle.choices.firstOrNull { it.id == vehicleId }
+        if (!current.isNew || vehicle == null) return@editing current
+        vehicleId = vehicle.id
+        val price = if (previous != null && parseRupeesToCents(current.form.price) == previous.fuelPricePerLitreCents) {
+            current.form.withPrice(centsToInput(vehicle.fuelPricePerLitreCents))
+        } else {
+            current.form
+        }
+        current.copy(form = price, vehicle = current.vehicle.copy(selectedId = vehicle.id, selectedName = vehicle.name))
     }
 
     fun updateForm(form: FuelFormState) = editing { it.copy(form = form, errors = errorsFor(form), saveFailed = false) }

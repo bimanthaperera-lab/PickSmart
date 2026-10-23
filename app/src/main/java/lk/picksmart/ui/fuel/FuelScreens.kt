@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.model.FuelLog
 import lk.picksmart.ui.components.DateField
 import lk.picksmart.ui.components.DetailHeader
@@ -244,7 +245,10 @@ fun EditFuelScreen(
                     actionLabel = stringResource(R.string.settings_add_vehicle),
                     onAction = onAddVehicle,
                 )
-                is EditFuelUiState.Editing -> FuelForm(s, viewModel::updateForm)
+                is EditFuelUiState.Editing -> {
+                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
+                    FuelForm(s, viewModel::updateForm)
+                }
             }
         }
         if (editing != null) {

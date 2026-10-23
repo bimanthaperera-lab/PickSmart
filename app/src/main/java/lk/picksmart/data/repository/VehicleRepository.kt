@@ -44,6 +44,9 @@ class VehicleRepository(
     /** Every vehicle that isn't archived, oldest first. */
     val activeVehicles: Flow<List<Vehicle>> = dao.observeActive().map { rows -> rows.map { it.toDomain() } }
 
+    /** Every vehicle, archived ones included, oldest first; for naming the vehicle on old records. */
+    val allVehicles: Flow<List<Vehicle>> = dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
     /** Makes [id] the active vehicle: its rates pre-fill Check a Ride and new records. */
     suspend fun setActive(id: Long) = preferences.setDefaultVehicleId(id)
 

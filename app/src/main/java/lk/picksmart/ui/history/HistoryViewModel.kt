@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.repository.TripRepository
+import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
@@ -31,17 +32,19 @@ sealed interface HistoryUiState {
 class HistoryViewModel(
     private val savedStateHandle: SavedStateHandle,
     trips: TripRepository,
+    vehicles: VehicleRepository,
     calculator: ProfitCalculator,
     clock: Clock,
 ) : ViewModel() {
 
     private val filter = savedStateHandle.getStateFlow(FILTER_KEY, HistoryFilter.ALL)
 
-    val state: StateFlow<HistoryUiState> = combine(trips.all, filter) { all, filter ->
+    val state: StateFlow<HistoryUiState> = combine(trips.all, filter, vehicles.allVehicles) { all, filter, vehicleList ->
         if (all.isEmpty()) {
             HistoryUiState.Empty
         } else {
-            HistoryUiState.Loaded(filter, groupTripsByDay(all, filter, calculator), clock.instant().atZone(ColomboZone).toLocalDate())
+            val days = groupTripsByDay(all, filter, calculator, vehicleNamesForRows(vehicleList))
+            HistoryUiState.Loaded(filter, days, clock.instant().atZone(ColomboZone).toLocalDate())
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState.Loading)
 
@@ -55,7 +58,7 @@ class HistoryViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val container = (this[APPLICATION_KEY] as PicksmartApplication).container
-                HistoryViewModel(createSavedStateHandle(), container.trips, container.profitCalculator, container.clock)
+                HistoryViewModel(createSavedStateHandle(), container.trips, container.vehicles, container.profitCalculator, container.clock)
             }
         }
     }

@@ -145,10 +145,19 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 
 ## 2026-10-23 — Multiple vehicles
 
-- **Limit.** Free and Signed in riders can keep up to 3 active vehicles; Premium is unlimited. This replaces the earlier split in CLAUDE.md section 15 (1 / 1 / multiple). It is a feature gate, not a ride cap. *Owner.*
+- **Limit.** Free and Signed in riders can keep up to 3 active vehicles; Premium is unlimited. This replaces the earlier split in CLAUDE.md section 15 (1 / 1 / multiple). It is a feature gate, not a ride cap. *Owner. Superseded later on 2026-10-23, below.*
 - **Phase 6c.** Multiple vehicles is built before Phase 7, because Reports and the Account tab both depend on how vehicles work. *Owner.*
 - **Archived vehicles don't count** toward the limit, and their trips stay in History and Reports. The last active vehicle can't be archived. *Default.*
 - **Lapsed Premium** riders keep every vehicle and can still switch and record on each; only adding past 3 is blocked. *Default.*
 - **Switching** is a vehicle chip on Check a Ride plus the Vehicles list in Settings (Account tab later). It sets `defaultVehicleId`; saved trips keep their own vehicle and rate snapshot. *Default.*
 - **Before Premium exists**, the limit is one constant that `PlanProvider` replaces in Phase 8d, and the 4th "Add vehicle" opens a Premium screen saying "coming soon". *Default.*
 - **Fuel prices** follow the active vehicle for the prompt and screen; automatic updates apply to every vehicle with auto-update on (today only the default vehicle is checked). *Default.*
+
+## 2026-10-23 — Vehicle limit by sign-in, signed-out card, no sample values
+
+- **Vehicle limit 1 / 3 / unlimited.** Not signed in: 1 active vehicle. Signed in: 3. Premium: unlimited. Past the limit, a signed-out rider sees "Sign in to add up to 3 vehicles" with Sign up / Sign in. *Owner.*
+- **Signing out keeps vehicles.** A rider who signs out with 3 vehicles keeps all of them and can still switch and record; only adding is blocked. Same for anyone who had more before the limit shipped. *Default.*
+- **Signed-out profile card.** Shows no profile details: a plain avatar, "Back up your data and add up to 3 vehicles", and Sign up / Sign in buttons. *Owner asked; wording is the default.*
+- **No sample values.** Onboarding loses "Skip and use sample values"; the rider enters their own vehicle type, fuel type, fuel price, efficiency and reserve before using the app. Fields start empty, except a fuel price already downloaded from the CPC list, shown with its source. Maintenance reserve may be 0. *Owner asked; the CPC pre-fill and the 0 reserve are the default.*
+- **Existing sample vehicles.** Riders who chose samples before keep their vehicle, label and review notice until they save it; the `is_sample` column stays, so no migration is needed and nobody is re-onboarded (N7). *Default.*
+- **Order.** With a signed-out limit of 1, the multi-vehicle part of Phase 6c can only be used once sign-in exists (Phase 8c). Until then, every rider is on the signed-out limit. *Default; whether to build sign-in first is for the owner to decide.*

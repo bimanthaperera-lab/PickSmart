@@ -42,7 +42,7 @@ Act as a careful senior Android engineer with good product judgement.
 - Do not leave core screens as placeholders, fake buttons or TODO-only stubs.
 - Use the defaults in this file and in `docs/decisions.md`. Ask the owner only when a missing decision truly blocks progress; otherwise pick a sensible default, record it in `docs/decisions.md`, and continue.
 - Keep dependencies minimal. Check existing Gradle, AGP and Kotlin versions before changing them.
-- Never invent real-world fares, fuel prices or commission rates, or claim platform API access. Use user-editable values. Any sample data must be clearly labelled as sample data.
+- Never invent real-world fares, fuel prices or commission rates, or claim platform API access. Use user-editable values. The app offers no sample values to riders (onboarding asks for the rider's own numbers); sample data in previews and tests must be clearly labelled as sample data.
 
 ### Git
 
@@ -357,14 +357,19 @@ Bottom navigation: Home, Check Ride, History, Reports, Account. The Account tab 
 
 ### Onboarding
 
-On first launch, a short setup asks for vehicle type, fuel price, fuel efficiency and maintenance reserve (with a "skip, use sample values" option clearly labelled as samples), then shows the one-line safety notice.
+On first launch, a short setup asks for vehicle type, fuel type, fuel price, fuel efficiency and maintenance reserve, then shows the one-line safety notice. There is no "use sample values" or skip option: the rider uses the app after entering their own numbers.
+
+- Fields start empty, with no suggested values. The one exception is the fuel price: if a published CPC list is already saved on the device (section 8a), it is pre-filled for the chosen fuel type with its source shown ("CPC price from 1 Oct"), and the rider can change it.
+- Fuel efficiency must be above 0. Maintenance reserve may be 0, with a short hint explaining what it is for. The profit target stays optional.
+- Riders who chose sample values in an earlier version keep their vehicle as it is (N7). Its "Sample" label and review notice stay until they save the vehicle form, and they are never sent through onboarding again.
 
 ### Vehicles
 
 - A rider can have several vehicles (for example a motorcycle and a three-wheeler). One is the **active vehicle** (`defaultVehicleId`); its rates pre-fill Check a Ride and new trips.
 - **Switching:** a vehicle chip at the top of Check a Ride, and the Vehicles list on the Account tab (add, edit, set active, archive). Switching is one tap and never changes a saved trip, because each trip keeps its own `vehicleId` and rate snapshot (section 8).
-- **Limit:** up to 3 active (not archived) vehicles on Free and Signed in; unlimited on Premium (section 15). Archived vehicles don't count, and their trips stay in History and Reports. Archiving the active vehicle asks which one becomes active; the last active vehicle can't be archived.
-- Adding a vehicle past the limit opens a "More vehicles with Premium" screen instead of the form. The limit is a feature gate, never a reason to block checking or recording rides on any vehicle the rider already has.
+- **Limit:** 1 active (not archived) vehicle on Free (not signed in), up to 3 when signed in, unlimited on Premium (section 15). Archived vehicles don't count, and their trips stay in History and Reports. Archiving the active vehicle asks which one becomes active; the last active vehicle can't be archived.
+- Adding a vehicle past the limit opens an upgrade screen instead of the form: on Free, "Sign in to add up to 3 vehicles" with Sign up and Sign in; when signed in, "More vehicles with Premium".
+- A rider who signs out, or whose Premium lapses, keeps every vehicle they have and can still switch between them and record trips; they just can't add another until they are under their limit. The same holds for a rider who already had more vehicles before the limit shipped. The limit is a feature gate, never a reason to block checking or recording rides on any vehicle the rider already has.
 - Fuel log and expense forms pick a vehicle, defaulting to the active one. Reports combine all vehicles; a per-vehicle filter can come later.
 - Fuel prices: the Home notice, the prompt and the Fuel price screen follow the active vehicle. Automatic updates apply to every vehicle that has auto-update on.
 
@@ -528,7 +533,9 @@ An account exists for one reason: so a rider who loses or changes their phone do
 
 The fifth bottom-bar tab is **Account** (it replaces Settings).
 
-- **Profile card** at the top. Signed out: a plain avatar, "Not signed in" and "Sign in to back up your data"; tapping it opens Login. Signed in: the profile photo (or initials), name and email; tapping it opens the Profile screen.
+- **Profile card** at the top.
+  - Signed out: no profile details at all. The card shows a plain avatar, one line on what an account gives ("Back up your data and add up to 3 vehicles"), and two buttons, **Sign up** (opens Register) and **Sign in** (opens Login). The Profile screen can't be opened while signed out.
+  - Signed in: the profile photo (or initials), name and email; tapping the card opens the Profile screen.
 - **Settings below the card**: every row the old Settings tab had (vehicle, fuel price, records, theme and so on), unchanged, and fully working whether or not the rider is signed in.
 - The card reads the cached profile, so the tab opens instantly and offline (N9).
 
@@ -566,7 +573,7 @@ Recommended feature gating (owner can adjust the split, not the no-cap rule):
 | Reports range | current week | full history | full history |
 | Cloud backup & multi-device | — | ✓ | ✓ |
 | CSV / Excel export | — | ✓ | ✓ |
-| Vehicles (active, not archived) | 3 | 3 | unlimited |
+| Vehicles (active, not archived) | 1 | 3 | unlimited |
 | Screenshot OCR auto-fill | — | — | ✓ |
 | Shift widget & Quick Settings tile | — | — | ✓ |
 | Tax & monthly summaries | — | — | ✓ |
@@ -576,8 +583,8 @@ Recommended feature gating (owner can adjust the split, not the no-cap rule):
 - Premium is billed through Google Play Billing (not a custom payment flow). Prices shown in the UI (Rs. 490/month, Rs. 4,900/year) are placeholders to confirm.
 - Entitlement is cached locally so Premium features work offline once verified; the app re-checks when online. Losing network never silently downgrades a paid rider mid-session.
 - Downgrading never deletes data: a lapsed Premium rider keeps all their trips and still sees them; only the gated features turn off.
-- A lapsed Premium rider with more than 3 vehicles keeps all of them and can still switch between them and record trips on each; they just can't add another until they are under the limit (section 9, "Vehicles").
-- Until Premium exists (Phase 8d), the vehicle limit comes from a single constant that `PlanProvider` will replace, and the Premium screen says "coming soon".
+- Signing out or a lapsed Premium never removes a vehicle: the rider keeps all of them, can still switch and record trips on each, and only can't add another until under the limit (section 9, "Vehicles").
+- Until `PlanProvider` exists (Phase 8d), the vehicle limit comes from one small function of "signed in or not" (1 or 3) that `PlanProvider` will replace, and the Premium screen says "coming soon".
 
 ## 16. Cost and scaling
 

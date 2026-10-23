@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** 6b — Fuel price updates is done except the owner's step (publish the price file and set its URL); next is Phase 6c — Multiple vehicles, then Phase 7 — Dashboard, reports and export
 - **Next step:** Owner: publish the fuel price file and set `picksmart.fuelPriceUrl` (see `docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on Settings (Account tab later) and the active-vehicle switch, then Phase 7.
-- **Last updated:** 2026-10-23 (Phase 6c added: multiple vehicles, 3 on Free and Signed in)
+- **Last updated:** 2026-10-23 (vehicle limit 1 / 3 / unlimited; sample values removed from onboarding)
 
 ## Open questions for the owner
 
@@ -132,18 +132,19 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 6c — Multiple vehicles
 
-- [ ] Pure rule for the vehicle limit (`canAddVehicle`: active count vs. limit, 3 until `PlanProvider` exists), with tests including archived vehicles not counting and a lapsed rider over the limit
+- [ ] Pure rule for the vehicle limit (`canAddVehicle`: active count vs. limit; 1 signed out, 3 signed in, until `PlanProvider` exists), with tests including archived vehicles not counting and a rider over the limit after signing out
 - [ ] Vehicles list in Settings (moves to the Account tab with 8c): each vehicle's type and rates, the active one marked, Add, Edit, Set active, Archive (with confirmation)
 - [ ] Archiving the active vehicle asks which becomes active; the last active vehicle can't be archived
 - [ ] Vehicle chip at the top of Check a Ride to switch the active vehicle in one tap; switching re-fills the rates and keeps the typed fare and distances
 - [ ] Add / Edit trip, fuel log and expense forms pick a vehicle, defaulting to the active one
 - [ ] History rows show the vehicle name when the rider has more than one
-- [ ] Adding past the limit opens a "More vehicles with Premium" screen ("coming soon" until Phase 8d)
+- [ ] Adding past the limit opens the upgrade screen: signed out, "Sign in to add up to 3 vehicles" with Sign up / Sign in; signed in, "More vehicles with Premium" ("coming soon" until Phase 8d)
+- [ ] Onboarding: remove "Skip and use sample values"; fields start empty except a saved CPC price for the chosen fuel type; existing sample vehicles keep their label and notice until saved (no re-onboarding)
 - [ ] Fuel prices: prompt and Fuel price screen follow the active vehicle; automatic updates apply to every vehicle with auto-update on
 - [ ] No schema change expected (vehicles, `vehicleId` and `archived` exist since v1); if one is needed it ships a `Migration` and test
-- [ ] Checked on the emulator: update from the 6b build keeps the vehicle and records; add up to 3, switch, archive, past trips unchanged; 360 dp at 200% font
+- [ ] Checked on the emulator: update from the 6b build keeps the vehicle and records (including a sample vehicle, not re-onboarded); fresh install has no sample option; signed out a 2nd vehicle opens the sign-in screen; switch, archive, past trips unchanged; 360 dp at 200% font
 
-**Done when:** a rider can keep up to 3 vehicles, switch the active one in one tap from Check a Ride, and every saved trip keeps the vehicle and rates it was saved with.
+**Done when:** a new rider starts with their own numbers (no samples), a signed-out rider has 1 vehicle and a signed-in rider up to 3, a rider can switch the active one in one tap from Check a Ride, and every saved trip keeps the vehicle and rates it was saved with.
 
 ## Phase 7 — Dashboard, reports and export
 
@@ -188,6 +189,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] `AccountProvider` / `SyncProvider` interfaces with a no-op implementation; app builds and runs with Firebase absent
 - [ ] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
+- [ ] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
 - [ ] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"
 - [ ] Profile screen: photo (Google photo or initials, cached), name, email with verified state, optional mobile number marked "Not verified", sign-in method, Edit, Sign out
 - [ ] Owner: Firebase project, Android app `lk.picksmart`, SHA-1/SHA-256 fingerprints, `google-services.json` (git-ignored), Email/Password and Google providers enabled
@@ -207,7 +209,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] `PlanProvider` with feature flags for the three tiers; features check flags, not tier names directly
 - [ ] Profile screen additions (the screen itself comes in 8c): tier badge, rides-per-day chart, lifetime stats
 - [ ] Premium screen listing the three tiers; Google Play Billing integration
-- [ ] Feature gates wired: reports range, export, vehicle limit (3 → unlimited), OCR, widgets, tax summaries, ads
+- [ ] Feature gates wired: reports range, export, vehicle limit (1 / 3 / unlimited), OCR, widgets, tax summaries, ads
 - [ ] Entitlement cached locally so Premium works offline once verified; re-check when online
 - [ ] No ride or ride-check caps anywhere (core rule); downgrade never deletes data
 

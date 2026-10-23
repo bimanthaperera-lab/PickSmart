@@ -9,7 +9,8 @@ The app's vector drawables are traced from it, so they stay sharp at every size:
 | `ic_launcher_foreground` | Adaptive launcher icon (pin only, inside the 66 dp safe zone) |
 | `ic_launcher_monochrome` | Themed icon on Android 13+ (single colour) |
 | `picksmart_mark` | Pin mark alone, small sizes on dark surfaces |
-| `picksmart_logo` | Full logo, splash and onboarding on dark surfaces only |
+| `picksmart_logo` | Full logo, onboarding welcome screen (always dark) |
+| `picksmart_word_pick`, `picksmart_word_smart` | The wordmark split by colour, drawn on top of each other and tinted per theme (splash screen) |
 
 The "Pick" part of the wordmark and the white P are off-white, so they disappear on a light or yellow surface. There, put the mark inside a near-black circle (CLAUDE.md section 9).
 

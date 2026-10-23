@@ -3,6 +3,7 @@ package lk.picksmart.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -10,13 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import lk.picksmart.R
+import lk.picksmart.ui.theme.BrandYellow
+import lk.picksmart.ui.theme.LightAccent
 import lk.picksmart.ui.theme.NearBlack
+import lk.picksmart.ui.theme.OffWhite
 import lk.picksmart.util.MoneyFormatter
 
 /**
@@ -38,6 +44,32 @@ fun BrandMark(modifier: Modifier = Modifier, size: Dp = 44.dp) {
         }
     } else {
         Image(painterResource(R.drawable.picksmart_mark), description, modifier.size(size))
+    }
+}
+
+/**
+ * The "Picksmart" wordmark: "Pick" off-white and "smart" brand yellow on dark backgrounds. On light
+ * ones "Pick" turns near-black and "smart" the darker amber accent, since off-white and yellow
+ * would vanish there. Its two halves are separate drawables tinted here, drawn on top of each other.
+ */
+@Composable
+fun Wordmark(modifier: Modifier = Modifier) {
+    val onLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val pick = if (onLight) NearBlack else OffWhite
+    val smart = if (onLight) LightAccent else BrandYellow
+    Box(modifier.semantics(mergeDescendants = true) {}) {
+        Image(
+            painterResource(R.drawable.picksmart_word_pick),
+            contentDescription = stringResource(R.string.app_name),
+            colorFilter = ColorFilter.tint(pick),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Image(
+            painterResource(R.drawable.picksmart_word_smart),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(smart),
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

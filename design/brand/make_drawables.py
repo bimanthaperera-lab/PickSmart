@@ -62,5 +62,14 @@ lw, lh = round(lx1 - lx0, 1), round(ly1 - ly0, 1)
 full = mark_colour + [("word_yellow", YELLOW), ("word_white", OFF_WHITE)]
 (res / "picksmart_logo.xml").write_text(vector(240, round(240 * lh / lw, 1), lw, lh, -lx0, -ly0, 1, paths(full)))
 
-for f in ("ic_launcher_foreground", "ic_launcher_monochrome", "picksmart_mark", "picksmart_logo"):
+# Wordmark alone, one drawable per colour, so the splash can tint "Pick" and "smart" for light
+# and dark surfaces. Both share the wordmark's box, so they line up when drawn on top of each other.
+ww, wh = round(wx1 - wx0, 1), round(wy1 - wy0, 1)
+for name, key, colour in (("picksmart_word_pick", "word_white", OFF_WHITE),
+                          ("picksmart_word_smart", "word_yellow", YELLOW)):
+    (res / f"{name}.xml").write_text(
+        vector(240, round(240 * wh / ww, 1), ww, wh, -wx0, -wy0, 1, paths([(key, colour)])))
+
+for f in ("ic_launcher_foreground", "ic_launcher_monochrome", "picksmart_mark", "picksmart_logo",
+          "picksmart_word_pick", "picksmart_word_smart"):
     print(f, (res / f"{f}.xml").stat().st_size, "bytes")

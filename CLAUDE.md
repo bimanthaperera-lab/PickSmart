@@ -474,6 +474,7 @@ app/src/main/java/<package>/
     local/        (dao/, entity/, PicksmartDatabase.kt, migrations/)
     preferences/
     remote/       (FuelPriceSource: fetch, validate, cache)
+    account/      (AccountProvider, FirebaseAccountProvider, NoOpAccountProvider, ProfilePhotoCache)
     repository/
   domain/
     model/
@@ -486,7 +487,7 @@ app/src/main/java/<package>/
     settings/        (the settings list shown under the profile card on the Account tab)
     notifications/   (channels, shift reminder, scheduled WorkManager jobs)
     glance/          (Quick Settings tile service, floating bubble service)
-    account/         (Account tab, Login, Register, Profile screen, AccountProvider, SyncProvider; Firebase impls, no-op impl)
+    account/         (Account tab, Login, Register, Forgot password, Profile screen, form rules, Google picker)
     profile/         (Phase 8d additions to the Profile screen: tier, daily ride counts, lifetime stats)
     plan/            (PlanProvider, feature flags, Play Billing, Premium screen)
   util/
@@ -508,6 +509,7 @@ How the pieces fit today. Read this before adding a screen, a table or a setting
 
 - **Wiring.** `PicksmartApplication` creates one `AppContainer`, which lazily builds the database, `UserPreferencesRepository`, repositories, use cases, `ProfitCalculator` and a UTC `Clock`. Each ViewModel has a companion `Factory` (`viewModelFactory { initializer { ... } }`) that takes what it needs from the container via `APPLICATION_KEY`, plus `createSavedStateHandle()` when it reads route arguments.
 - **Start-up gate.** `SplashScreen` (`ui/splash`) is drawn on the first frame, before `themeMode` and `onboardingComplete` load; its theme is the phone's setting at that moment, which on Android 12+ is already the app's (`setApplicationNightMode` from the stored theme). When 0.9 s have passed and both values have loaded, an `AnimatedContent` fades it into `OnboardingScreen` or `PicksmartApp`. The system splash is removed at once (`setOnExitAnimationListener { it.remove() }`) because the first frame matches it: Android draws the launcher icon at 288 dp without its background on a dark window, and at 240 dp with its near-black circle on a light one, and the splash copies whichever applies. The activity handles `uiMode` changes itself instead of restarting. Finishing onboarding flips the DataStore flag, which switches the root automatically; nothing ever sets it back.
+- **Account.** `AccountProvider` (`data/account`) is the only door to Firebase: `AppContainer.account` is `FirebaseAccountProvider` when the build has `app/google-services.json` (Gradle then applies the google-services plugin and sets `BuildConfig.FIREBASE_ENABLED` and `GOOGLE_WEB_CLIENT_ID`) and Firebase started, else `NoOpAccountProvider`, which reports `isAvailable = false`, and the card says sign-in isn't available. `accountUi()` (`ui/account/AccountUi.kt`) joins the profile, the mobile number (DataStore key `account_mobile_<uid>`) and the cached photo (`ProfilePhotoCache`, `files/profile_photo/`) for the Account tab and Profile screen. Form rules (`AuthForms.kt`) are pure and tested; `AuthFormViewModel` runs one request at a time, turns `AuthError` into a message, and handles Google: `requestGoogleIdToken()` shows Credential Manager's "Sign in with Google" over the activity, then Firebase signs in with the token. Login and Register replace each other on the back stack, so back always returns to the tab.
 - **Navigation.** Routes are `@Serializable` types in `ui/navigation/Destinations.kt`. The `TopLevelDestination` enum drives the bottom bar, which shows only on those five tabs; switching tabs pops to Home and restores tab state. Detail screens (for example `EditVehicleRoute(vehicleId)`, where `0` means "add") hide the bar and are registered in `PicksmartApp.kt`.
 - **Layers.** Room entities in `data/local/entity` carry `toDomain()` / `toEntity()` mappers; repositories return domain models from `domain/model`. Business rules are pure functions in `domain/usecase` (for example `applyVehicleEdit`, which enforces the manual fuel price rule from section 8a, and `countedProfitCents` in `TripProfit.kt`, the one place that decides what a trip adds to profit, offers never) so they are tested on the JVM; use-case classes there only orchestrate repositories (`CompleteOnboarding`).
 - **Money in code.** `ProfitInput.commissionHundredths` stores the commission as one `Long` in hundredths of its unit (cents for `AMOUNT`, hundredths of a percent for `PERCENT`). Text in forms is parsed with `util/Parsing.kt` and cleaned while typing by `sanitizeDecimalInput` (used inside `NumberField`). Display goes through `rememberMoneyFormatter()`, which reads the translatable `currency_prefix` string.

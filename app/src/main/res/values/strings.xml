@@ -9,7 +9,7 @@
     <string name="nav_check_ride">Check Ride</string>
     <string name="nav_history">History</string>
     <string name="nav_reports">Reports</string>
-    <string name="nav_settings">Settings</string>
+    <string name="nav_account">Account</string>
 
     <!-- Result bands. Always shown with an icon; never rely on colour alone. -->
     <string name="band_good">Good</string>
@@ -392,7 +392,6 @@
     <string name="vehicle_not_found_body">This vehicle is no longer on this phone.</string>
 
     <!-- Settings -->
-    <string name="settings_title">Settings</string>
     <string name="settings_section_vehicle">Vehicle</string>
     <string name="settings_edit_vehicle">Edit vehicle</string>
     <string name="settings_add_vehicle">Add your vehicle</string>
@@ -462,4 +461,99 @@
     <string name="settings_fuel_price">Fuel price</string>
     <!-- "New CPC price: Rs. 414.00" -->
     <string name="settings_fuel_price_new">New CPC price: %1$s</string>
+
+    <!-- Account tab (CLAUDE.md section 14) -->
+    <string name="account_title">Account</string>
+    <string name="account_not_signed_in">Not signed in</string>
+    <string name="account_benefit">Back up your data and add up to 3 vehicles</string>
+    <string name="account_sign_up">Sign up</string>
+    <string name="account_sign_in">Sign in</string>
+    <string name="account_unavailable">Sign-in isn\'t available in this version of the app.</string>
+    <string name="account_email_not_verified">Email not verified</string>
+    <!-- Screen reader action on the signed-in profile card -->
+    <string name="account_open_profile">open your profile</string>
+
+    <!-- Sign in, register and password reset -->
+    <string name="auth_sign_in_title">Sign in</string>
+    <string name="auth_sign_in_body">Sign in to back up your data and add up to 3 vehicles. Everything else works without an account.</string>
+    <string name="auth_register_title">Create account</string>
+    <string name="auth_register_body">An account backs up your trips and records, so you keep them if you change phones.</string>
+    <string name="auth_name">Name</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_confirm_password">Confirm password</string>
+    <string name="auth_mobile_optional">Mobile number (optional)</string>
+    <string name="auth_mobile_hint">Not verified. Never used to send SMS.</string>
+    <!-- %1$d: minimum number of characters, e.g. 8 -->
+    <string name="auth_password_hint">At least %1$d characters</string>
+    <string name="auth_show_password">Show</string>
+    <string name="auth_hide_password">Hide</string>
+    <string name="auth_forgot_password">Forgot password?</string>
+    <string name="auth_sign_in_action">Sign in</string>
+    <string name="auth_signing_in">Signing in…</string>
+    <string name="auth_register_action">Create account</string>
+    <string name="auth_creating_account">Creating account…</string>
+    <string name="auth_or">or</string>
+    <string name="auth_continue_google">Continue with Google</string>
+    <string name="auth_to_register">New to Picksmart? Create an account</string>
+    <string name="auth_to_sign_in">Already have an account? Sign in</string>
+    <string name="auth_skip">Skip — use without an account</string>
+    <string name="auth_needs_internet">Signing in needs internet. The rest of the app works offline.</string>
+    <string name="auth_reset_title">Reset password</string>
+    <string name="auth_reset_body">Enter your account email and we\'ll send you a link to choose a new password.</string>
+    <string name="auth_reset_action">Send reset link</string>
+    <string name="auth_sending">Sending…</string>
+    <string name="auth_reset_sent_title">Check your email</string>
+    <!-- %1$s: the email address the rider typed -->
+    <string name="auth_reset_sent_body">If %1$s has a Picksmart account, a link to reset the password is on its way. Check spam too.</string>
+    <string name="auth_back_to_sign_in">Back to sign in</string>
+
+    <string name="auth_error_name_required">Enter your name</string>
+    <string name="auth_error_email_required">Enter your email</string>
+    <string name="auth_error_email_invalid">Enter a valid email address</string>
+    <string name="auth_error_mobile_invalid">Enter a mobile number, e.g. 077 123 4567</string>
+    <string name="auth_error_password_required">Enter your password</string>
+    <!-- %1$d: minimum number of characters -->
+    <string name="auth_error_password_short">Use at least %1$d characters</string>
+    <string name="auth_error_passwords_differ">The passwords don\'t match</string>
+    <string name="auth_error_no_internet">No internet connection. Connect and try again; the rest of the app works offline.</string>
+    <string name="auth_error_wrong_credentials">The email or password is wrong.</string>
+    <string name="auth_error_email_in_use">An account already uses this email. Sign in instead.</string>
+    <string name="auth_error_weak_password">Choose a stronger password.</string>
+    <string name="auth_error_other_method">This email is already used with another sign-in method. Sign in that way instead.</string>
+    <string name="auth_error_too_many">Too many attempts. Wait a few minutes and try again.</string>
+    <string name="auth_error_disabled">This account has been turned off.</string>
+    <string name="auth_error_recent_sign_in">For your safety, sign out and sign in again, then try once more.</string>
+    <string name="auth_error_unknown">Something went wrong. Try again.</string>
+    <string name="auth_error_google_no_account">No Google account on this phone. Add one in Android settings, or use email.</string>
+    <string name="auth_error_google_failed">Google sign-in didn\'t work. Try again, or use email.</string>
+
+    <!-- Profile screen -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_not_set">Not set</string>
+    <string name="profile_add">Add</string>
+    <string name="profile_verified">Verified</string>
+    <string name="profile_not_verified">Not verified</string>
+    <string name="profile_verify_title">Verify your email</string>
+    <!-- %1$s: the rider\'s email address -->
+    <string name="profile_verify_body">We sent a link to %1$s. Open it, then come back here.</string>
+    <string name="profile_resend_email">Resend email</string>
+    <string name="profile_check_verified">I\'ve verified</string>
+    <string name="profile_verification_sent">Verification email sent. Check your inbox and spam.</string>
+    <string name="profile_mobile">Mobile number</string>
+    <string name="profile_mobile_optional">Optional</string>
+    <string name="profile_mobile_not_verified">Not verified</string>
+    <string name="profile_sign_in_method">Signed in with</string>
+    <string name="profile_method_email">Email and password</string>
+    <string name="profile_method_google">Google</string>
+    <string name="profile_edit_name">Edit name</string>
+    <string name="profile_edit_mobile">Edit mobile number</string>
+    <string name="profile_sign_out">Sign out</string>
+    <string name="profile_sign_out_title">Sign out?</string>
+    <string name="profile_sign_out_body">Your trips and records stay on this phone. Sign in again any time.</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="profile_delete_title">Delete your account?</string>
+    <string name="profile_delete_body">This deletes your Picksmart account and can\'t be undone. Your trips and records stay on this phone.</string>
+    <string name="profile_delete_confirm">Delete account</string>
+    <string name="profile_records_stay">Signing out or deleting your account never removes your trips and records from this phone.</string>
 </resources>

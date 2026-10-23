@@ -90,7 +90,7 @@ fun TextInputField(
 }
 
 @Composable
-private fun fieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+internal fun fieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
     errorContainerColor = MaterialTheme.colorScheme.surfaceContainer,

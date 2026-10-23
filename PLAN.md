@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 6b — Fuel price updates is done except the owner's step (publish the price file and set its URL); next is Phase 6c — Multiple vehicles, then Phase 7 — Dashboard, reports and export
-- **Next step:** Owner: publish the fuel price file and set `picksmart.fuelPriceUrl` (see `docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on Settings (Account tab later) and the active-vehicle switch, then Phase 7.
-- **Last updated:** 2026-10-23 (app and revenue protection plan added to Phases 8c, 8d and 9)
+- **Current phase:** 8c (first part) — sign-in and the Account tab are built, ahead of 6c by the owner's choice; cloud backup (the rest of 8c) comes later. Next is Phase 6c — Multiple vehicles, then Phase 7
+- **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone, and publish the fuel price file (`docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on the Account tab, the active-vehicle switch and the 1 / 3 limit (now that sign-in exists), then Phase 7.
+- **Last updated:** 2026-10-23 (Account tab, Login, Register, Forgot password and Profile built)
 
 ## Open questions for the owner
 
@@ -187,18 +187,21 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 8c — Optional account and cloud backup
 
-- [ ] `AccountProvider` / `SyncProvider` interfaces with a no-op implementation; app builds and runs with Firebase absent
-- [ ] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
-- [ ] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
-- [ ] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"
-- [ ] Profile screen: photo (Google photo or initials, cached), name, email with verified state, optional mobile number marked "Not verified", sign-in method, Edit, Sign out
-- [ ] Owner: Firebase project, Android app `lk.picksmart`, SHA-1/SHA-256 fingerprints, `google-services.json` (git-ignored), Email/Password and Google providers enabled
-- [ ] Firebase Auth: email/password (with verification email and reset) and Google; no phone OTP; Firebase budget alerts at 50/80/100%
-- [ ] Create an account later from the Account tab without losing local data
+- [x] `AccountProvider` interface with Firebase and no-op implementations; app builds and runs with `google-services.json` absent (checked 2026-10-23)
+- [ ] `SyncProvider` interface with a no-op implementation (with sync)
+- [x] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
+- [x] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
+- [x] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"
+- [x] Profile screen: photo (Google photo or initials, cached), name, email with verified state, optional mobile number marked "Not verified", sign-in method, Edit, Sign out
+- [x] Owner: Firebase project, Android app `lk.picksmart`, SHA-1/SHA-256 fingerprints, `google-services.json` (git-ignored), Email/Password and Google providers enabled
+- [x] Firebase Auth: email/password (with verification email and reset) and Google; no phone OTP
+- [ ] Owner: test sign-up, sign-in, Google, reset and Profile on a real phone (Claude can't create accounts or sign in)
+- [ ] Firebase budget alerts at 50/80/100% (when moving to Blaze)
+- [x] Create an account later from the Account tab without losing local data (nothing local is touched; backup comes with sync)
 - [ ] Firestore per-user storage with security rules isolating each rider; offline persistence on
 - [ ] Firebase App Check with the Play Integrity provider on Firestore; a failed check stops only backup, with a plain message, never local use
 - [ ] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud
-- [ ] Sign-out keeps local data; "Delete account and cloud data" action
+- [x] Sign-out keeps local data; "Delete account" action (deletes the sign-in account; cloud data joins it with sync)
 - [ ] Play Data safety form and privacy policy updated; marketing promise reworded
 
 **Later (not this phase):** Facebook login (Meta developer app, Facebook SDK, Meta app review).

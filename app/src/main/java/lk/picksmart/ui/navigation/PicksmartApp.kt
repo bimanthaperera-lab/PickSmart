@@ -30,6 +30,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import lk.picksmart.ui.account.AccountScreen
+import lk.picksmart.ui.account.ForgotPasswordScreen
+import lk.picksmart.ui.account.LoginScreen
+import lk.picksmart.ui.account.ProfileScreen
+import lk.picksmart.ui.account.RegisterScreen
 import lk.picksmart.ui.checkride.CheckRideScreen
 import lk.picksmart.ui.expenses.EditExpenseScreen
 import lk.picksmart.ui.expenses.ExpenseListScreen
@@ -41,7 +46,6 @@ import lk.picksmart.ui.income.EditIncomeScreen
 import lk.picksmart.ui.income.IncomeListScreen
 import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
-import lk.picksmart.ui.settings.SettingsScreen
 import lk.picksmart.ui.trip.EditTripScreen
 import lk.picksmart.ui.vehicle.EditVehicleScreen
 import kotlin.reflect.KClass
@@ -154,14 +158,39 @@ fun PicksmartApp() {
                 )
             }
             composable<ReportsRoute> { ReportsScreen() }
-            composable<SettingsRoute> {
-                SettingsScreen(
+            composable<AccountRoute> {
+                AccountScreen(
+                    onSignUp = { navController.navigate(RegisterRoute) },
+                    onSignIn = { navController.navigate(LoginRoute) },
+                    onOpenProfile = { navController.navigate(ProfileRoute) },
                     onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) },
                     onOpenIncome = openIncome,
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,
                     onOpenFuelPrice = openFuelPrice,
                 )
+            }
+            // Login and Register swap places rather than stack, so back always returns to the tab.
+            composable<LoginRoute> {
+                LoginScreen(
+                    onSkip = { navController.popIfOn(LoginRoute::class) },
+                    onSignedIn = { navController.popIfOn(LoginRoute::class) },
+                    onRegister = { navController.navigate(RegisterRoute) { popUpTo<LoginRoute> { inclusive = true } } },
+                    onForgotPassword = { email -> navController.navigate(ForgotPasswordRoute(email)) },
+                )
+            }
+            composable<RegisterRoute> {
+                RegisterScreen(
+                    onSkip = { navController.popIfOn(RegisterRoute::class) },
+                    onRegistered = { navController.popIfOn(RegisterRoute::class) },
+                    onSignIn = { navController.navigate(LoginRoute) { popUpTo<RegisterRoute> { inclusive = true } } },
+                )
+            }
+            composable<ForgotPasswordRoute> {
+                ForgotPasswordScreen(onBack = { navController.popIfOn(ForgotPasswordRoute::class) })
+            }
+            composable<ProfileRoute> {
+                ProfileScreen(onBack = { navController.popIfOn(ProfileRoute::class) })
             }
             composable<FuelPriceRoute> {
                 FuelPriceScreen(onBack = { navController.popIfOn(FuelPriceRoute::class) }, onAddVehicle = addVehicle)

@@ -42,6 +42,18 @@ class UserPreferencesRepositoryTest {
     }
 
     @Test
+    fun `a mobile number is kept per account and removed when cleared`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.setMobileNumber("a", "077 123 4567")
+        prefs.setMobileNumber("b", "071 000 0000")
+        assertEquals("077 123 4567", prefs.mobileNumber("a").first())
+        assertEquals("071 000 0000", prefs.mobileNumber("b").first())
+        prefs.setMobileNumber("a", " ")
+        assertNull(prefs.mobileNumber("a").first())
+        assertEquals("071 000 0000", prefs.mobileNumber("b").first())
+    }
+
+    @Test
     fun `completing setup saves the default vehicle and the flag together`() = runTest {
         val prefs = UserPreferencesRepository(store())
         prefs.completeOnboarding(defaultVehicleId = 42)

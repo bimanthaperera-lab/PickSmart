@@ -9,7 +9,8 @@ import lk.picksmart.R
 @Serializable data object CheckRideRoute
 @Serializable data object HistoryRoute
 @Serializable data object ReportsRoute
-@Serializable data object SettingsRoute
+/** The Account tab: profile card and settings (CLAUDE.md section 14). Replaced the Settings tab. */
+@Serializable data object AccountRoute
 
 /** Edit a vehicle, or add one when [vehicleId] is [NEW]. Opened from Settings. */
 @Serializable
@@ -61,6 +62,18 @@ data class EditExpenseRoute(val expenseId: Long) {
     }
 }
 
+/** Sign in with email and password or Google. Opened from the Account tab's profile card. */
+@Serializable data object LoginRoute
+
+/** Create an account. Opened from the profile card and from Login. */
+@Serializable data object RegisterRoute
+
+/** Send a password reset link, starting from the email already typed on Login. */
+@Serializable data class ForgotPasswordRoute(val email: String = "")
+
+/** The signed-in rider's details. Opened by tapping the profile card. */
+@Serializable data object ProfileRoute
+
 /** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
 @Serializable data object FuelPriceRoute
 
@@ -74,5 +87,5 @@ enum class TopLevelDestination(
     CHECK_RIDE(CheckRideRoute, R.string.nav_check_ride, R.drawable.ic_nav_check_ride),
     HISTORY(HistoryRoute, R.string.nav_history, R.drawable.ic_nav_history),
     REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_nav_reports),
-    SETTINGS(SettingsRoute, R.string.nav_settings, R.drawable.ic_nav_settings),
+    ACCOUNT(AccountRoute, R.string.nav_account, R.drawable.ic_nav_account),
 }

@@ -37,9 +37,7 @@ import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
 import lk.picksmart.ui.components.RecordsGroup
 import lk.picksmart.ui.components.ListRow
-import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SectionLabel
-import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.fuelprice.fuelPriceSourceText
 import lk.picksmart.ui.navigation.EditVehicleRoute
@@ -47,8 +45,12 @@ import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.vehicleKindSummary
 import lk.picksmart.ui.vehicle.vehicleRatesSummary
 
+/**
+ * The settings list: vehicle, fuel price, records, theme and version. Shown under the profile card
+ * on the Account tab, and works the same whether or not the rider is signed in.
+ */
 @Composable
-fun SettingsScreen(
+fun SettingsSections(
     onEditVehicle: (vehicleId: Long) -> Unit,
     onOpenIncome: () -> Unit,
     onOpenFuelLog: () -> Unit,
@@ -61,29 +63,26 @@ fun SettingsScreen(
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
-    TabScreen {
-        ScreenTitle(stringResource(R.string.settings_title))
-        Column {
-            VehicleSettings(vehicle, fuelPrices, onEditVehicle, onOpenFuelPrice)
-            SectionLabel(stringResource(R.string.settings_section_records))
-            RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
-            SectionLabel(stringResource(R.string.settings_section_app))
-            ListGroup(
-                rows = listOf {
-                    ListRow(
-                        title = stringResource(R.string.settings_theme),
-                        value = themeMode?.let { stringResource(it.label) },
-                        onClick = { showThemeDialog = true },
-                    )
-                },
-            )
-            SectionLabel(stringResource(R.string.settings_section_about))
-            ListGroup(
-                rows = listOf {
-                    ListRow(title = stringResource(R.string.settings_version), value = BuildConfig.VERSION_NAME)
-                },
-            )
-        }
+    Column {
+        VehicleSettings(vehicle, fuelPrices, onEditVehicle, onOpenFuelPrice)
+        SectionLabel(stringResource(R.string.settings_section_records))
+        RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
+        SectionLabel(stringResource(R.string.settings_section_app))
+        ListGroup(
+            rows = listOf {
+                ListRow(
+                    title = stringResource(R.string.settings_theme),
+                    value = themeMode?.let { stringResource(it.label) },
+                    onClick = { showThemeDialog = true },
+                )
+            },
+        )
+        SectionLabel(stringResource(R.string.settings_section_about))
+        ListGroup(
+            rows = listOf {
+                ListRow(title = stringResource(R.string.settings_version), value = BuildConfig.VERSION_NAME)
+            },
+        )
     }
 
     val current = themeMode

@@ -74,6 +74,9 @@ data class EditExpenseRoute(val expenseId: Long) {
 /** The signed-in rider's details. Opened by tapping the profile card. */
 @Serializable data object ProfileRoute
 
+/** Shown instead of the vehicle form when the rider is at the vehicle limit. */
+@Serializable data object VehicleLimitRoute
+
 /** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
 @Serializable data object FuelPriceRoute
 

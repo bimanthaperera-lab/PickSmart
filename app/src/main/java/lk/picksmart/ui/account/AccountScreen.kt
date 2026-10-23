@@ -52,6 +52,7 @@ fun AccountScreen(
     onSignIn: () -> Unit,
     onOpenProfile: () -> Unit,
     onEditVehicle: (vehicleId: Long) -> Unit,
+    onVehicleLimit: () -> Unit,
     onOpenIncome: () -> Unit,
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
@@ -64,6 +65,7 @@ fun AccountScreen(
         ProfileCard(account, onSignUp, onSignIn, onOpenProfile)
         SettingsSections(
             onEditVehicle = onEditVehicle,
+            onVehicleLimit = onVehicleLimit,
             onOpenIncome = onOpenIncome,
             onOpenFuelLog = onOpenFuelLog,
             onOpenExpenses = onOpenExpenses,

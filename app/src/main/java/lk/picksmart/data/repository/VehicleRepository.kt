@@ -15,12 +15,14 @@ import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
+import lk.picksmart.domain.usecase.applyArchive
 import lk.picksmart.domain.usecase.applyAutoUpdateSetting
 import lk.picksmart.domain.usecase.applyEfficiencyUpdate
 import lk.picksmart.domain.usecase.applyFuelPriceEdit
 import lk.picksmart.domain.usecase.applyPublishedPrice
 import lk.picksmart.domain.usecase.applyTargetUpdate
 import lk.picksmart.domain.usecase.applyVehicleEdit
+import lk.picksmart.domain.usecase.archivePlan
 import lk.picksmart.domain.usecase.keptFuelPriceKey
 import lk.picksmart.domain.usecase.newVehicle
 import java.time.Clock
@@ -38,6 +40,24 @@ class VehicleRepository(
     }
 
     fun observe(id: Long): Flow<Vehicle?> = dao.observe(id).map { it?.toDomain() }
+
+    /** Every vehicle that isn't archived, oldest first. */
+    val activeVehicles: Flow<List<Vehicle>> = dao.observeActive().map { rows -> rows.map { it.toDomain() } }
+
+    /** Makes [id] the active vehicle: its rates pre-fill Check a Ride and new records. */
+    suspend fun setActive(id: Long) = preferences.setDefaultVehicleId(id)
+
+    /**
+     * Archives [id] (see [archivePlan]); when it is the active vehicle, [newActiveId] becomes active
+     * first, so there is never a moment without one. Its trips and records stay in History and
+     * Reports. Returns false if the vehicle no longer exists.
+     */
+    suspend fun archive(id: Long, newActiveId: Long? = null): Boolean {
+        val current = dao.get(id)?.toDomain() ?: return false
+        if (newActiveId != null) preferences.setDefaultVehicleId(newActiveId)
+        dao.update(applyArchive(current, clock.millis()).toEntity())
+        return true
+    }
 
     suspend fun get(id: Long): Vehicle? = dao.get(id)?.toDomain()
 

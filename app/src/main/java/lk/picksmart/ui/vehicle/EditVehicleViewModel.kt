@@ -12,6 +12,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,6 +20,8 @@ import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.usecase.ArchivePlan
+import lk.picksmart.domain.usecase.archivePlan
 import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.navigation.EditVehicleRoute
 
@@ -28,12 +31,18 @@ sealed interface EditVehicleUiState {
     /** The vehicle was removed while the screen was open, or the id is stale. */
     data object NotFound : EditVehicleUiState
 
-    /** @property fuelPriceSuggestions The price to fill in for each fuel type (`fuelPriceSuggestions`). */
+    /**
+     * @property fuelPriceSuggestions The price to fill in for each fuel type (`fuelPriceSuggestions`).
+     * @property isActive This is the active vehicle (always false while adding one).
+     * @property archivePlan What archiving needs; null while adding a vehicle.
+     */
     data class Editing(
         val form: VehicleFormState,
         val isNew: Boolean,
         val isSample: Boolean,
         val fuelPriceSuggestions: Map<FuelType, Long> = emptyMap(),
+        val isActive: Boolean = false,
+        val archivePlan: ArchivePlan? = null,
         val errors: Map<VehicleField, FieldError> = emptyMap(),
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
@@ -76,6 +85,37 @@ class EditVehicleViewModel(
                         )
                     }
                     ?: EditVehicleUiState.NotFound
+            }
+            if (vehicleId == EditVehicleRoute.NEW) return@launch
+            // Once loaded, keep "Use this vehicle" and "Archive" in step with the vehicle list.
+            combine(vehicles.activeVehicles, preferences.defaultVehicleId) { list, activeId -> list to activeId }
+                .collect { (list, activeId) ->
+                    editing { it.copy(isActive = activeId == vehicleId, archivePlan = archivePlan(list, vehicleId, activeId)) }
+                }
+        }
+    }
+
+    /** Makes this the active vehicle: Check a Ride and new records use its rates. */
+    fun setActive() {
+        viewModelScope.launch { vehicles.setActive(vehicleId) }
+    }
+
+    /**
+     * Archives this vehicle after the rider confirmed; when it is the active one, [newActiveId]
+     * becomes active. The screen then closes. Its trips and records stay in History and Reports.
+     */
+    fun archive(newActiveId: Long?) {
+        val current = _state.value as? EditVehicleUiState.Editing ?: return
+        if (current.saving || current.archivePlan == null || current.archivePlan == ArchivePlan.LastVehicle) return
+        editing { it.copy(saving = true, saveFailed = false) }
+        viewModelScope.launch {
+            try {
+                vehicles.archive(vehicleId, newActiveId)
+                editing { it.copy(saving = false, saved = true) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                editing { it.copy(saving = false, saveFailed = true) }
             }
         }
     }

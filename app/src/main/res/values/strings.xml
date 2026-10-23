@@ -361,7 +361,6 @@
     <!-- "Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
     <string name="vehicle_rates_summary">%1$s/L · %2$s km/L · %3$s/km reserve</string>
     <!-- A vehicle still using onboarding sample values: "Motorcycle · Sample" -->
-    <string name="vehicle_name_sample">%1$s · Sample</string>
 
     <!-- Sample values -->
     <string name="sample_notice_title">Sample values in use</string>
@@ -411,7 +410,27 @@
     <string name="vehicle_not_found_body">This vehicle is no longer on this phone.</string>
 
     <!-- Settings -->
-    <string name="settings_section_vehicle">Vehicle</string>
+    <string name="settings_section_vehicles">Vehicles</string>
+    <string name="settings_add_another_vehicle">Add a vehicle</string>
+    <string name="settings_add_another_vehicle_body">For example a bike and a three-wheeler. Each keeps its own rates.</string>
+    <!-- %1$s: the active vehicle's name -->
+    <string name="settings_fuel_price_for">Fuel price · %1$s</string>
+    <string name="vehicle_active_tag">Active</string>
+    <string name="vehicle_is_active">Check a Ride and new records use this vehicle.</string>
+    <string name="vehicle_use_this">Use this vehicle</string>
+    <string name="vehicle_archive">Archive vehicle</string>
+    <!-- %1$s: the vehicle's name -->
+    <string name="vehicle_archive_title">Archive %1$s?</string>
+    <string name="vehicle_archive_body">It leaves your vehicle list, so you can add another in its place. Its trips, fuel and expenses stay in History and Reports.</string>
+    <string name="vehicle_archive_choose">Which vehicle do you use now?</string>
+    <string name="vehicle_archive_confirm">Archive</string>
+    <string name="vehicle_limit_header">Add a vehicle</string>
+    <!-- The numbers match SIGNED_OUT_VEHICLE_LIMIT (1) and SIGNED_IN_VEHICLE_LIMIT (3) -->
+    <string name="vehicle_limit_signed_out_title">Sign in to add up to 3 vehicles</string>
+    <string name="vehicle_limit_signed_out_body">Without an account, Picksmart keeps 1 vehicle. A free account lets you add up to 3. The vehicle and records you have now stay as they are.</string>
+    <string name="vehicle_limit_not_now">Not now</string>
+    <string name="vehicle_limit_signed_in_title">More vehicles with Premium</string>
+    <string name="vehicle_limit_signed_in_body">A free account has up to 3 vehicles. Premium, with as many as you need, is coming soon. Until then, you can archive a vehicle you no longer use from its Edit screen.</string>
     <string name="settings_edit_vehicle">Edit vehicle</string>
     <string name="settings_add_vehicle">Add your vehicle</string>
     <string name="settings_add_vehicle_body">Needed to estimate fuel and maintenance for each ride.</string>

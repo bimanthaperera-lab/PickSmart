@@ -42,16 +42,17 @@ import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.fuelprice.fuelPriceSourceText
 import lk.picksmart.ui.navigation.EditVehicleRoute
 import lk.picksmart.ui.theme.Spacing
-import lk.picksmart.ui.vehicle.vehicleKindSummary
-import lk.picksmart.ui.vehicle.vehicleRatesSummary
+import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
- * The settings list: vehicle, fuel price, records, theme and version. Shown under the profile card
- * on the Account tab, and works the same whether or not the rider is signed in.
+ * The settings list: vehicles, fuel price, records, theme and version. Shown under the profile card
+ * on the Account tab, and works the same whether or not the rider is signed in. Adding a vehicle
+ * past the limit opens [onVehicleLimit] instead of the form.
  */
 @Composable
 fun SettingsSections(
     onEditVehicle: (vehicleId: Long) -> Unit,
+    onVehicleLimit: () -> Unit,
     onOpenIncome: () -> Unit,
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
@@ -64,7 +65,7 @@ fun SettingsSections(
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
 
     Column {
-        VehicleSettings(vehicle, fuelPrices, onEditVehicle, onOpenFuelPrice)
+        VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, onOpenFuelPrice)
         SectionLabel(stringResource(R.string.settings_section_records))
         RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
         SectionLabel(stringResource(R.string.settings_section_app))
@@ -103,9 +104,10 @@ private fun VehicleSettings(
     section: VehicleSection,
     fuelPrices: FuelPriceState?,
     onEditVehicle: (Long) -> Unit,
+    onVehicleLimit: () -> Unit,
     onOpenFuelPrice: () -> Unit,
 ) {
-    SectionLabel(stringResource(R.string.settings_section_vehicle))
+    SectionLabel(stringResource(R.string.settings_section_vehicles))
     when (section) {
         VehicleSection.Loading -> LoadingState()
         VehicleSection.None -> ListGroup(
@@ -118,7 +120,7 @@ private fun VehicleSettings(
             },
         )
         is VehicleSection.Loaded -> {
-            val v = section.vehicle
+            val v = section.active
             if (v.isSample) {
                 NoticeCard(
                     title = stringResource(R.string.sample_notice_title),
@@ -128,29 +130,36 @@ private fun VehicleSettings(
                     modifier = Modifier.padding(bottom = Spacing.m),
                 )
             }
+            val vehicleRows: List<@Composable () -> Unit> = section.vehicles.map { vehicle ->
+                { VehicleRow(vehicle, isActive = vehicle.id == v.id, onClick = { onEditVehicle(vehicle.id) }) }
+            }
+            val addRow: @Composable () -> Unit = {
+                ListRow(
+                    title = stringResource(R.string.settings_add_another_vehicle),
+                    subtitle = if (section.vehicles.size > 1) null else stringResource(R.string.settings_add_another_vehicle_body),
+                    onClick = { if (section.canAdd) onEditVehicle(EditVehicleRoute.NEW) else onVehicleLimit() },
+                )
+            }
+            ListGroup(rows = vehicleRows + addRow)
+            // The fuel price follows the active vehicle (CLAUDE.md section 9, "Vehicles").
             ListGroup(
-                rows = listOf(
-                    {
-                        ListRow(
-                            title = if (v.isSample) stringResource(R.string.vehicle_name_sample, v.name) else v.name,
-                            subtitle = vehicleKindSummary(v) + "\n" + vehicleRatesSummary(v),
-                            onClick = { onEditVehicle(v.id) },
-                        )
-                    },
-                    { FuelPriceRow(v, fuelPrices, onOpenFuelPrice) },
-                ),
+                modifier = Modifier.padding(top = Spacing.m),
+                rows = listOf { FuelPriceRow(v, showName = section.vehicles.size > 1, fuelPrices, onOpenFuelPrice) },
             )
         }
     }
 }
 
-/** "Rs. 300.00 · Set by you", or the new CPC price while one is waiting for the rider. */
+/**
+ * "Rs. 300.00 · Set by you", or the new CPC price while one is waiting for the rider. With more
+ * than one vehicle the title names the active one, whose price it is.
+ */
 @Composable
-private fun FuelPriceRow(vehicle: Vehicle, fuelPrices: FuelPriceState?, onOpen: () -> Unit) {
+private fun FuelPriceRow(vehicle: Vehicle, showName: Boolean, fuelPrices: FuelPriceState?, onOpen: () -> Unit) {
     val money = rememberMoneyFormatter()
     val offer = fuelPrices?.action as? PublishedPriceAction.Offer
     ListRow(
-        title = stringResource(R.string.settings_fuel_price),
+        title = if (showName) stringResource(R.string.settings_fuel_price_for, vehicle.name) else stringResource(R.string.settings_fuel_price),
         subtitle = if (offer != null) {
             stringResource(R.string.settings_fuel_price_new, money.format(offer.priceCents))
         } else {

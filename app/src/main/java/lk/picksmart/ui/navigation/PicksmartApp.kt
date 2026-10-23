@@ -48,6 +48,7 @@ import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
 import lk.picksmart.ui.trip.EditTripScreen
 import lk.picksmart.ui.vehicle.EditVehicleScreen
+import lk.picksmart.ui.vehicle.VehicleLimitScreen
 import kotlin.reflect.KClass
 
 /** The app shell: bottom navigation around the five tabs. */
@@ -169,6 +170,7 @@ fun PicksmartApp() {
                     onSignIn = { navController.navigate(LoginRoute) },
                     onOpenProfile = { navController.navigate(ProfileRoute) },
                     onEditVehicle = { id -> navController.navigate(EditVehicleRoute(id)) },
+                    onVehicleLimit = { navController.navigate(VehicleLimitRoute) },
                     onOpenIncome = openIncome,
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,
@@ -193,6 +195,14 @@ fun PicksmartApp() {
             }
             composable<ForgotPasswordRoute> {
                 ForgotPasswordScreen(onBack = { navController.popIfOn(ForgotPasswordRoute::class) })
+            }
+            // Sign up / Sign in replace the limit screen, so back returns to the Account tab.
+            composable<VehicleLimitRoute> {
+                VehicleLimitScreen(
+                    onBack = { navController.popIfOn(VehicleLimitRoute::class) },
+                    onSignUp = { navController.navigate(RegisterRoute) { popUpTo<VehicleLimitRoute> { inclusive = true } } },
+                    onSignIn = { navController.navigate(LoginRoute) { popUpTo<VehicleLimitRoute> { inclusive = true } } },
+                )
             }
             composable<ProfileRoute> {
                 ProfileScreen(onBack = { navController.popIfOn(ProfileRoute::class) })

@@ -1,7 +1,9 @@
 package lk.picksmart.data.account
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import lk.picksmart.domain.model.UserProfile
 
 /**
@@ -38,6 +40,10 @@ interface AccountProvider {
     /** Deletes the sign-in account. The rider's records on the device stay. */
     suspend fun deleteAccount(): AuthResult
 }
+
+/** Whether a rider is signed in; always false in a build without sign-in. Works offline. */
+val AccountProvider.signedIn: Flow<Boolean>
+    get() = if (isAvailable) profile.map { it != null }.distinctUntilChanged() else flowOf(false)
 
 sealed interface AuthResult {
     data object Success : AuthResult

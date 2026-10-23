@@ -53,6 +53,6 @@ class CsvExporter(
     private companion object {
         const val DIRECTORY = "exports"
         const val AUTHORITY_SUFFIX = "exports"
-        const val BOM = "﻿"
+        val BOM = Char(0xFEFF).toString()
     }
 }

@@ -96,8 +96,7 @@
     <string name="check_return">Return</string>
     <string name="check_optional">Optional</string>
     <string name="unit_km">km</string>
-    <!-- "Honda Dio · Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
-    <!-- Rates on the Check a Ride vehicle card. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
+    <!-- Rates beside their icons on the Check a Ride vehicle card and the Vehicles list. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
     <string name="check_rate_reserve">%1$s/km reserve</string>
@@ -360,8 +359,6 @@
     <string name="vehicle_error_invalid">Enter a valid number</string>
     <!-- "Motorcycle · Petrol 92 Octane" -->
     <string name="vehicle_kind_summary">%1$s · %2$s</string>
-    <!-- "Rs. 300.00/L · 40 km/L · Rs. 2.00/km reserve" -->
-    <string name="vehicle_rates_summary">%1$s/L · %2$s km/L · %3$s/km reserve</string>
     <!-- A vehicle still using onboarding sample values: "Motorcycle · Sample" -->
 
     <!-- Sample values -->

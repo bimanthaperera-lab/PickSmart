@@ -38,7 +38,7 @@ import lk.picksmart.ui.theme.Spacing
 
 /**
  * One of the rider's other vehicles in the Vehicles list: its type's icon, the name (with "Sample"
- * while it has sample rates), then its type, fuel and rates. Opens the vehicle.
+ * while it has sample rates), its type and fuel, then its rates with icons. Opens the vehicle.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -64,10 +64,11 @@ fun VehicleRow(vehicle: Vehicle, onClick: () -> Unit) {
                 if (vehicle.isSample) SampleTag()
             }
             Text(
-                vehicleKindSummary(vehicle) + "\n" + vehicleRatesSummary(vehicle),
+                vehicleKindSummary(vehicle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            VehicleRates(vehicle)
         }
         Icon(
             painterResource(R.drawable.ic_chevron_right),

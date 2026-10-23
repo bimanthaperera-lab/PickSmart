@@ -1,6 +1,5 @@
 package lk.picksmart.ui.checkride
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -101,8 +100,8 @@ import lk.picksmart.ui.components.style
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.trip.label
+import lk.picksmart.ui.vehicle.VehicleRates
 import lk.picksmart.ui.vehicle.icon
-import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.formatDecimal
 
 /**
@@ -450,10 +449,8 @@ internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> U
  * price, km per litre and maintenance reserve, each with an icon, plus "Change" (for this check
  * only). At large font sizes "Change" moves under the rates so they keep their width.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
-    val money = rememberMoneyFormatter()
     val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
     val change = @Composable {
         ChangeRatesButton(onChangeRates)
@@ -500,14 +497,7 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
                         )
                         if (vehicle.isSample) SampleLabel()
                     }
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-                    ) {
-                        RateItem(R.drawable.ic_fuel, stringResource(R.string.check_rate_fuel_price, money.format(vehicle.fuelPricePerLitreCents)))
-                        RateItem(R.drawable.ic_gauge, stringResource(R.string.check_rate_efficiency, decimalToInput(vehicle.fuelEfficiencyKmPerLitre)))
-                        RateItem(R.drawable.ic_wrench, stringResource(R.string.check_rate_reserve, money.format(vehicle.maintenanceReservePerKmCents)))
-                    }
+                    VehicleRates(vehicle)
                 }
                 if (!stacked) change()
             }
@@ -515,23 +505,6 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
                 Box(Modifier.align(Alignment.End)) { change() }
             }
         }
-    }
-}
-
-/** One rate on the vehicle card, e.g. a fuel pump and "Rs. 300.00/L". The icon grows with the text. */
-@Composable
-private fun RateItem(@DrawableRes icon: Int, text: String) {
-    val style = MaterialTheme.typography.bodyMedium
-    val iconSize = with(LocalDensity.current) { style.fontSize.toDp() } * 1.1f
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        // Decorative: the text carries the unit.
-        Icon(
-            painterResource(icon),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(iconSize),
-        )
-        Text(text, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

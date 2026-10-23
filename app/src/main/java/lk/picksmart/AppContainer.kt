@@ -14,6 +14,7 @@ import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.FirebaseAccountProvider
 import lk.picksmart.data.account.NoOpAccountProvider
 import lk.picksmart.data.account.ProfilePhotoCache
+import lk.picksmart.data.export.CsvExporter
 import lk.picksmart.data.local.PicksmartDatabase
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.remote.FuelPriceSource
@@ -63,6 +64,10 @@ class AppContainer(context: Context) {
     val completeOnboarding: CompleteOnboarding by lazy { CompleteOnboarding(vehicles, userPreferences) }
 
     val profitCalculator: ProfitCalculator by lazy { ProfitCalculator() }
+
+    val csvExporter: CsvExporter by lazy {
+        CsvExporter(appContext, trips, otherIncome, fuelLogs, expenses, vehicles, profitCalculator)
+    }
 
     /** Work that should finish even if the screen that started it closes, such as a price check. */
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)

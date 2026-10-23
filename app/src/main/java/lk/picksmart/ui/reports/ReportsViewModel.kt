@@ -1,17 +1,24 @@
 package lk.picksmart.ui.reports
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
+import lk.picksmart.data.export.CsvExporter
 import lk.picksmart.data.repository.ExpenseRepository
 import lk.picksmart.data.repository.FuelLogRepository
 import lk.picksmart.data.repository.OtherIncomeRepository
@@ -31,6 +38,9 @@ import lk.picksmart.domain.usecase.summarizePeriod
 import lk.picksmart.util.todayInColombo
 import java.time.Clock
 import java.time.LocalDate
+
+/** The CSV export: idle, writing the files, or failed (shown under the title until the next try). */
+enum class ExportStatus { IDLE, WORKING, FAILED }
 
 /** Which of the two views in CLAUDE.md section 7 the report shows. They are never mixed. */
 enum class ReportView { ESTIMATED, CASH }
@@ -67,6 +77,7 @@ class ReportsViewModel(
     fuelLogs: FuelLogRepository,
     calculator: ProfitCalculator,
     private val clock: Clock,
+    private val exporter: CsvExporter,
 ) : ViewModel() {
 
     /** [start] is the first day of the period shown, or null for the one containing today. */
@@ -104,6 +115,25 @@ class ReportsViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReportsUiState.Loading)
 
+    private val _exportStatus = MutableStateFlow(ExportStatus.IDLE)
+    val exportStatus: StateFlow<ExportStatus> = _exportStatus.asStateFlow()
+
+    private val exports = Channel<List<Uri>>(Channel.CONFLATED)
+
+    /** The files of each finished export, once, for the share sheet. */
+    val exportedFiles: Flow<List<Uri>> = exports.receiveAsFlow()
+
+    /** Writes every record (all dates, not just the period shown) to CSV files to share. */
+    fun export() {
+        if (_exportStatus.value == ExportStatus.WORKING) return
+        _exportStatus.value = ExportStatus.WORKING
+        viewModelScope.launch {
+            val files = runCatching { exporter.export(todayInColombo(clock)) }.getOrNull()
+            if (files != null) exports.send(files)
+            _exportStatus.value = if (files != null) ExportStatus.IDLE else ExportStatus.FAILED
+        }
+    }
+
     /** Switching between day, week and month keeps the date in view: the week of the day shown, and so on. */
     fun setPeriod(period: ReportPeriod) = selection.update {
         it.copy(period = period, start = it.start?.let { start -> startOrCurrent(period.rangeContaining(start)) })
@@ -129,7 +159,7 @@ class ReportsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = (this[APPLICATION_KEY] as PicksmartApplication).container
-                ReportsViewModel(c.trips, c.otherIncome, c.expenses, c.fuelLogs, c.profitCalculator, c.clock)
+                ReportsViewModel(c.trips, c.otherIncome, c.expenses, c.fuelLogs, c.profitCalculator, c.clock, c.csvExporter)
             }
         }
     }

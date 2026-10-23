@@ -1,5 +1,9 @@
 package lk.picksmart.ui.reports
 
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -12,6 +16,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -19,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -57,8 +63,26 @@ fun ReportsScreen(
     viewModel: ReportsViewModel = viewModel(factory = ReportsViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val exportStatus by viewModel.exportStatus.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val chooserTitle = stringResource(R.string.reports_export_chooser)
+    val subject = stringResource(R.string.reports_export_subject)
+    LaunchedEffect(viewModel) {
+        viewModel.exportedFiles.collect { files -> context.shareFiles(files, subject, chooserTitle) }
+    }
     TabScreen {
-        ScreenTitle(stringResource(R.string.reports_title))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ScreenTitle(stringResource(R.string.reports_title), Modifier.weight(1f))
+            // Exports every record, so it is offered whenever there is anything to export.
+            if (state is ReportsUiState.Loaded) {
+                IconButton(onClick = viewModel::export, enabled = exportStatus != ExportStatus.WORKING) {
+                    Icon(painterResource(R.drawable.ic_download), contentDescription = stringResource(R.string.reports_export))
+                }
+            }
+        }
+        if (exportStatus == ExportStatus.FAILED) {
+            InfoNote(stringResource(R.string.reports_export_failed), iconRes = R.drawable.ic_error)
+        }
         when (val s = state) {
             ReportsUiState.Loading -> LoadingState()
             ReportsUiState.Empty -> EmptyState(
@@ -145,6 +169,18 @@ private fun Report(s: ReportsUiState.Loaded, onOpenFuelLog: () -> Unit) {
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+/** Opens the share sheet with the CSV files; the receiving app may only read them. */
+private fun Context.shareFiles(files: List<Uri>, subject: String, chooserTitle: String) {
+    val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+        type = "text/csv"
+        putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(files))
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        clipData = ClipData.newRawUri(subject, files.first()).apply { files.drop(1).forEach { addItem(ClipData.Item(it)) } }
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    startActivity(Intent.createChooser(send, chooserTitle))
 }
 
 private val ReportPeriod.label: Int

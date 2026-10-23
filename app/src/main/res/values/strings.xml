@@ -370,6 +370,10 @@
         <item quantity="one">%1$d checked offer in this period is not counted. Only rides you took count.</item>
         <item quantity="other">%1$d checked offers in this period are not counted. Only rides you took count.</item>
     </plurals>
+    <string name="reports_export">Export CSV</string>
+    <string name="reports_export_subject">Picksmart records</string>
+    <string name="reports_export_chooser">Share your records</string>
+    <string name="reports_export_failed">Couldn\'t create the export files. Please try again.</string>
     <string name="reports_chart_description">%1$s by day from %2$s to %3$s. Highest %4$s on %5$s. Lowest %6$s on %7$s.</string>
 
     <!-- Units, used as field suffixes and in summaries -->

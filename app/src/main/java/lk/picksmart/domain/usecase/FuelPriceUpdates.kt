@@ -28,7 +28,8 @@ data class FuelPriceState(
 )
 
 /**
- * Applies the published fuel price rules of CLAUDE.md section 8a to the default vehicle. The
+ * Applies the published fuel price rules of CLAUDE.md section 8a: the prompt and the Fuel price
+ * screen follow the active (default) vehicle; automatic updates reach every vehicle. The
  * rules themselves are the pure functions in `PublishedFuelPrice.kt`; this class reads and writes
  * the repositories.
  */
@@ -55,17 +56,21 @@ class FuelPriceUpdates(
     }
 
     /**
-     * Applies the published price to the default vehicle if the rider turned auto-update on, and
-     * leaves a one-time notice. Runs after each price check.
+     * Applies the published price to every vehicle the rider turned auto-update on for (CLAUDE.md
+     * section 9, "Vehicles"), and leaves a one-time notice: about the active vehicle when it
+     * changed, otherwise about the first one that did. Runs after each price check.
      */
     suspend fun applyAutomatic() {
-        val vehicle = vehicles.defaultVehicle.first() ?: return
-        val action = publishedPriceAction(vehicle, preferences.fuelPriceList.first(), preferences.keptFuelPrices.first())
-        if (action is PublishedPriceAction.Apply &&
-            vehicles.setPublishedFuelPrice(vehicle.id, action.priceCents, action.effectiveFrom)
-        ) {
-            preferences.setFuelPriceAutoNoticeVehicleId(vehicle.id)
+        val list = preferences.fuelPriceList.first()
+        val kept = preferences.keptFuelPrices.first()
+        val activeId = vehicles.defaultVehicle.first()?.id
+        val updated = mutableListOf<Long>()
+        for (vehicle in vehicles.activeVehicles.first()) {
+            val action = publishedPriceAction(vehicle, list, kept) as? PublishedPriceAction.Apply ?: continue
+            if (vehicles.setPublishedFuelPrice(vehicle.id, action.priceCents, action.effectiveFrom)) updated += vehicle.id
         }
+        val noticeId = if (activeId in updated) activeId else updated.firstOrNull()
+        if (noticeId != null) preferences.setFuelPriceAutoNoticeVehicleId(noticeId)
     }
 
     /** "Update" on the prompt: the vehicle takes the published price. */

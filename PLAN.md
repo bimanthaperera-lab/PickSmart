@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 8c (first part) — sign-in and the Account tab are built, ahead of 6c by the owner's choice; cloud backup (the rest of 8c) comes later. Next is Phase 6c — Multiple vehicles, then Phase 7
-- **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone, and publish the fuel price file (`docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on the Account tab, the active-vehicle switch and the 1 / 3 limit (now that sign-in exists), then Phase 7.
-- **Last updated:** 2026-10-23 (fuel type switch fills the right price everywhere; solid three-wheeler icon; Check a Ride vehicle card and icon set polished; first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
+- **Current phase:** 6c — Multiple vehicles, built (2026-10-23) apart from two items: the onboarding CPC price pre-fill, and the rest of the emulator check. 8c's first part (sign-in, Account tab) is done; cloud backup comes later. Then Phase 7
+- **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone; with an account, add a 2nd and 3rd vehicle; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 6c emulator check (records and History with two vehicles, archive, 200% font), pre-fill the CPC price on onboarding, then Phase 7.
+- **Last updated:** 2026-10-23 (Phase 6c multiple vehicles; fuel type switch fills the right price everywhere; solid three-wheeler icon; Check a Ride vehicle card and icon set polished; first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
 
 ## Open questions for the owner
 
@@ -132,18 +132,20 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 ## Phase 6c — Multiple vehicles
 
-- [ ] Pure rule for the vehicle limit (`canAddVehicle`: active count vs. limit; 1 signed out, 3 signed in, until `PlanProvider` exists), with tests including archived vehicles not counting and a rider over the limit after signing out
-- [ ] Vehicles list in Settings (moves to the Account tab with 8c): each vehicle's type and rates, the active one marked, Add, Edit, Set active, Archive (with confirmation)
-- [ ] Archiving the active vehicle asks which becomes active; the last active vehicle can't be archived
-- [ ] Vehicle chip at the top of Check a Ride to switch the active vehicle in one tap; switching re-fills the rates and keeps the typed fare and distances
-- [ ] Add / Edit trip, fuel log and expense forms pick a vehicle, defaulting to the active one
-- [ ] History rows show the vehicle name when the rider has more than one
-- [ ] Adding past the limit opens the upgrade screen: signed out, "Sign in to add up to 3 vehicles" with Sign up / Sign in; signed in, "More vehicles with Premium" ("coming soon" until Phase 8d)
+- [x] Pure rule for the vehicle limit (`canAddVehicle`: active count vs. limit; 1 signed out, 3 signed in, until `PlanProvider` exists), with tests including archived vehicles not counting and a rider over the limit after signing out
+- [x] Vehicles list on the Account tab: each vehicle's type icon and rates, the active one marked, Add; Set active and Archive (with confirmation) on its Edit screen
+- [x] Archiving the active vehicle asks which becomes active; the last active vehicle can't be archived
+- [x] Vehicle chip at the top of Check a Ride to switch the active vehicle in one tap; switching re-fills the rates and keeps the typed fare and distances
+- [x] Add trip, fuel log and expense forms pick a vehicle, defaulting to the active one; a saved record keeps its vehicle (shown, not editable)
+- [x] History rows show the vehicle name when the rider has more than one
+- [x] Adding past the limit opens the upgrade screen: signed out, "Sign in to add up to 3 vehicles" with Sign up / Sign in; signed in, "More vehicles with Premium" ("coming soon" until Phase 8d)
 - [x] Onboarding: remove "Skip and use sample values"; fields start empty; existing sample vehicles keep their label and notice until saved (no re-onboarding) (done 2026-10-23 with the new welcome and intro)
 - [ ] Onboarding: pre-fill a saved CPC price for the chosen fuel type, with its source shown
-- [ ] Fuel prices: prompt and Fuel price screen follow the active vehicle; automatic updates apply to every vehicle with auto-update on
-- [ ] No schema change expected (vehicles, `vehicleId` and `archived` exist since v1); if one is needed it ships a `Migration` and test
+- [x] Fuel prices: prompt and Fuel price screen follow the active vehicle; automatic updates apply to every vehicle with auto-update on
+- [x] No schema change (vehicles, `vehicleId` and `archived` exist since v1); one new DAO query only
 - [ ] Checked on the emulator: update from the 6b build keeps the vehicle and records (including a sample vehicle, not re-onboarded); fresh install has no sample option; signed out a 2nd vehicle opens the sign-in screen; switch, archive, past trips unchanged; 360 dp at 200% font
+  - Done 2026-10-23: install over the previous build kept the vehicle and settings, no re-onboarding; Vehicles list with the Active tag; signed out, Add a vehicle opened "Sign in to add up to 3 vehicles" and Not now went back; with a 2nd vehicle added to the database for the test, the Check a Ride chips switched vehicle in one tap, kept the fare and distances and recalculated with the new rates (Rs. 346.50). The welcome screen has no sample option (checked earlier the same day).
+  - Still to check: saving records on each vehicle, History names, the record forms' vehicle chips, archiving, 200% font. Stopped because the owner was using the emulator at the same time.
 
 **Done when:** a new rider starts with their own numbers (no samples), a signed-out rider has 1 vehicle and a signed-in rider up to 3, a rider can switch the active one in one tap from Check a Ride, and every saved trip keeps the vehicle and rates it was saved with.
 

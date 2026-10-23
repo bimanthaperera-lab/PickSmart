@@ -109,3 +109,8 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 - **Record icons.** Rows in Fuel log, Expenses and Other income get a 44 dp icon tile, as in the mockups: a yellow pump for fuel, neutral tiles for expense categories (wrench, P sign, phone, toll gate, receipt) and green tiles for income types (gift, thumbs-up, star, plus). The icons are new hand-drawn 24-unit stroke vectors like the existing ones; still no icon library. Icons are decorative; each row's title names it. *Default.*
 - **Fuel log layout** follows its mockup: "Spent this month" and "Actual efficiency" side by side ("Not yet" before two full tanks), a short line under them saying what the reading is based on, and rows titled "6.50 L · Rs. 414.00/L" with a green "Full tank" tag ("partial" otherwise). The suggestion became an amber notice, "Your fill-ups show 36.3 km/L", with "Keep 40" and "Update", as in the Settings mockup. Behaviour is unchanged. *Default.*
 
+
+## 2026-10-23 — App font
+
+- **Google Sans Flex.** The owner asked for Uber's font; Uber Move is licensed only to Uber, so the owner chose Google Sans instead. The original Google Sans is also Google-only, so the app uses Google Sans Flex, its open version (SIL OFL 1.1, no Reserved Font Name). The Google trademarks are never used in Picksmart's name or marketing. *Owner.*
+- **Bundled, slimmed.** The 3.9 MB variable font is cut into four static Latin weights (Regular, Medium, SemiBold, Bold; about 88 KB each) by `design/fonts/make_fonts.py`, so it works offline and keeps the app small. The licence ships in `assets/licenses/`. The font has no "→" glyph and no Sinhala or Tamil, so those fall back to the system font. Details in `design/fonts/README.md`. *Default.*

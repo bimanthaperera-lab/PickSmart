@@ -6,6 +6,24 @@ plugins {
     alias(libs.plugins.room)
 }
 
+// The account is optional (CLAUDE.md N4, section 14). With app/google-services.json present the
+// Firebase plugin is applied and sign-in works; without it the app builds and runs with accounts off.
+val firebaseConfig = file("google-services.json")
+val firebaseEnabled = firebaseConfig.exists()
+if (firebaseEnabled) apply(plugin = libs.plugins.google.services.get().pluginId)
+
+/** The web OAuth client (type 3) from google-services.json, which Google sign-in asks a token for. */
+fun googleWebClientId(): String {
+    if (!firebaseEnabled) return ""
+    @Suppress("UNCHECKED_CAST")
+    val clients = (groovy.json.JsonSlurper().parse(firebaseConfig) as Map<String, Any?>)["client"] as List<Map<String, Any?>>
+    @Suppress("UNCHECKED_CAST")
+    return clients
+        .flatMap { (it["oauth_client"] as? List<Map<String, Any?>>).orEmpty() }
+        .firstOrNull { it["client_type"] == 3 }
+        ?.get("client_id") as? String ?: ""
+}
+
 android {
     namespace = "lk.picksmart"
     compileSdk = 37
@@ -23,6 +41,9 @@ android {
         // set `picksmart.fuelPriceUrl` in gradle.properties (or with -P) to turn price checks on.
         val fuelPriceUrl = providers.gradleProperty("picksmart.fuelPriceUrl").orElse("").get()
         buildConfigField("String", "FUEL_PRICE_URL", "\"$fuelPriceUrl\"")
+
+        buildConfigField("boolean", "FIREBASE_ENABLED", "$firebaseEnabled")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${googleWebClientId()}\"")
     }
 
     buildTypes {
@@ -62,6 +83,12 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

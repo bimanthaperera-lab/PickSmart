@@ -4,10 +4,16 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import lk.picksmart.data.account.AccountProvider
+import lk.picksmart.data.account.FirebaseAccountProvider
+import lk.picksmart.data.account.NoOpAccountProvider
+import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.local.PicksmartDatabase
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.remote.FuelPriceSource
@@ -67,6 +73,20 @@ class AppContainer(context: Context) {
     }
 
     val fuelPriceUpdates: FuelPriceUpdates by lazy { FuelPriceUpdates(vehicles, userPreferences, clock) }
+
+    /**
+     * The optional account (CLAUDE.md section 14). Firebase only when the build has
+     * `google-services.json` and it started; otherwise the app runs signed out with no sign-in.
+     */
+    val account: AccountProvider by lazy {
+        if (BuildConfig.FIREBASE_ENABLED && FirebaseApp.getApps(appContext).isNotEmpty()) {
+            FirebaseAccountProvider(FirebaseAuth.getInstance(), appContext)
+        } else {
+            NoOpAccountProvider
+        }
+    }
+
+    val profilePhotos: ProfilePhotoCache by lazy { ProfilePhotoCache(appContext.filesDir.resolve("profile_photo")) }
 
     /**
      * Checks the published fuel price in the background (at most every 12 hours), then applies it

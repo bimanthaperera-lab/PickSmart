@@ -65,6 +65,21 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         .map { it[Keys.DISMISSED_EFFICIENCY_LOG_ID] }
         .distinctUntilChanged()
 
+    /**
+     * The mobile number the rider typed for this account (CLAUDE.md section 14), or null. It is
+     * optional and not verified, and is never used to send SMS.
+     */
+    fun mobileNumber(uid: String): Flow<String?> = dataStore.data
+        .map { it[Keys.mobileNumber(uid)] }
+        .distinctUntilChanged()
+
+    /** Saves the number, or removes it when [number] is null or blank. */
+    suspend fun setMobileNumber(uid: String, number: String?) {
+        dataStore.edit {
+            if (number.isNullOrBlank()) it.remove(Keys.mobileNumber(uid)) else it[Keys.mobileNumber(uid)] = number
+        }
+    }
+
     suspend fun setDismissedEfficiencyLogId(id: Long) {
         dataStore.edit { it[Keys.DISMISSED_EFFICIENCY_LOG_ID] = id }
     }
@@ -180,6 +195,9 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val FUEL_PRICE_LAST_CHECK_AT = longPreferencesKey("fuel_price_last_check_at")
         val FUEL_PRICE_KEPT = stringSetPreferencesKey("fuel_price_kept")
         val FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID = longPreferencesKey("fuel_price_auto_notice_vehicle_id")
+
+        // Account (CLAUDE.md section 14), one key per signed-in user.
+        fun mobileNumber(uid: String) = stringPreferencesKey("account_mobile_$uid")
     }
 }
 

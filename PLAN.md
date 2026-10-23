@@ -20,7 +20,6 @@ Claude uses the default shown until the owner answers, and moves answered items 
 | When to add Sinhala and Tamil translations? | After the MVP; strings are ready from day one |
 | Include ads in the first release? | Yes, final phase only, behind `AdsProvider` |
 | Default theme | Follow system setting |
-| Which sign-in methods to ship | Email/password, Google, and phone OTP, with account optional |
 | Monetization model | Feature gating (never ride caps); Free / Signed in / Premium |
 | Premium price | Rs. 490/month, Rs. 4,900/year (placeholder, confirm) |
 | Where to host the fuel price file | A JSON file in a public GitHub repository |
@@ -173,21 +172,25 @@ Claude uses the default shown until the owner answers, and moves answered items 
 ## Phase 8c — Optional account and cloud backup
 
 - [ ] `AccountProvider` / `SyncProvider` interfaces with a no-op implementation; app builds and runs with Firebase absent
-- [ ] Auth screens: Register, Login, phone OTP verify, each with a prominent "Skip — use without an account"
-- [ ] Firebase Auth: email/password, Google, phone OTP (billing + SHA-256 set up)
-- [ ] SMS cost controls: region policy locked to +94, verification rate-limiting, email/Google shown before phone; Firebase budget alerts at 50/80/100%
-- [ ] Settings → Account & cloud backup entry; create an account later without losing local data
+- [ ] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
+- [ ] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"
+- [ ] Profile screen: photo (Google photo or initials, cached), name, email with verified state, optional mobile number marked "Not verified", sign-in method, Edit, Sign out
+- [ ] Owner: Firebase project, Android app `lk.picksmart`, SHA-1/SHA-256 fingerprints, `google-services.json` (git-ignored), Email/Password and Google providers enabled
+- [ ] Firebase Auth: email/password (with verification email and reset) and Google; no phone OTP; Firebase budget alerts at 50/80/100%
+- [ ] Create an account later from the Account tab without losing local data
 - [ ] Firestore per-user storage with security rules isolating each rider; offline persistence on
 - [ ] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud
 - [ ] Sign-out keeps local data; "Delete account and cloud data" action
 - [ ] Play Data safety form and privacy policy updated; marketing promise reworded
 
-**Done when:** a rider can use the app fully without an account, optionally sign in to back up, reinstall on another phone and restore their history, and sign out without losing anything on-device.
+**Later (not this phase):** Facebook login (Meta developer app, Facebook SDK, Meta app review).
+
+**Done when:** a rider can use the app fully without an account, optionally sign in with email or Google to back up, reinstall on another phone and restore their history, and sign out without losing anything on-device.
 
 ## Phase 8d — Plans, profile and Premium
 
 - [ ] `PlanProvider` with feature flags for the three tiers; features check flags, not tier names directly
-- [ ] Profile screen: tier badge, rides-per-day chart, lifetime stats, account and sign-out
+- [ ] Profile screen additions (the screen itself comes in 8c): tier badge, rides-per-day chart, lifetime stats
 - [ ] Premium screen listing the three tiers; Google Play Billing integration
 - [ ] Feature gates wired: reports range, export, multiple vehicles, OCR, widgets, tax summaries, ads
 - [ ] Entitlement cached locally so Premium works offline once verified; re-check when online

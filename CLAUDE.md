@@ -68,7 +68,7 @@ Act as a careful senior Android engineer with good product judgement.
 | Background work | WorkManager for the daily summary and the fuel price check only. No continuous foreground service in the MVP. |
 | Notifications | Local only, through `NotificationManager`, one channel per type. No push service (no Firebase). |
 | Network | A read-only HTTPS GET for the fuel price file (section 8a), and the optional account/sync in section 14. The price file URL is a `BuildConfig` field. |
-| Accounts & sync (optional) | Firebase Authentication (email/password, Google, phone OTP) and Cloud Firestore for per-user backup, behind an interface so the app builds and runs with them absent. See section 14. |
+| Accounts & sync (optional) | Firebase Authentication (email/password and Google; Facebook later; no phone OTP) and Cloud Firestore for per-user backup, behind an interface so the app builds and runs with them absent. See section 14. |
 | Ads | Google Mobile Ads SDK (AdMob), only in the final phase, behind an interface |
 | Tests | JUnit unit tests for domain logic; Room DAO and migration tests |
 | minSdk | 26 (native `java.time`, wide coverage of Sri Lankan devices) |
@@ -353,7 +353,7 @@ Parsing a valid file, each rejection rule, the 12-hour throttle, a manual price 
 
 ### Navigation
 
-Bottom navigation: Home, Check Ride, History, Reports, Settings. Fuel log and expenses are reached from Home and Settings. Android back navigation must work everywhere.
+Bottom navigation: Home, Check Ride, History, Reports, Account. The Account tab replaces the old Settings tab: a profile card at the top, and every setting below it, unchanged (section 14 describes the card and the Profile screen). Fuel log and expenses are reached from Home and the Account tab. Android back navigation must work everywhere.
 
 ### Onboarding
 
@@ -416,7 +416,7 @@ The approved path to the same value is section 9a (shift reminder, tile, bubble)
 
 - See N4, N5 and N6.
 - Request only the permissions an implemented feature needs. No precise location in the MVP.
-- `INTERNET` is used for the fuel price download (section 8a), the optional account and sync (section 14), and, in the final phase, ads. The Data safety form declares the price download sends no personal data, and that the optional account stores an identifier and backed-up app data for backup only.
+- `INTERNET` is used for the fuel price download (section 8a), the optional account and sync (section 14), and, in the final phase, ads. The Data safety form declares the price download sends no personal data, and that the optional account stores an identifier, email, name, optional mobile number and backed-up app data for backup only.
 - `POST_NOTIFICATIONS` (Android 13+) is requested in context, not on first launch. `SYSTEM_ALERT_WINDOW` (draw over other apps) is requested only if the rider turns on the floating bubble, and the app works fully without it.
 - Screenshot import must be started by the user through the Photo Picker or the share sheet.
 - Never claim an official Uber or PickMe integration, and never promise the app can stop a driver account from being blocked.
@@ -456,11 +456,12 @@ app/src/main/java/<package>/
   ui/
     navigation/  theme/  components/
     onboarding/  home/  checkride/  history/
-    fuel/  fuelprice/  expenses/  income/  reports/  settings/  ocr/
+    fuel/  fuelprice/  expenses/  income/  reports/  ocr/
+    settings/        (the settings list shown under the profile card on the Account tab)
     notifications/   (channels, shift reminder, scheduled WorkManager jobs)
     glance/          (Quick Settings tile service, floating bubble service)
-    account/         (auth screens, AccountProvider, SyncProvider; Firebase impls, no-op impl)
-    profile/         (profile screen: tier, daily ride counts, lifetime stats)
+    account/         (Account tab, Login, Register, Profile screen, AccountProvider, SyncProvider; Firebase impls, no-op impl)
+    profile/         (Phase 8d additions to the Profile screen: tier, daily ride counts, lifetime stats)
     plan/            (PlanProvider, feature flags, Play Billing, Premium screen)
   util/
 ```
@@ -500,21 +501,45 @@ An account exists for one reason: so a rider who loses or changes their phone do
 
 ### Principles
 
-- **Optional and late.** The app works fully with no account. Register, Login and the welcome screen all offer "Skip — use without an account" with equal weight, and an account can be created later from Settings → Account & cloud backup. Skipping is not a dead end.
+- **Optional and late.** The app works fully with no account. Register, Login and the welcome screen all offer "Skip — use without an account" with equal weight, and an account can be created later from the profile card on the Account tab. Skipping is not a dead end.
 - **Local is the source of truth.** The device database stays authoritative. Sync copies local data up and merges remote data down; it never replaces local data with an empty cloud state. A signed-in rider still works offline, and changes sync when back online.
-- **Nothing extra is collected.** Only what the rider already entered (trips, fuel, expenses, income, vehicles, settings) plus the auth identifier. No location, contacts or device fingerprinting.
+- **Nothing extra is collected.** Only what the rider already entered (trips, fuel, expenses, income, vehicles, settings), the auth identifier, the email, name and photo link from the sign-in provider, and the optional mobile number the rider types. No location, contacts or device fingerprinting.
 - **Sign-out keeps local data.** Signing out never wipes the on-device records.
 
 ### Mechanics
 
-- Firebase Authentication: email/password, Google, and phone OTP (phone suits riders without email; it needs billing and SHA-256 fingerprints set up, and costs per SMS). Verification needs internet and says so.
+- Firebase Authentication with two sign-in methods: email/password (with email verification and "Forgot password?" reset by email) and Google (needs the app's SHA-1 and SHA-256 fingerprints in the Firebase project). Sign-in and verification need internet and say so.
+- Facebook login is planned for a later phase; it needs a Meta developer app, the Facebook SDK and Meta's app review for the email permission. Add it behind the same `AccountProvider`.
+- Phone OTP is not used (owner decision, 2026-10-23). If it is ever added, the SMS cost rules in section 16 apply first.
 - Per-user data lives under the user's own id in Firestore, isolated by security rules so one rider can never read another's data. Firestore offline persistence is on, so a signed-in rider still reads and writes offline.
 - Merge rule: last-write-wins per record using `updatedAt`, with deletes as tombstones so a delete on one device is not undone by a stale copy on another.
 - All of this sits behind an `AccountProvider` / `SyncProvider` interface with a no-op implementation, so the app compiles and runs with Firebase disabled or unreachable.
 
+### Account tab
+
+The fifth bottom-bar tab is **Account** (it replaces Settings).
+
+- **Profile card** at the top. Signed out: a plain avatar, "Not signed in" and "Sign in to back up your data"; tapping it opens Login. Signed in: the profile photo (or initials), name and email; tapping it opens the Profile screen.
+- **Settings below the card**: every row the old Settings tab had (vehicle, fuel price, records, theme and so on), unchanged, and fully working whether or not the rider is signed in.
+- The card reads the cached profile, so the tab opens instantly and offline (N9).
+
+### Login and Register
+
+- **Login:** email, password, "Forgot password?", "Continue with Google", a link to Register, and "Skip — use without an account".
+- **Register:** name, email, password, confirm password, optional mobile number, "Continue with Google", a link to Login, and the same Skip. Creating an account sends a verification email.
+- Both are reached from the profile card, and from a welcome screen if one is added; Skip returns the rider to where they were. Errors (wrong password, email in use, no internet) show as plain text under the form, never as a crash or a silent failure.
+- Signing in for the first time on a phone that already has records keeps them and backs them up (local is the source of truth).
+
+### Profile screen
+
+- Shows the profile photo, name, email (with "Verified" or "Not verified" and a resend link), mobile number, and the sign-in method.
+- **Photo:** the Google account photo for Google sign-in; initials for email/password accounts. No photo upload for now (it would need Cloud Storage and the Blaze plan). The photo is cached on the device; if it can't load, initials show.
+- **Mobile number:** optional, typed by the rider on Register or Profile, labelled "Not verified" because there is no OTP. It is stored on the device and in the rider's own Firestore profile, and is never used to send SMS or shared.
+- Actions: Edit (name, mobile number), Sign out (keeps local data), and "Delete account and cloud data" (with confirmation, N7).
+
 ### Compliance
 
-- The Play Data safety form must now declare the account identifier and the backed-up app data, how they are used (backup/sync only), and that they are encrypted in transit. Update it in the same release.
+- The Play Data safety form must now declare the account identifier, email, name, optional mobile number and the backed-up app data, how they are used (backup/sync only), and that they are encrypted in transit. Update it in the same release.
 - The privacy policy explains the optional account, what is stored, and how to delete it. Provide an in-app "Delete account and cloud data" action that removes the Firestore data and the auth user; local data deletion stays the rider's choice.
 - The marketing promise changes from "your data stays on your phone" to "works offline; your data stays on your phone unless you choose to back it up". Update the store listing and any posts.
 
@@ -565,12 +590,14 @@ Assumptions: ~30 writes + 30 reads per signed-in active user per day, ~0.5 MB st
 
 ### Phone OTP is the bill-shock risk
 
+Phone OTP is not shipped (section 14). These rules apply only if it is added later.
+
 - SMS is billed per message (first 10/day free; by country roughly US $0.01, UK $0.04, India $0.07; Sri Lanka not confirmed, assume $0.05–0.08). It is a near one-time cost per phone signup, not recurring.
 - SMS pumping / toll fraud (an attacker triggering mass OTPs) is the real danger. Mandatory mitigations: restrict SMS region policy to +94 only, rate-limit verification requests per device and number, and present email/Google sign-in before phone so SMS is used only when needed.
 
 ### Plan upgrade (Spark → Blaze)
 
-- Start on Spark (free, no card). Move to Blaze (pay-as-you-go) when phone auth, Cloud Storage, or usage above the Firestore daily quota is needed — phone auth and backup push this early.
+- Start on Spark (free, no card). Move to Blaze (pay-as-you-go) when Cloud Storage, phone auth (not planned), or usage above the Firestore daily quota is needed. Email/password and Google sign-in work on Spark.
 - Blaze still includes all free quotas; it bills only above them, so enabling Blaze is not itself a charge.
 - Set budget alerts at 50% / 80% / 100%. Alerts notify only; they do not stop reads or downloads, so also cap runaway paths in code (rate limits, pagination, no per-screen Firestore reads).
 

@@ -74,7 +74,12 @@ fun EditVehicleScreen(
                         body = stringResource(R.string.vehicle_edit_sample_body),
                     )
                 }
-                VehicleFormFields(state = s.form, errors = s.errors, onChange = viewModel::updateForm)
+                VehicleFormFields(
+                    state = s.form,
+                    errors = s.errors,
+                    onChange = viewModel::updateForm,
+                    fuelPriceSuggestions = s.fuelPriceSuggestions,
+                )
                 if (s.saveFailed) ErrorState(stringResource(R.string.vehicle_save_failed))
                 val defaultName = stringResource(s.form.type.label)
                 PrimaryButton(

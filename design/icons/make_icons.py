@@ -47,15 +47,24 @@ write("ic_vehicle_motorcycle", OUTLINE + " A scooter, the most common bike here.
       ("M3.5,14.5C3.5,12.6 5,11 7,11H11.5", STROKE),
       ("M8.5,17H12.5C14.5,17 15.5,15.5 15.5,13.5V9.5L14.5,5H16.5", STROKE),
       ("M15.5,11.5L18,14.5", STROKE))
-write("ic_vehicle_three_wheeler", OUTLINE + " A three-wheeler (tuk-tuk) from the front: dome roof, windscreen, one front wheel.",
-      # Body under the rounded canopy.
-      ("M5,17V9.5C5,6 8.1,3.5 12,3.5C15.9,3.5 19,6 19,9.5V17H5Z", STROKE),
-      # Windscreen.
-      ("M8,11V9.8C8,8.3 9.8,7 12,7C14.2,7 16,8.3 16,9.8V11Z", STROKE),
-      # Headlight, rear wheels at the sides and the front wheel below.
-      ("M12,14h0.01", STROKE),
-      ("M3,14.5V18.5M21,14.5V18.5", STROKE),
-      ("M12,17V20.5", STROKE))
+write("ic_vehicle_three_wheeler",
+      "Solid icon on a 24 grid: a three-wheeler (tuk-tuk) from the side, facing left, traced from "
+      "the owner's reference: roof over the front, narrow front cowl, open door with the seat, "
+      "rear window. Tinted by Compose.",
+      # Body: roof, rounded back, rear wheel arch, floor, front wheel arch, front cowl up to the
+      # windscreen, then the roof's front edge back up.
+      ("M3,4H18.5C20,4 21,5.2 21,6.8V16.6C21,17.1 20.6,17.5 20.1,17.5"
+       "A2.6,2.6 0,0 0,14.9,17.5H6.7A2.3,2.3 0,0 0,2.1,17.5"
+       "L2.3,15.5C2.4,14.4 2.9,13.4 3.6,12.6L5.2,10.2L2.6,4.6C2.5,4.2 2.7,4 3,4Z"
+       # Windscreen, door opening, rear window and the stripe on the back, cut out.
+       "M4.9,6.1H8.6V9.6H6.5Z"
+       "M10,6.1H15V15.6H10Z"
+       + rrect(16.4, 6.1, 19.3, 9.8, 0.5) +
+       "M16.4,12.3H19.3V13H16.4Z", FILL),
+      # The seat back and cushion, seen through the door.
+      ("M11.2,9.6H12.6V13.9H15V15.6H11.2Z", FILL),
+      # Rear and front wheels, each with its hub cut out.
+      (circle(17.5, 18.9, 1.9) + circle(17.5, 18.9, 0.7) + circle(4.4, 18.9, 1.7) + circle(4.4, 18.9, 0.6), FILL))
 write("ic_vehicle_car", OUTLINE + " A car, from the side.",
       (circle(7, 16.5, 2), STROKE),
       (circle(17, 16.5, 2), STROKE),

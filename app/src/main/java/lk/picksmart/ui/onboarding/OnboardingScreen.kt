@@ -53,6 +53,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.ui.account.ForgotPasswordScreen
 import lk.picksmart.ui.account.LoginScreen
 import lk.picksmart.ui.account.RegisterScreen
@@ -142,6 +143,7 @@ private fun AuthPane(content: @Composable () -> Unit) {
 private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val canSignIn by viewModel.canSignIn.collectAsStateWithLifecycle()
+    val fuelPriceSuggestions by viewModel.fuelPriceSuggestions.collectAsStateWithLifecycle()
     // Back steps through setup; on the welcome screen it leaves the app as usual.
     BackHandler(enabled = state.step != OnboardingStep.WELCOME) { viewModel.back() }
 
@@ -156,6 +158,7 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
             val defaultName = stringResource(state.form.type.label)
             VehicleStep(
                 state = state,
+                fuelPriceSuggestions = fuelPriceSuggestions,
                 onChange = viewModel::updateForm,
                 onContinue = { viewModel.continueWithForm(defaultName) },
             )
@@ -412,6 +415,7 @@ private fun StepHeader(stepNumber: Int, totalSteps: Int) {
 @Composable
 private fun VehicleStep(
     state: OnboardingUiState,
+    fuelPriceSuggestions: Map<FuelType, Long>,
     onChange: (VehicleFormState) -> Unit,
     onContinue: () -> Unit,
 ) {
@@ -422,7 +426,12 @@ private fun VehicleStep(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        VehicleFormFields(state = state.form, errors = state.errors, onChange = onChange)
+        VehicleFormFields(
+            state = state.form,
+            errors = state.errors,
+            onChange = onChange,
+            fuelPriceSuggestions = fuelPriceSuggestions,
+        )
         PrimaryButton(stringResource(R.string.action_continue), onContinue, Modifier.fillMaxWidth())
     }
 }

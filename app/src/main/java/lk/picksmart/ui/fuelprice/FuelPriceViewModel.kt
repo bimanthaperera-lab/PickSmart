@@ -18,9 +18,11 @@ import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.repository.VehicleRepository
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.FuelPriceUpdates
 import lk.picksmart.domain.usecase.PublishedPriceAction
+import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.components.FieldError
 
 sealed interface FuelPriceUiState {
@@ -32,12 +34,14 @@ sealed interface FuelPriceUiState {
      * @property configured This build has a price file to check; without one, published prices
      *   and the auto-update switch are not offered.
      * @property lastCheckAtMillis When the price file last answered, or null if never.
+     * @property suggestions The price to fill in for each fuel type (`fuelPriceSuggestions`).
      */
     data class Ready(
         val prices: FuelPriceState,
         val form: FuelPriceFormState,
         val configured: Boolean,
         val lastCheckAtMillis: Long?,
+        val suggestions: Map<FuelType, Long>,
         val priceError: FieldError? = null,
         val busy: Boolean = false,
         val failed: Boolean = false,
@@ -64,12 +68,22 @@ class FuelPriceViewModel(
         updates.state,
         form,
         preferences.fuelPriceLastCheckAt,
+        preferences.ownFuelPrices,
         status,
-    ) { prices, form, lastCheck, status ->
+    ) { prices, form, lastCheck, ownPrices, status ->
         when {
             prices.vehicle == null -> FuelPriceUiState.NoVehicle
             form == null -> FuelPriceUiState.Loading
-            else -> FuelPriceUiState.Ready(prices, form, configured, lastCheck, status.priceError, status.busy, status.failed)
+            else -> FuelPriceUiState.Ready(
+                prices = prices,
+                form = form,
+                configured = configured,
+                lastCheckAtMillis = lastCheck,
+                suggestions = fuelPriceSuggestions(prices.vehicle, ownPrices, prices.list),
+                priceError = status.priceError,
+                busy = status.busy,
+                failed = status.failed,
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), FuelPriceUiState.Loading)
 

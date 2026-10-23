@@ -4,6 +4,7 @@ import lk.picksmart.domain.model.FuelPriceList
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.ui.components.FieldError
+import lk.picksmart.ui.vehicle.priceAfterFuelTypeSwitch
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.parseRupeesToCents
 
@@ -32,14 +33,12 @@ data class FuelPriceFormState(
     fun priceCents(): Long? = parseRupeesToCents(price)
 
     /**
-     * Picks a fuel type and fills in its price: the vehicle's own price for its own type,
-     * otherwise that type's [published] price. With no published price for it, the typed price
-     * stays for the rider to change.
+     * Picks a fuel type and fills in its price from [suggestions] (`fuelPriceSuggestions`: the
+     * vehicle's own price for its own type, then the rider's last price for that type, then the
+     * published one). With none, the other type's price is cleared for the rider to type.
      */
-    fun withFuelType(type: FuelType, published: FuelPriceList?): FuelPriceFormState {
-        val cents = if (type == baseType) basePriceCents else published?.priceFor(type)
-        return copy(fuelType = type, price = cents?.let(::centsToInput) ?: price)
-    }
+    fun withFuelType(type: FuelType, suggestions: Map<FuelType, Long>): FuelPriceFormState =
+        copy(fuelType = type, price = priceAfterFuelTypeSwitch(price, fuelType, type, suggestions))
 
     /** True when the typed price is exactly the [published] price for the chosen fuel type. */
     fun isPublishedPrice(published: FuelPriceList?): Boolean =

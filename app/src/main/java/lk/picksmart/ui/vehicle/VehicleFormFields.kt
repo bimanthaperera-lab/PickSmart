@@ -14,13 +14,17 @@ import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.theme.Spacing
 
-/** The vehicle fields shared by onboarding and Edit vehicle. */
+/**
+ * The vehicle fields shared by onboarding and Edit vehicle. Picking a fuel type fills in its price
+ * from [fuelPriceSuggestions] (`fuelPriceSuggestions`).
+ */
 @Composable
 fun VehicleFormFields(
     state: VehicleFormState,
     errors: Map<VehicleField, FieldError>,
     onChange: (VehicleFormState) -> Unit,
     modifier: Modifier = Modifier,
+    fuelPriceSuggestions: Map<FuelType, Long> = emptyMap(),
 ) {
     val currency = stringResource(R.string.currency_prefix)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
@@ -42,7 +46,7 @@ fun VehicleFormFields(
             options = FuelType.entries,
             selected = state.fuelType,
             optionLabel = { stringResource(it.label) },
-            onSelect = { onChange(state.copy(fuelType = it)) },
+            onSelect = { onChange(state.withFuelType(it, fuelPriceSuggestions)) },
         )
         NumberField(
             value = state.fuelPrice,

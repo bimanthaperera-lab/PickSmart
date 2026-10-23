@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.repository.VehicleRepository
+import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.navigation.EditVehicleRoute
 
 sealed interface EditVehicleUiState {
@@ -26,10 +28,12 @@ sealed interface EditVehicleUiState {
     /** The vehicle was removed while the screen was open, or the id is stale. */
     data object NotFound : EditVehicleUiState
 
+    /** @property fuelPriceSuggestions The price to fill in for each fuel type (`fuelPriceSuggestions`). */
     data class Editing(
         val form: VehicleFormState,
         val isNew: Boolean,
         val isSample: Boolean,
+        val fuelPriceSuggestions: Map<FuelType, Long> = emptyMap(),
         val errors: Map<VehicleField, FieldError> = emptyMap(),
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
@@ -51,11 +55,26 @@ class EditVehicleViewModel(
 
     init {
         viewModelScope.launch {
+            val ownPrices = preferences.ownFuelPrices.first()
+            val published = preferences.fuelPriceList.first()
             _state.value = if (vehicleId == EditVehicleRoute.NEW) {
-                EditVehicleUiState.Editing(VehicleFormState(), isNew = true, isSample = false)
+                EditVehicleUiState.Editing(
+                    VehicleFormState(),
+                    isNew = true,
+                    isSample = false,
+                    fuelPriceSuggestions = fuelPriceSuggestions(null, ownPrices, published),
+                )
             } else {
                 vehicles.get(vehicleId)
-                    ?.let { EditVehicleUiState.Editing(it.toFormState(), isNew = false, isSample = it.isSample) }
+                    ?.let {
+                        EditVehicleUiState.Editing(
+                            it.toFormState(),
+                            isNew = false,
+                            isSample = it.isSample,
+                            // A sample price is only an example, so it isn't offered again.
+                            fuelPriceSuggestions = fuelPriceSuggestions(it.takeUnless { v -> v.isSample }, ownPrices, published),
+                        )
+                    }
                     ?: EditVehicleUiState.NotFound
             }
         }

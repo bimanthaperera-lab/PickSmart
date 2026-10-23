@@ -453,6 +453,8 @@
     <string name="fuel_price_field">Price you pay</string>
     <string name="fuel_price_error_required">Enter the price you pay</string>
     <string name="fuel_price_source_manual">Set by you</string>
+    <!-- Under the price after switching to a fuel type with no price known yet. %1$s: e.g. "Petrol 95 Octane" -->
+    <string name="fuel_price_enter_for_type">Enter what you pay for %1$s</string>
     <!-- "CPC price from 1 Oct" -->
     <string name="fuel_price_source_published">CPC price from %1$s</string>
     <!-- "CPC price from 1 Oct · may be out of date": no price list for over 45 days -->

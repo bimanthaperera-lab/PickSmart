@@ -148,7 +148,7 @@ private fun FuelPriceContent(
         options = FuelType.entries,
         selected = form.fuelType,
         optionLabel = { stringResource(it.label) },
-        onSelect = { onFormChange(form.withFuelType(it, state.prices.list)) },
+        onSelect = { onFormChange(form.withFuelType(it, state.suggestions)) },
     )
     NumberField(
         value = form.price,
@@ -158,6 +158,8 @@ private fun FuelPriceContent(
         suffix = stringResource(R.string.unit_per_litre),
         supportingText = when {
             !form.isChanged -> fuelPriceSourceText(vehicle, state.prices.listStale)
+            // No price known for the type just picked.
+            form.price.isBlank() -> stringResource(R.string.fuel_price_enter_for_type, stringResource(form.fuelType.label))
             // The CPC price for the chosen type is saved as such; anything else as the rider's own.
             form.isPublishedPrice(state.prices.list) -> publishedSourceText(state.prices.list, state.prices.listStale)
             else -> stringResource(R.string.fuel_price_source_manual)

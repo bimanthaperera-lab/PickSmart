@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -17,8 +18,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.account.AccountProvider
+import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.usecase.CompleteOnboarding
+import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.vehicle.FieldError
 import lk.picksmart.ui.vehicle.VehicleField
 import lk.picksmart.ui.vehicle.VehicleFormResult
@@ -51,6 +55,7 @@ data class OnboardingUiState(
 class OnboardingViewModel(
     private val completeOnboarding: CompleteOnboarding,
     account: AccountProvider,
+    preferences: UserPreferencesRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingUiState())
@@ -60,6 +65,14 @@ class OnboardingViewModel(
     val canSignIn: StateFlow<Boolean> =
         (if (account.isAvailable) account.profile.map { it == null } else flowOf(false))
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /**
+     * Prices to fill in when the rider picks a fuel type: a published CPC price saved on the
+     * phone, or one remembered from an earlier vehicle (`fuelPriceSuggestions`).
+     */
+    val fuelPriceSuggestions: StateFlow<Map<FuelType, Long>> =
+        combine(preferences.ownFuelPrices, preferences.fuelPriceList) { own, published -> fuelPriceSuggestions(null, own, published) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     fun start() = _state.update { it.copy(step = OnboardingStep.INTRO, introPage = 0) }
 
@@ -131,7 +144,7 @@ class OnboardingViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as PicksmartApplication
-                OnboardingViewModel(app.container.completeOnboarding, app.container.account)
+                OnboardingViewModel(app.container.completeOnboarding, app.container.account, app.container.userPreferences)
             }
         }
     }

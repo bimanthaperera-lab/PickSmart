@@ -101,6 +101,13 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
     )
 }
 
+/**
+ * Picks a fuel type and fills in its price from [suggestions] (`fuelPriceSuggestions`); with none,
+ * the other type's price is cleared for the rider to type (see [priceAfterFuelTypeSwitch]).
+ */
+fun VehicleFormState.withFuelType(type: FuelType, suggestions: Map<FuelType, Long>): VehicleFormState =
+    copy(fuelType = type, fuelPrice = priceAfterFuelTypeSwitch(fuelPrice, fuelType, type, suggestions))
+
 /** Fills the form from a saved vehicle, for editing. */
 fun Vehicle.toFormState() = VehicleFormState(
     name = name,

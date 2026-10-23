@@ -41,9 +41,12 @@ class VehicleRepository(
 
     suspend fun get(id: Long): Vehicle? = dao.get(id)?.toDomain()
 
-    /** Saves a new vehicle and returns its id. */
-    suspend fun create(input: VehicleInput, isSample: Boolean = false): Long =
-        dao.insert(newVehicle(input, isSample, clock.millis()).toEntity())
+    /** Saves a new vehicle and returns its id. Its fuel price is remembered for its fuel type. */
+    suspend fun create(input: VehicleInput, isSample: Boolean = false): Long {
+        val id = dao.insert(newVehicle(input, isSample, clock.millis()).toEntity())
+        if (!isSample) preferences.rememberFuelPrices(mapOf(input.fuelType to input.fuelPricePerLitreCents))
+        return id
+    }
 
     /**
      * Saves the rider's edits (see [applyVehicleEdit] for the fuel price rules).
@@ -72,9 +75,14 @@ class VehicleRepository(
         return true
     }
 
-    /** Writes [edited]; a new price the rider typed by hand marks [published] as kept. */
+    /**
+     * Writes [edited]; a new price the rider typed by hand marks [published] as kept. When the
+     * fuel type or price changed, both the old and the new price are remembered for their types,
+     * so switching back fills the old one in again.
+     */
     private suspend fun save(current: Vehicle, edited: Vehicle, published: FuelPriceList?) {
         dao.update(edited.toEntity())
+        rememberPriceChange(current, edited)
         val typedByHand = edited.fuelPriceSource == FuelPriceSource.MANUAL &&
             edited.fuelPricePerLitreCents != current.fuelPricePerLitreCents
         if (typedByHand && published != null) preferences.addKeptFuelPrice(keptFuelPriceKey(current.id, published.effectiveFrom))
@@ -90,8 +98,21 @@ class VehicleRepository(
     /** Sets a published fuel price. Returns false if the vehicle no longer exists. */
     suspend fun setPublishedFuelPrice(id: Long, priceCents: Long, effectiveFrom: LocalDate): Boolean {
         val current = dao.get(id)?.toDomain() ?: return false
-        dao.update(applyPublishedPrice(current, priceCents, effectiveFrom, clock.millis()).toEntity())
+        val edited = applyPublishedPrice(current, priceCents, effectiveFrom, clock.millis())
+        dao.update(edited.toEntity())
+        rememberPriceChange(current, edited)
         return true
+    }
+
+    private suspend fun rememberPriceChange(current: Vehicle, edited: Vehicle) {
+        val changed = edited.fuelType != current.fuelType || edited.fuelPricePerLitreCents != current.fuelPricePerLitreCents
+        // A sample price is an example, not something the rider pays, so it isn't kept for later.
+        if (!changed) return
+        val prices = buildMap {
+            if (!current.isSample) put(current.fuelType, current.fuelPricePerLitreCents)
+            put(edited.fuelType, edited.fuelPricePerLitreCents)
+        }
+        preferences.rememberFuelPrices(prices)
     }
 
     /** Turns automatic fuel price updates on or off. Returns false if the vehicle no longer exists. */

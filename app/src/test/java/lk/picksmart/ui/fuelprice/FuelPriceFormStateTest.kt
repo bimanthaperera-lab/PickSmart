@@ -39,26 +39,40 @@ class FuelPriceFormStateTest {
         ),
     )
 
+    /** The vehicle's Rs. 300 for Petrol 92, then the published list for the other types. */
+    private val fromList = mapOf(FuelType.PETROL_92 to 30_000L) + (FuelType.entries - FuelType.PETROL_92).associateWith { list.priceFor(it)!! }
+
     @Test
-    fun `switching fuel type fills in that type's published price`() {
-        val diesel = form.withFuelType(FuelType.AUTO_DIESEL, list)
+    fun `switching fuel type fills in that type's price`() {
+        val diesel = form.withFuelType(FuelType.AUTO_DIESEL, fromList)
         assertEquals("392.00", diesel.price)
         assertTrue(diesel.isPublishedPrice(list))
-        assertEquals("475.00", diesel.withFuelType(FuelType.PETROL_95, list).price)
+        assertEquals("475.00", diesel.withFuelType(FuelType.PETROL_95, fromList).price)
     }
 
     @Test
     fun `switching back to the vehicle's own type restores its own price`() {
-        val back = form.withFuelType(FuelType.SUPER_DIESEL, list).withFuelType(FuelType.PETROL_92, list)
+        val back = form.withFuelType(FuelType.SUPER_DIESEL, fromList).withFuelType(FuelType.PETROL_92, fromList)
         assertEquals("300.00", back.price)
         assertFalse(back.isChanged)
         assertFalse(back.isPublishedPrice(list))
     }
 
     @Test
-    fun `without a published list the typed price stays`() {
+    fun `with no price known for the new type, the old type's price is cleared`() {
+        // The reported bug: Petrol 92's price stayed under Petrol 95 when no list was saved.
+        val only92 = mapOf(FuelType.PETROL_92 to 30_000L)
+        val p95 = form.withFuelType(FuelType.PETROL_95, only92)
+        assertEquals("", p95.price)
+        assertEquals(FieldError.REQUIRED, p95.priceError())
+        // Typing a price for 95, then going back, brings 92's price back.
+        assertEquals("300.00", p95.copy(price = "470").withFuelType(FuelType.PETROL_92, only92).price)
+    }
+
+    @Test
+    fun `a price the rider typed for the new type stays`() {
         val typed = form.copy(price = "310")
-        val diesel = typed.withFuelType(FuelType.AUTO_DIESEL, null)
+        val diesel = typed.withFuelType(FuelType.AUTO_DIESEL, mapOf(FuelType.PETROL_92 to 30_000L))
         assertEquals("310", diesel.price)
         assertFalse(diesel.isPublishedPrice(null))
     }

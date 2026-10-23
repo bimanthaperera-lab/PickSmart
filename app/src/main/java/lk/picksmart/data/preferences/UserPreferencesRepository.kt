@@ -104,6 +104,20 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    /**
+     * The last price the rider used for each fuel type on this phone (cents per litre), so picking
+     * that type again fills it in (`fuelPriceSuggestions`). Types never used are missing.
+     */
+    val ownFuelPrices: Flow<Map<FuelType, Long>> = dataStore.data.map { prefs ->
+        FuelType.entries.mapNotNull { type -> prefs[Keys.ownFuelPriceCents(type)]?.let { type to it } }.toMap()
+    }.distinctUntilChanged()
+
+    /** Remembers these prices, in one write; other fuel types keep theirs. */
+    suspend fun rememberFuelPrices(prices: Map<FuelType, Long>) {
+        if (prices.isEmpty()) return
+        dataStore.edit { prefs -> prices.forEach { (type, cents) -> prefs[Keys.ownFuelPriceCents(type)] = cents } }
+    }
+
     /** When the price file last answered (UTC epoch millis), for the 12-hour throttle. */
     val fuelPriceLastCheckAt: Flow<Long?> = dataStore.data
         .map { it[Keys.FUEL_PRICE_LAST_CHECK_AT] }
@@ -193,6 +207,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val FUEL_PRICE_FETCHED_AT = longPreferencesKey("fuel_price_fetched_at")
         fun fuelPriceCents(type: FuelType) = longPreferencesKey("fuel_price_cents_${type.name.lowercase()}")
         val FUEL_PRICE_LAST_CHECK_AT = longPreferencesKey("fuel_price_last_check_at")
+        fun ownFuelPriceCents(type: FuelType) = longPreferencesKey("own_fuel_price_cents_${type.name.lowercase()}")
         val FUEL_PRICE_KEPT = stringSetPreferencesKey("fuel_price_kept")
         val FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID = longPreferencesKey("fuel_price_auto_notice_vehicle_id")
 

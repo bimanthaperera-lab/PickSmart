@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** 8c (first part) — sign-in and the Account tab are built, ahead of 6c by the owner's choice; cloud backup (the rest of 8c) comes later. Next is Phase 6c — Multiple vehicles, then Phase 7
 - **Next step:** Owner: try sign-up, sign-in (email and Google), password reset and the Profile screen on a phone, and publish the fuel price file (`docs/fuel-price-file.md`). Claude: start Phase 6c with the Vehicles list on the Account tab, the active-vehicle switch and the 1 / 3 limit (now that sign-in exists), then Phase 7.
-- **Last updated:** 2026-10-23 (Check a Ride vehicle card and icon set polished; first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
+- **Last updated:** 2026-10-23 (fuel type switch fills the right price everywhere; solid three-wheeler icon; Check a Ride vehicle card and icon set polished; first-launch welcome with Get started / I already have an account, "how it works" pages, sample values removed from onboarding; Login and Register match the mockups)
 
 ## Open questions for the owner
 

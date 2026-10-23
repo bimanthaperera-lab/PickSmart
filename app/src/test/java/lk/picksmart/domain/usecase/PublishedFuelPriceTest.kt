@@ -100,6 +100,35 @@ class PublishedFuelPriceTest {
     }
 
     @Test
+    fun `switching to another fuel type at its published price keeps it published`() {
+        val auto = applyPublishedPrice(manual.copy(autoUpdateFuelPrice = true), 41_400, oct1, nowMillis = 2_000)
+        val diesel = applyFuelPriceEdit(auto, FuelType.AUTO_DIESEL, 39_200, nowMillis = 3_000, published = list)
+        assertEquals(FuelType.AUTO_DIESEL, diesel.fuelType)
+        assertEquals(39_200L, diesel.fuelPricePerLitreCents)
+        assertEquals(FuelPriceSource.PUBLISHED, diesel.fuelPriceSource)
+        assertEquals(oct1, diesel.fuelPriceEffectiveDate)
+        assertTrue(diesel.autoUpdateFuelPrice)
+        assertEquals(PublishedPriceAction.None, publishedPriceAction(diesel, list, emptySet()))
+    }
+
+    @Test
+    fun `a price that isn't the published one is the rider's own, even with a list`() {
+        val auto = applyPublishedPrice(manual.copy(autoUpdateFuelPrice = true), 41_400, oct1, nowMillis = 2_000)
+        val typed = applyFuelPriceEdit(auto, FuelType.AUTO_DIESEL, 40_000, nowMillis = 3_000, published = list)
+        assertEquals(FuelPriceSource.MANUAL, typed.fuelPriceSource)
+        assertNull(typed.fuelPriceEffectiveDate)
+        assertFalse(typed.autoUpdateFuelPrice)
+    }
+
+    @Test
+    fun `typing exactly the published price makes a manual price published`() {
+        val edited = applyFuelPriceEdit(manual, FuelType.PETROL_92, 41_400, nowMillis = 3_000, published = list)
+        assertEquals(FuelPriceSource.PUBLISHED, edited.fuelPriceSource)
+        assertEquals(oct1, edited.fuelPriceEffectiveDate)
+        assertFalse(edited.autoUpdateFuelPrice)
+    }
+
+    @Test
     fun `the same price needs nothing`() {
         val same = manual.copy(fuelPricePerLitreCents = 41_400)
         assertEquals(PublishedPriceAction.None, publishedPriceAction(same, list, emptySet()))

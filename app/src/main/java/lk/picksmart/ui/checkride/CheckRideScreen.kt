@@ -39,10 +39,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +81,8 @@ import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NumberField
+import lk.picksmart.util.centsToInput
+import lk.picksmart.util.parseRupeesToCents
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
@@ -103,6 +109,7 @@ fun CheckRideScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
+    var showTargetDialog by rememberSaveable { mutableStateOf(false) }
     val resources = LocalResources.current
     LaunchedEffect(viewModel) { viewModel.onShown() }
     LaunchedEffect(viewModel) {
@@ -112,9 +119,11 @@ fun CheckRideScreen(
                     CheckRideMessage.OFFER_SAVED -> R.string.check_saved_offer
                     CheckRideMessage.TRIP_SAVED -> R.string.check_saved_trip
                     CheckRideMessage.SAVE_FAILED -> R.string.check_save_failed
+                    CheckRideMessage.TARGET_SAVE_FAILED -> R.string.target_dialog_failed
                 },
             )
-            val action = if (message == CheckRideMessage.SAVE_FAILED) null else resources.getString(R.string.action_view)
+            val failed = message == CheckRideMessage.SAVE_FAILED || message == CheckRideMessage.TARGET_SAVE_FAILED
+            val action = if (failed) null else resources.getString(R.string.action_view)
             val result = snackbar.showSnackbar(text, actionLabel = action, duration = SnackbarDuration.Short)
             if (result == SnackbarResult.ActionPerformed) onOpenHistory()
         }
@@ -151,6 +160,7 @@ fun CheckRideScreen(
                 ResultPanel(
                     it,
                     onSave = viewModel::save,
+                    onEditTarget = { showTargetDialog = true },
                     modifier = Modifier
                         .padding(horizontal = Spacing.screen)
                         .padding(bottom = Spacing.m)
@@ -159,6 +169,18 @@ fun CheckRideScreen(
             }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
+    }
+
+    val ready = state as? CheckRideUiState.Ready
+    if (showTargetDialog && ready != null) {
+        TargetDialog(
+            currentCents = ready.vehicle.targetProfitPerKmCents,
+            onSave = {
+                viewModel.setTarget(it)
+                showTargetDialog = false
+            },
+            onDismiss = { showTargetDialog = false },
+        )
     }
 }
 
@@ -472,7 +494,12 @@ internal fun FieldRow(stacked: Boolean, fields: List<@Composable (Modifier) -> U
 }
 
 @Composable
-private fun ResultPanel(state: CheckRideUiState.Ready, onSave: (TripStatus) -> Unit, modifier: Modifier) {
+private fun ResultPanel(
+    state: CheckRideUiState.Ready,
+    onSave: (TripStatus) -> Unit,
+    onEditTarget: () -> Unit,
+    modifier: Modifier,
+) {
     when (val outcome = state.outcome) {
         CheckRideOutcome.NeedsFare -> MessagePanel(
             title = stringResource(R.string.check_result_needs_fare_title),
@@ -490,6 +517,7 @@ private fun ResultPanel(state: CheckRideUiState.Ready, onSave: (TripStatus) -> U
             targetCents = outcome.input.targetProfitPerKmCents,
             saving = state.saving,
             onSave = onSave,
+            onEditTarget = onEditTarget,
             modifier = modifier,
         )
     }
@@ -525,6 +553,7 @@ private fun CalculatedPanel(
     targetCents: Long?,
     saving: Boolean,
     onSave: (TripStatus) -> Unit,
+    onEditTarget: () -> Unit,
     modifier: Modifier,
 ) {
     val result = outcome.result
@@ -547,14 +576,25 @@ private fun CalculatedPanel(
                 .padding(Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                // Announced when the band changes, not on every keystroke.
-                modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
-            ) {
-                Icon(painterResource(style.icon), contentDescription = null, tint = style.content, modifier = Modifier.size(24.dp))
-                Spacer(Modifier.width(Spacing.s))
-                Text(bandLine(result.band, targetCents), style = MaterialTheme.typography.titleMedium, color = style.content)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    // Announced when the band changes, not on every keystroke.
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+                ) {
+                    Icon(painterResource(style.icon), contentDescription = null, tint = style.content, modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.width(Spacing.s))
+                    Text(bandLine(result.band, targetCents), style = MaterialTheme.typography.titleMedium, color = style.content)
+                }
+                // Without a target any profit is green, however little per km; offer one right
+                // here, where the rider sees that, even while the keyboard is open.
+                if (targetCents == null) {
+                    TextButton(onClick = onEditTarget) {
+                        Text(stringResource(R.string.check_target_set), style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.m),
@@ -573,10 +613,70 @@ private fun CalculatedPanel(
             if (!WindowInsets.isImeVisible) {
                 HorizontalDivider(color = style.content.copy(alpha = 0.3f))
                 Breakdown(outcome, style.onContainer)
+                if (targetCents != null) TargetLine(targetCents, style.onContainer, onEditTarget)
             }
             SaveButtons(isLoss = result.band == ResultBand.LOSS, enabled = !saving, onSave = onSave)
         }
     }
+}
+
+/** The rider's profit target per km, with a way to change or remove it. */
+@Composable
+private fun TargetLine(targetCents: Long, color: Color, onEdit: () -> Unit) {
+    val changeDescription = stringResource(R.string.check_target_change_description)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            stringResource(R.string.check_target_value, rememberMoneyFormatter().format(targetCents)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = color,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onEdit, modifier = Modifier.semantics { contentDescription = changeDescription }) {
+            Text(stringResource(R.string.check_target_change), style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+/** Sets the profit target per km. Empty turns it off; it is saved on the vehicle. */
+@Composable
+private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss: () -> Unit) {
+    var text by rememberSaveable { mutableStateOf(currentCents?.let(::centsToInput).orEmpty()) }
+    var invalid by rememberSaveable { mutableStateOf(false) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.target_dialog_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                Text(stringResource(R.string.target_dialog_body), style = MaterialTheme.typography.bodyMedium)
+                NumberField(
+                    value = text,
+                    onValueChange = {
+                        text = it
+                        invalid = false
+                    },
+                    label = stringResource(R.string.target_dialog_field),
+                    placeholder = stringResource(R.string.placeholder_zero),
+                    prefix = stringResource(R.string.currency_prefix),
+                    suffix = stringResource(R.string.unit_per_km),
+                    error = if (invalid) stringResource(R.string.vehicle_error_invalid) else null,
+                    imeAction = ImeAction.Done,
+                    modifier = Modifier.focusRequester(focus),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (text.isBlank()) {
+                    onSave(null)
+                } else {
+                    parseRupeesToCents(text)?.let(onSave) ?: run { invalid = true }
+                }
+            }) { Text(stringResource(R.string.action_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
 
 /** "Save offer" keeps it as an offer (never income); "I took it" records a completed trip now. */

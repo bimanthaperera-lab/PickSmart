@@ -27,6 +27,7 @@
     <string name="action_ok">OK</string>
     <string name="action_back">Back</string>
     <string name="action_delete">Delete</string>
+    <string name="action_save">Save</string>
 
     <!-- Platforms, trip statuses and income types -->
     <string name="platform_uber">Uber</string>
@@ -124,6 +125,16 @@
     <string name="check_band_profit">Profit</string>
     <string name="check_band_break_even">Break-even · no profit, no loss</string>
     <string name="check_band_loss">Loss · this ride costs more than it pays</string>
+    <!-- On the result: the rider's profit target per km, which turns low-paying rides amber -->
+    <!-- "Your target: Rs. 20.00/km" -->
+    <string name="check_target_value">Your target: %1$s/km</string>
+    <string name="check_target_set">Set target</string>
+    <string name="check_target_change">Change</string>
+    <string name="check_target_change_description">Change your profit target per km</string>
+    <string name="target_dialog_title">Profit target per km</string>
+    <string name="target_dialog_body">The least you want to earn for each km you drive. Rides that earn less show as “Below target”. Leave it empty to turn it off.</string>
+    <string name="target_dialog_field">Target per km</string>
+    <string name="target_dialog_failed">Couldn\'t save. Try again.</string>
     <!-- Screen reader text for the result: "Estimated net profit Rs. 705.00, Rs. 70.50/km" -->
     <string name="check_net_profit_description">Estimated net profit %1$s, %2$s</string>
     <!-- "Rs. 70.50/km" -->

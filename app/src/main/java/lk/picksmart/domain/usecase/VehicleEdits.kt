@@ -1,5 +1,6 @@
 package lk.picksmart.domain.usecase
 
+import lk.picksmart.domain.model.FuelPriceList
 import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
@@ -45,13 +46,13 @@ fun newVehicle(input: VehicleInput, isSample: Boolean, nowMillis: Long): Vehicle
  *
  * - Saving from the form means the rider has reviewed the values, so the vehicle stops being a
  *   sample.
- * - If the rider changed the fuel price or fuel type by hand, the price becomes
- *   [FuelPriceSource.MANUAL] and auto-update turns off, so a published price never overwrites a
- *   price they set (CLAUDE.md section 8a). An unchanged price keeps its source.
+ * - Fuel type and price follow [applyFuelPriceEdit]: a price set by hand becomes
+ *   [FuelPriceSource.MANUAL] and turns auto-update off (CLAUDE.md section 8a), unless it is
+ *   exactly the [published] price for the chosen fuel type.
  * - Past trips are unaffected: they keep their own rate snapshot.
  */
-fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long): Vehicle =
-    applyFuelPriceEdit(current, input.fuelType, input.fuelPricePerLitreCents, nowMillis).copy(
+fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long, published: FuelPriceList? = null): Vehicle =
+    applyFuelPriceEdit(current, input.fuelType, input.fuelPricePerLitreCents, nowMillis, published).copy(
         name = input.name,
         type = input.type,
         fuelEfficiencyKmPerLitre = input.fuelEfficiencyKmPerLitre,
@@ -62,13 +63,27 @@ fun applyVehicleEdit(current: Vehicle, input: VehicleInput, nowMillis: Long): Ve
     )
 
 /**
- * Sets the fuel type and price the rider chose by hand (the Fuel price screen). If either
- * changed, the price becomes [FuelPriceSource.MANUAL] and auto-update turns off, so a published
- * price never overwrites it (CLAUDE.md section 8a). With nothing changed, the vehicle is returned
- * as it was. Other rates, and the "Sample" label on them, stay as they were.
+ * Sets the fuel type and price the rider chose (the Fuel price screen, or Edit vehicle). With
+ * nothing changed, the vehicle is returned as it was. Other rates, and the "Sample" label on
+ * them, stay as they were.
+ *
+ * - The [published] price for the chosen fuel type (e.g. after switching from Petrol 92 to
+ *   Diesel, which fills in the Diesel CPC price) stays [FuelPriceSource.PUBLISHED] with its date,
+ *   and auto-update stays as it was.
+ * - Any other price was typed by hand: it becomes [FuelPriceSource.MANUAL] and auto-update turns
+ *   off, so a published price never overwrites it (CLAUDE.md section 8a).
  */
-fun applyFuelPriceEdit(current: Vehicle, fuelType: FuelType, priceCents: Long, nowMillis: Long): Vehicle {
+fun applyFuelPriceEdit(
+    current: Vehicle,
+    fuelType: FuelType,
+    priceCents: Long,
+    nowMillis: Long,
+    published: FuelPriceList? = null,
+): Vehicle {
     if (fuelType == current.fuelType && priceCents == current.fuelPricePerLitreCents) return current
+    if (published != null && published.priceFor(fuelType) == priceCents) {
+        return applyPublishedPrice(current.copy(fuelType = fuelType), priceCents, published.effectiveFrom, nowMillis)
+    }
     return current.copy(
         fuelType = fuelType,
         fuelPricePerLitreCents = priceCents,
@@ -78,6 +93,13 @@ fun applyFuelPriceEdit(current: Vehicle, fuelType: FuelType, priceCents: Long, n
         updatedAtMillis = nowMillis,
     )
 }
+
+/**
+ * Sets the profit target per km from Check a Ride (null turns it off). Only the target changes;
+ * past trips keep the target in their own snapshot, so their bands don't move.
+ */
+fun applyTargetUpdate(current: Vehicle, targetCents: Long?, nowMillis: Long): Vehicle =
+    current.copy(targetProfitPerKmCents = targetCents, updatedAtMillis = nowMillis)
 
 /**
  * Sets the km per litre the rider accepted from a measured reading. Only efficiency changes: the

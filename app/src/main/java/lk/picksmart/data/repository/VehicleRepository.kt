@@ -10,6 +10,8 @@ import lk.picksmart.data.local.dao.VehicleDao
 import lk.picksmart.data.local.entity.toDomain
 import lk.picksmart.data.local.entity.toEntity
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.domain.model.FuelPriceList
+import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
@@ -17,6 +19,7 @@ import lk.picksmart.domain.usecase.applyAutoUpdateSetting
 import lk.picksmart.domain.usecase.applyEfficiencyUpdate
 import lk.picksmart.domain.usecase.applyFuelPriceEdit
 import lk.picksmart.domain.usecase.applyPublishedPrice
+import lk.picksmart.domain.usecase.applyTargetUpdate
 import lk.picksmart.domain.usecase.applyVehicleEdit
 import lk.picksmart.domain.usecase.keptFuelPriceKey
 import lk.picksmart.domain.usecase.newVehicle
@@ -52,8 +55,8 @@ class VehicleRepository(
      */
     suspend fun update(id: Long, input: VehicleInput): Boolean {
         val current = dao.get(id)?.toDomain() ?: return false
-        dao.update(applyVehicleEdit(current, input, clock.millis()).toEntity())
-        if (input.fuelPricePerLitreCents != current.fuelPricePerLitreCents) keepOwnPrice(id)
+        val published = preferences.fuelPriceList.first()
+        save(current, applyVehicleEdit(current, input, clock.millis(), published), published)
         return true
     }
 
@@ -64,13 +67,24 @@ class VehicleRepository(
      */
     suspend fun setFuelPrice(id: Long, fuelType: FuelType, priceCents: Long): Boolean {
         val current = dao.get(id)?.toDomain() ?: return false
-        dao.update(applyFuelPriceEdit(current, fuelType, priceCents, clock.millis()).toEntity())
-        if (priceCents != current.fuelPricePerLitreCents) keepOwnPrice(id)
+        val published = preferences.fuelPriceList.first()
+        save(current, applyFuelPriceEdit(current, fuelType, priceCents, clock.millis(), published), published)
         return true
     }
 
-    private suspend fun keepOwnPrice(id: Long) {
-        preferences.fuelPriceList.first()?.let { preferences.addKeptFuelPrice(keptFuelPriceKey(id, it.effectiveFrom)) }
+    /** Writes [edited]; a new price the rider typed by hand marks [published] as kept. */
+    private suspend fun save(current: Vehicle, edited: Vehicle, published: FuelPriceList?) {
+        dao.update(edited.toEntity())
+        val typedByHand = edited.fuelPriceSource == FuelPriceSource.MANUAL &&
+            edited.fuelPricePerLitreCents != current.fuelPricePerLitreCents
+        if (typedByHand && published != null) preferences.addKeptFuelPrice(keptFuelPriceKey(current.id, published.effectiveFrom))
+    }
+
+    /** Sets or clears the profit target per km. Returns false if the vehicle no longer exists. */
+    suspend fun setTargetProfitPerKm(id: Long, targetCents: Long?): Boolean {
+        val current = dao.get(id)?.toDomain() ?: return false
+        dao.update(applyTargetUpdate(current, targetCents, clock.millis()).toEntity())
+        return true
     }
 
     /** Sets a published fuel price. Returns false if the vehicle no longer exists. */

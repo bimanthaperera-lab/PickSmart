@@ -1,9 +1,17 @@
 package lk.picksmart.domain.usecase
 
+import lk.picksmart.domain.calculator.CalculationResult
+import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.calculator.ProfitInput
+import lk.picksmart.domain.calculator.ResultBand
+import lk.picksmart.domain.model.CommissionType
+import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.model.VehicleType
+import lk.picksmart.domain.model.rates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -93,5 +101,43 @@ class VehicleEditsTest {
         // The published price and its auto-update setting are untouched.
         assertEquals(FuelPriceSource.PUBLISHED, updated.fuelPriceSource)
         assertTrue(updated.autoUpdateFuelPrice)
+    }
+
+    @Test
+    fun `setting a target per km changes only the target`() {
+        val sample = published.copy(isSample = true)
+        val updated = applyTargetUpdate(sample, 2_000, nowMillis = 9_000)
+        assertEquals(sample.copy(targetProfitPerKmCents = 2_000, updatedAtMillis = 9_000), updated)
+        assertNull(applyTargetUpdate(updated, null, nowMillis = 9_500).targetProfitPerKmCents)
+    }
+
+    @Test
+    fun `a new target changes the band of new checks, not of saved trips`() {
+        val calculator = ProfitCalculator()
+        // The ride from the screenshot: Rs. 60 gross, 20% fee, 2 + 3 km, Rs. 300/L, 40 km/L, Rs. 2/km.
+        val vehicle = published.copy(fuelPricePerLitreCents = 30_000)
+        fun check(v: Vehicle) = ProfitInput(
+            fareCents = 6_000,
+            fareMode = FareMode.GROSS_BEFORE_COMMISSION,
+            commissionType = CommissionType.PERCENT,
+            commissionHundredths = 2_000,
+            pickupKm = 2.0,
+            tripKm = 3.0,
+            returnKm = 0.0,
+            fuelEfficiencyKmPerLitre = v.fuelEfficiencyKmPerLitre,
+            fuelPricePerLitreCents = v.fuelPricePerLitreCents,
+            maintenanceReservePerKmCents = v.maintenanceReservePerKmCents,
+            otherCostsCents = 0,
+            targetProfitPerKmCents = v.targetProfitPerKmCents,
+        )
+        val before = (calculator.calculate(check(vehicle)) as CalculationResult.Success).result
+        assertEquals(50L, before.netProfitCents)
+        assertEquals(ResultBand.PROFIT, before.band)
+
+        val withTarget = applyTargetUpdate(vehicle, 2_000, nowMillis = 9_000)
+        val after = (calculator.calculate(check(withTarget)) as CalculationResult.Success).result
+        assertEquals(ResultBand.BELOW_TARGET, after.band)
+        // A trip saved earlier keeps its own snapshot, without the new target.
+        assertNull(vehicle.rates().targetProfitPerKmCents)
     }
 }

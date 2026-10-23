@@ -49,7 +49,7 @@ sealed interface CheckRideUiState {
 }
 
 /** One-off confirmations shown after a save. */
-enum class CheckRideMessage { OFFER_SAVED, TRIP_SAVED, SAVE_FAILED }
+enum class CheckRideMessage { OFFER_SAVED, TRIP_SAVED, SAVE_FAILED, TARGET_SAVE_FAILED }
 
 /**
  * Check a Ride: recalculates on every keystroke, entirely on the device. The form starts from the
@@ -57,7 +57,7 @@ enum class CheckRideMessage { OFFER_SAVED, TRIP_SAVED, SAVE_FAILED }
  * the rate overrides) for next time. A result can be saved as an offer or as a completed trip.
  */
 class CheckRideViewModel(
-    vehicles: VehicleRepository,
+    private val vehicles: VehicleRepository,
     private val trips: TripRepository,
     private val preferences: UserPreferencesRepository,
     private val calculator: ProfitCalculator,
@@ -130,6 +130,23 @@ class CheckRideViewModel(
                 saving.value = false
             }
             _messages.send(message)
+        }
+    }
+
+    /**
+     * Saves the rider's profit target per km on the vehicle (null turns it off). The result
+     * recalculates with it at once; saved trips keep the target in their own snapshot.
+     */
+    fun setTarget(targetCents: Long?) {
+        val vehicle = (state.value as? CheckRideUiState.Ready)?.vehicle ?: return
+        viewModelScope.launch {
+            try {
+                vehicles.setTargetProfitPerKm(vehicle.id, targetCents)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _messages.send(CheckRideMessage.TARGET_SAVE_FAILED)
+            }
         }
     }
 

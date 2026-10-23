@@ -148,7 +148,7 @@ private fun FuelPriceContent(
         options = FuelType.entries,
         selected = form.fuelType,
         optionLabel = { stringResource(it.label) },
-        onSelect = { onFormChange(form.copy(fuelType = it)) },
+        onSelect = { onFormChange(form.withFuelType(it, state.prices.list)) },
     )
     NumberField(
         value = form.price,
@@ -156,8 +156,12 @@ private fun FuelPriceContent(
         label = stringResource(R.string.fuel_price_field),
         prefix = stringResource(R.string.currency_prefix),
         suffix = stringResource(R.string.unit_per_litre),
-        // A changed price will be saved as the rider's own.
-        supportingText = if (form.isChanged) stringResource(R.string.fuel_price_source_manual) else fuelPriceSourceText(vehicle, state.prices.listStale),
+        supportingText = when {
+            !form.isChanged -> fuelPriceSourceText(vehicle, state.prices.listStale)
+            // The CPC price for the chosen type is saved as such; anything else as the rider's own.
+            form.isPublishedPrice(state.prices.list) -> publishedSourceText(state.prices.list, state.prices.listStale)
+            else -> stringResource(R.string.fuel_price_source_manual)
+        },
         error = state.priceError?.message(R.string.fuel_price_error_required),
         imeAction = ImeAction.Done,
     )

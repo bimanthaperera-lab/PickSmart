@@ -25,8 +25,12 @@ def path(d, kind):
             f'        android:strokeWidth="2"\n        android:strokeColor="#FF000000"\n'
             f'        android:strokeLineCap="round"\n        android:strokeLineJoin="round" />')
 
-def write(name, comment, *paths):
+def write(name, comment, *paths, mirror=False):
     body = "\n".join(path(d, k) for d, k in paths)
+    if mirror:
+        # Flipped left to right about the centre of the 24-unit grid.
+        inner = "\n".join("    " + line for line in body.split("\n"))
+        body = f'    <group\n        android:pivotX="12"\n        android:scaleX="-1">\n{inner}\n    </group>'
     xml = ('<?xml version="1.0" encoding="utf-8"?>\n'
            f'<!-- {comment} -->\n'
            '<vector xmlns:android="http://schemas.android.com/apk/res/android"\n'
@@ -48,9 +52,9 @@ write("ic_vehicle_motorcycle", OUTLINE + " A scooter, the most common bike here.
       ("M8.5,17H12.5C14.5,17 15.5,15.5 15.5,13.5V9.5L14.5,5H16.5", STROKE),
       ("M15.5,11.5L18,14.5", STROKE))
 write("ic_vehicle_three_wheeler",
-      "Solid icon on a 24 grid: a three-wheeler (tuk-tuk) from the side, facing left, traced from "
-      "the owner's reference: roof over the front, narrow front cowl, open door with the seat, "
-      "rear window. Tinted by Compose.",
+      "Solid icon on a 24 grid: a three-wheeler (tuk-tuk) from the side, facing right like the "
+      "other vehicles, traced from the owner's reference: roof over the front, narrow front cowl, "
+      "open door with the seat, rear window. Tinted by Compose.",
       # Body: roof, rounded back, rear wheel arch, floor, front wheel arch, front cowl up to the
       # windscreen, then the roof's front edge back up.
       ("M3,4H18.5C20,4 21,5.2 21,6.8V16.6C21,17.1 20.6,17.5 20.1,17.5"
@@ -64,7 +68,9 @@ write("ic_vehicle_three_wheeler",
       # The seat back and cushion, seen through the door.
       ("M11.2,9.6H12.6V13.9H15V15.6H11.2Z", FILL),
       # Rear and front wheels, each with its hub cut out.
-      (circle(17.5, 18.9, 1.9) + circle(17.5, 18.9, 0.7) + circle(4.4, 18.9, 1.7) + circle(4.4, 18.9, 0.6), FILL))
+      (circle(17.5, 18.9, 1.9) + circle(17.5, 18.9, 0.7) + circle(4.4, 18.9, 1.7) + circle(4.4, 18.9, 0.6), FILL),
+      # Traced facing left; flipped so it faces right like the scooter, car and van.
+      mirror=True)
 write("ic_vehicle_car", OUTLINE + " A car, from the side.",
       (circle(7, 16.5, 2), STROKE),
       (circle(17, 16.5, 2), STROKE),
@@ -96,12 +102,12 @@ write("ic_nav_history", OUTLINE + " A clock with a turn-back arrow.",
       ("M3.5,12A8.5,8.5 0,1 0,6 6L3.5,8.5", STROKE),
       ("M3.5,4.5V8.5H7.5", STROKE),
       ("M12,8V12L14.5,14.5", STROKE))
-write("ic_toll", OUTLINE + " A toll booth with its barrier.",
-      ("M3,21H21", STROKE),
-      ("M5,21V9C5,8.4 5.4,8 6,8H10C10.6,8 11,8.4 11,9V21", STROKE),
-      ("M7.5,11H8.5", STROKE),
-      ("M11,12.5H20C20.6,12.5 21,12.9 21,13.5V14.5C21,15.1 20.6,15.5 20,15.5H11", STROKE),
-      ("M15,12.5L14,15.5M18.5,12.5L17.5,15.5", STROKE))
+write("ic_toll", OUTLINE + " Two coins, one behind the other, for a toll paid on the road.",
+      (circle(14.5, 12, 6.5), STROKE),
+      # The coin behind: only its left edge shows.
+      ("M12,6A6.5,6.5 0,1 0,12 18", STROKE),
+      # A mark on the front coin's face.
+      ("M14.5,9V15", STROKE))
 
 # --- Filled bottom-bar icons for the selected tab ---------------------------------------------
 write("ic_nav_home_filled", FILLED,

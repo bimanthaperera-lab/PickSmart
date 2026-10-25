@@ -297,7 +297,7 @@
     <string name="expense_add_title">Add expense</string>
     <string name="expense_edit_title">Edit expense</string>
     <string name="expense_category">Category</string>
-    <string name="expense_category_maintenance">Maintenance &amp; repair</string>
+    <string name="expense_category_maintenance">Maintenance</string>
     <string name="expense_category_parking">Parking</string>
     <string name="expense_category_mobile_data">Mobile data</string>
     <string name="expense_category_tolls">Tolls</string>

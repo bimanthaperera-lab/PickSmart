@@ -36,9 +36,10 @@ import lk.picksmart.ui.theme.Spacing
  * screen readers. The selected tile has a yellow border and tinted fill, not colour alone: its
  * border is also thicker.
  *
- * With [optionIcon] each tile shows its icon above the label, labels may wrap between words, tiles
- * in a row share one height, and an odd last tile takes the whole row (e.g. "Other" under four
- * expense categories).
+ * With [optionIcon] each tile shows a small icon (the same 20 dp as [ChoiceChips]) before its
+ * label, keeping the plain tiles' height so icon and plain grids match on one form (Edit vehicle).
+ * Labels may wrap between words, tiles in a row share one height, and an odd last tile takes the
+ * whole row (e.g. "Other" under four expense categories).
  */
 @Composable
 fun <T> ChoiceGrid(
@@ -63,7 +64,8 @@ fun <T> ChoiceGrid(
             val widest = labels
                 .flatMap { if (optionIcon != null) it.split(' ') else listOf(it) }
                 .maxOf { measurer.measure(it, style).size.width }
-            val tileTextWidth = (maxWidth - Spacing.s * (columns - 1)) / columns - TilePadding * 2
+            val iconSpace = if (optionIcon != null) TileIconSize + Spacing.s else 0.dp
+            val tileTextWidth = (maxWidth - Spacing.s * (columns - 1)) / columns - TilePadding * 2 - iconSpace
             val fitColumns = if (widest <= with(LocalDensity.current) { tileTextWidth.toPx() }) columns else 1
 
             Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -90,6 +92,7 @@ fun <T> ChoiceGrid(
 }
 
 private val TilePadding = Spacing.m
+private val TileIconSize = 20.dp
 
 @Composable
 private fun ChoiceTile(text: String, @DrawableRes icon: Int?, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
@@ -101,12 +104,12 @@ private fun ChoiceTile(text: String, @DrawableRes icon: Int?, selected: Boolean,
         color = if (selected) colors.secondaryContainer else colors.surfaceContainer,
         border = if (selected) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outline),
     ) {
-        Column(
+        Row(
             Modifier
                 .defaultMinSize(minHeight = Spacing.buttonHeight)
-                .padding(horizontal = TilePadding, vertical = if (icon != null) Spacing.m else Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = TilePadding, vertical = Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
                 // Decorative: the label says what the option is.
@@ -114,15 +117,15 @@ private fun ChoiceTile(text: String, @DrawableRes icon: Int?, selected: Boolean,
                     painterResource(icon),
                     contentDescription = null,
                     tint = if (selected) colors.primary else colors.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(TileIconSize),
                 )
             }
             Text(
                 text,
                 style = MaterialTheme.typography.titleMedium,
                 color = content,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                textAlign = if (icon != null) TextAlign.Start else TextAlign.Center,
+                modifier = if (icon != null) Modifier else Modifier.fillMaxWidth(),
             )
         }
     }

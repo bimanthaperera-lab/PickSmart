@@ -1,36 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Outline icon on a 24 grid, 2-unit stroke. Tinted by Compose. A toll booth with its barrier. -->
+<!-- Outline icon on a 24 grid, 2-unit stroke. Tinted by Compose. Two coins, one behind the other, for a toll paid on the road. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M3,21H21"
+        android:pathData="M14.5,5.5A6.5,6.5 0,1 1,14.5,18.5A6.5,6.5 0,1 1,14.5,5.5Z"
         android:strokeWidth="2"
         android:strokeColor="#FF000000"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M5,21V9C5,8.4 5.4,8 6,8H10C10.6,8 11,8.4 11,9V21"
+        android:pathData="M12,6A6.5,6.5 0,1 0,12 18"
         android:strokeWidth="2"
         android:strokeColor="#FF000000"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M7.5,11H8.5"
-        android:strokeWidth="2"
-        android:strokeColor="#FF000000"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M11,12.5H20C20.6,12.5 21,12.9 21,13.5V14.5C21,15.1 20.6,15.5 20,15.5H11"
-        android:strokeWidth="2"
-        android:strokeColor="#FF000000"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M15,12.5L14,15.5M18.5,12.5L17.5,15.5"
+        android:pathData="M14.5,9V15"
         android:strokeWidth="2"
         android:strokeColor="#FF000000"
         android:strokeLineCap="round"

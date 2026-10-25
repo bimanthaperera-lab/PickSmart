@@ -310,5 +310,14 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Reports left the bottom bar.** The bar is now Home, Check Ride, History, Account. Reports opens from a "Profit reports" row in its own "Reports" section on the Account tab, above Records, and is a detail screen with a back arrow; the export icon stays in its header. CLAUDE.md section 9 and 13a are updated. `ic_nav_reports_filled` is no longer used.
 - **Platform fee field.** With the field empty, "Platform fee" sat inside it next to the Rs. / % switch and wrapped onto two lines on a 384 dp phone. Number field labels now stay on one line and shrink slightly to fit (down to 10 sp) instead of wrapping.
 - **Theme.** "System default" is now "System".
-- **Icon tiles.** `ChoiceGrid` takes an optional `optionIcon`; with it each tile shows the icon above the label, labels may wrap between words, tiles in a row share one height, and an odd last tile fills its row. Used for expense category, income type and vehicle type, with the icons those records already show in lists.
+- **Icon tiles.** `ChoiceGrid` takes an optional `optionIcon`: a 20 dp icon (the size `ChoiceChips` uses) before the label, at the plain tiles' 56 dp height, so the vehicle type and fuel type grids on Edit vehicle and onboarding look the same. Labels may wrap between words, tiles in a row share one height, and an odd last tile fills its row. Used for expense category, income type and vehicle type, with the icons those records already show in lists. (A first version with 28 dp icons above the label was too large.)
 - **"Other" income icon** is a new wallet (`ic_wallet`) instead of the plus-in-a-circle, which read as an "add" button.
+
+## 2026-10-25 — Icon fixes
+
+*Owner asked for each; the drawings are the default.*
+
+- **Three-wheeler faces right**, like the scooter, car and van: `make_icons.py` writes it inside a mirrored group (`write(..., mirror=True)`), so the traced path is unchanged.
+- **New toll icon:** two coins, one behind the other, replacing the booth and barrier.
+- **"Maintenance & repair" is "Maintenance".**
+- **Material Symbols not adopted.** An uncommitted change that had replaced every icon with Material Symbols (and deleted `make_icons.py`) was found in the working tree; the owner chose to discard it and keep the hand-drawn set.

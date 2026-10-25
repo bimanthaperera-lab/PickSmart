@@ -281,3 +281,15 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 - **No gating yet.** Section 15 limits Free to the current week's reports and export to signed-in riders; those gates come with `PlanProvider` in Phase 8d, so Phase 7 offers everything to everyone. *Default, following PLAN.md.*
 - **Privacy.** `docs/privacy.md` now mentions the export: the rider picks the receiving app; Picksmart sends nothing itself. *Default.*
 - **Large fonts on Reports** (found in the emulator check). Segment labels (Day / Week / Month) stay on one line and shrink to fit, like the bottom-bar labels. Week chart labels switch to one letter (M T W) when "Mon" doesn't fit a bar's slot, then shrink if needed; bar amounts shrink the same way. The month label is "Oct 2026" rather than "October 2026", so the Estimated / Cash toggle stays beside it as in the mockup. *Default.*
+
+## 2026-10-24 — Screen-read feasibility probe (debug only)
+
+- **The ask.** The owner wants the floating window to read the ride offer with an AccessibilityService (`AccessibilityNodeInfo`) and show profit or loss automatically, because it is faster than OCR. This conflicts with CLAUDE.md N5 and section 9b. The risks were explained (rider account flags or bans, Play's AccessibilityService policy, offer cards that may not expose text, the overlay tap-block). The owner chose to test whether it can work before deciding. *Owner.*
+- **N5 is unchanged for now.** Nothing ships to riders. The probe lives only in `app/src/debug` on branch `spike/accessibility-probe`, so release builds don't contain the service. *Default.*
+- **What the probe does.** `ScreenReadProbeService` listens to the Uber Driver app only (`com.ubercab.driver`; PickMe Driver to be added once its package is known), dumps the active window's node tree to logcat (tag `PicksmartProbe`) at most once a second, and reports node count, nodes with text, money/km/min matches and the time taken. It performs no gestures or actions and draws nothing. *Default.*
+- **Privacy in the log.** Text is printed only when it looks like money, a distance or a time (or a bare number of up to 6 digits); everything else shows as its length, so passenger names, addresses and phone numbers stay out of the log. Probe logs are never committed. *Default.*
+- **Deciding after the test.** If the offer card's fare and distances are readable, the owner decides whether to change N5 and 9b (and PLAN.md), knowing the account and Play risks. If they are not readable, the idea is dropped and the manual glance surfaces in section 9a stay the plan. How to run it: `docs/screen-read-probe.md`. *Owner decides.*
+
+## 2026-10-25 — AGP 9.3.0
+
+- **AGP lowered from 9.4.1 to 9.3.0.** The owner's Android Studio (build AI-261.26222.65) refuses to sync with AGP 9.4.1 ("Latest supported version is AGP 9.3.0"). Kotlin, Gradle 9.8.2, the Compose BOM and the SDK levels are unchanged. Updating Android Studio would allow going back to 9.4.1. *Owner asked for the sync error to be fixed.*

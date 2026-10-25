@@ -28,6 +28,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import lk.picksmart.ui.theme.Spacing
 
@@ -37,9 +38,10 @@ import lk.picksmart.ui.theme.Spacing
  * border is also thicker.
  *
  * With [optionIcon] each tile shows a small icon (the same 20 dp as [ChoiceChips]) before its
- * label, keeping the plain tiles' height so icon and plain grids match on one form (Edit vehicle).
- * Labels may wrap between words, tiles in a row share one height, and an odd last tile takes the
- * whole row (e.g. "Other" under four expense categories).
+ * label, at the plain tiles' height (expense category, income type). With [largeIcons] the icon is
+ * bigger and sits above the label instead (vehicle type). Either way labels may wrap between words,
+ * tiles in a row share one height, and an odd last tile takes the whole row (e.g. "Other" under
+ * four expense categories).
  */
 @Composable
 fun <T> ChoiceGrid(
@@ -51,6 +53,7 @@ fun <T> ChoiceGrid(
     modifier: Modifier = Modifier,
     columns: Int = 2,
     optionIcon: ((T) -> Int)? = null,
+    largeIcons: Boolean = false,
 ) {
     Column(modifier) {
         FieldLabel(label)
@@ -64,7 +67,7 @@ fun <T> ChoiceGrid(
             val widest = labels
                 .flatMap { if (optionIcon != null) it.split(' ') else listOf(it) }
                 .maxOf { measurer.measure(it, style).size.width }
-            val iconSpace = if (optionIcon != null) TileIconSize + Spacing.s else 0.dp
+            val iconSpace = if (optionIcon != null && !largeIcons) TileIconSize + Spacing.s else 0.dp
             val tileTextWidth = (maxWidth - Spacing.s * (columns - 1)) / columns - TilePadding * 2 - iconSpace
             val fitColumns = if (widest <= with(LocalDensity.current) { tileTextWidth.toPx() }) columns else 1
 
@@ -75,6 +78,7 @@ fun <T> ChoiceGrid(
                             ChoiceTile(
                                 text = text,
                                 icon = optionIcon?.invoke(option),
+                                largeIcon = largeIcons,
                                 selected = option == selected,
                                 onClick = { onSelect(option) },
                                 modifier = Modifier
@@ -93,9 +97,17 @@ fun <T> ChoiceGrid(
 
 private val TilePadding = Spacing.m
 private val TileIconSize = 20.dp
+private val TileLargeIconSize = 28.dp
 
 @Composable
-private fun ChoiceTile(text: String, @DrawableRes icon: Int?, selected: Boolean, onClick: () -> Unit, modifier: Modifier) {
+private fun ChoiceTile(
+    text: String,
+    @DrawableRes icon: Int?,
+    largeIcon: Boolean,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier,
+) {
     val colors = MaterialTheme.colorScheme
     val content = if (selected) colors.onSecondaryContainer else colors.onSurface
     Surface(
@@ -104,31 +116,54 @@ private fun ChoiceTile(text: String, @DrawableRes icon: Int?, selected: Boolean,
         color = if (selected) colors.secondaryContainer else colors.surfaceContainer,
         border = if (selected) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outline),
     ) {
-        Row(
-            Modifier
-                .defaultMinSize(minHeight = Spacing.buttonHeight)
-                .padding(horizontal = TilePadding, vertical = Spacing.s),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (icon != null) {
-                // Decorative: the label says what the option is.
-                Icon(
-                    painterResource(icon),
-                    contentDescription = null,
-                    tint = if (selected) colors.primary else colors.onSurfaceVariant,
-                    modifier = Modifier.size(TileIconSize),
+        if (icon != null && largeIcon) {
+            Column(
+                Modifier
+                    .defaultMinSize(minHeight = Spacing.buttonHeight)
+                    .padding(horizontal = TilePadding, vertical = Spacing.m),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                TileIcon(icon, selected, TileLargeIconSize)
+                Text(
+                    text,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = content,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Text(
-                text,
-                style = MaterialTheme.typography.titleMedium,
-                color = content,
-                textAlign = if (icon != null) TextAlign.Start else TextAlign.Center,
-                modifier = if (icon != null) Modifier else Modifier.fillMaxWidth(),
-            )
+        } else {
+            Row(
+                Modifier
+                    .defaultMinSize(minHeight = Spacing.buttonHeight)
+                    .padding(horizontal = TilePadding, vertical = Spacing.s),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (icon != null) TileIcon(icon, selected, TileIconSize)
+                Text(
+                    text,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = content,
+                    textAlign = if (icon != null) TextAlign.Start else TextAlign.Center,
+                    modifier = if (icon != null) Modifier else Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
+}
+
+/** Decorative: the tile's label says what the option is. */
+@Composable
+private fun TileIcon(@DrawableRes icon: Int, selected: Boolean, size: Dp) {
+    val colors = MaterialTheme.colorScheme
+    Icon(
+        painterResource(icon),
+        contentDescription = null,
+        tint = if (selected) colors.primary else colors.onSurfaceVariant,
+        modifier = Modifier.size(size),
+    )
 }
 
 /** Small label above a field or group. */

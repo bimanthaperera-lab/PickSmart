@@ -321,3 +321,4 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **New toll icon:** two coins, one behind the other, replacing the booth and barrier.
 - **"Maintenance & repair" is "Maintenance".**
 - **Material Symbols not adopted.** An uncommitted change that had replaced every icon with Material Symbols (and deleted `make_icons.py`) was found in the working tree; the owner chose to discard it and keep the hand-drawn set.
+- **Vehicle type keeps the large icons.** On the owner's request, the vehicle type grid (onboarding and Edit vehicle) uses `ChoiceGrid(largeIcons = true)`: a 28 dp icon above the name, as in the first icon version. Expense category and income type keep the small 20 dp icon beside the label. The press ripple stays everywhere (owner).

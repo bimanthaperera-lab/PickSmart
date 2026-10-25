@@ -38,6 +38,7 @@ fun VehicleFormFields(
             optionLabel = { stringResource(it.label) },
             onSelect = { onChange(state.copy(type = it)) },
             optionIcon = { it.icon },
+            largeIcons = true,
         )
         TextInputField(
             value = state.name,

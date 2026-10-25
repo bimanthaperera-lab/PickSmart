@@ -298,7 +298,7 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 
 Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the default.*
 
-- **Home stats line up.** In a `StatGrid` pair the value sits at the bottom of its card, so "Recorded expenses" wrapping onto two lines no longer pushes its amount below "Earned after fees". Labels are unchanged.
+- **Home stats line up.** The "Recorded expenses" label is now "Expenses", so it fits on one line beside "Earned after fees" and both amounts sit level. (A first try that pushed amounts to the bottom of their cards was reverted at the owner's request.)
 - **Vehicle rates.** The maintenance reserve rate shows as the wrench icon and "Rs. 2.00/km" (the word "reserve" is gone from the screen); screen readers hear "Maintenance reserve, Rs. 2.00/km". Each rate stays on one line and moves to the next row whole instead of breaking.
 - **Estimated / Cash toggle is compact.** About 44 dp tall instead of about 58 dp, with smaller label text; Compose still gives each segment a 48 dp touch area. Day / Week / Month keeps its size.
 - **History "Add trip" has no border.** New `BorderlessButton` (a text button with the icon) in `ui/components/Buttons.kt`.

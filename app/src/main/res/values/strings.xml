@@ -68,7 +68,7 @@
     <string name="home_net_basis">After fees, fuel and maintenance reserve</string>
     <string name="home_net_empty">Nothing recorded today yet. Check an offer, then tap \"I took it\" to count it.</string>
     <string name="home_stat_earned">Earned after fees</string>
-    <string name="home_stat_expenses">Recorded expenses</string>
+    <string name="home_stat_expenses">Expenses</string>
     <string name="home_stat_trips">Completed trips</string>
     <string name="home_stat_distance">Distance</string>
     <string name="home_recent">Recent trips</string>

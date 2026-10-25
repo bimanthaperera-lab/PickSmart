@@ -293,3 +293,12 @@ The open questions in `PLAN.md` use their listed defaults until the owner answer
 ## 2026-10-25 — AGP 9.3.0
 
 - **AGP lowered from 9.4.1 to 9.3.0.** The owner's Android Studio (build AI-261.26222.65) refuses to sync with AGP 9.4.1 ("Latest supported version is AGP 9.3.0"). Kotlin, Gradle 9.8.2, the Compose BOM and the SDK levels are unchanged. Updating Android Studio would allow going back to 9.4.1. *Owner asked for the sync error to be fixed.*
+
+## 2026-10-25 — Small-screen polish
+
+Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the default.*
+
+- **Home stats line up.** In a `StatGrid` pair the value sits at the bottom of its card, so "Recorded expenses" wrapping onto two lines no longer pushes its amount below "Earned after fees". Labels are unchanged.
+- **Vehicle rates.** The maintenance reserve rate shows as the wrench icon and "Rs. 2.00/km" (the word "reserve" is gone from the screen); screen readers hear "Maintenance reserve, Rs. 2.00/km". Each rate stays on one line and moves to the next row whole instead of breaking.
+- **Estimated / Cash toggle is compact.** About 44 dp tall instead of about 58 dp, with smaller label text; Compose still gives each segment a 48 dp touch area. Day / Week / Month keeps its size.
+- **History "Add trip" has no border.** New `BorderlessButton` (a text button with the icon) in `ui/components/Buttons.kt`.

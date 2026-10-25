@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +59,26 @@ fun SecondaryButton(
         modifier = modifier.defaultMinSize(minHeight = Spacing.buttonHeight),
         shape = MaterialTheme.shapes.large,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+    ) {
+        ButtonContent(text, iconRes)
+    }
+}
+
+/** A quiet action with no border or fill, such as "Add trip" beside a screen title. */
+@Composable
+fun BorderlessButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    @DrawableRes iconRes: Int? = null,
+    enabled: Boolean = true,
+) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.defaultMinSize(minHeight = Spacing.buttonHeight),
+        shape = MaterialTheme.shapes.large,
+        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
     ) {
         ButtonContent(text, iconRes)
     }

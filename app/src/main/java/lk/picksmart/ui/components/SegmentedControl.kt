@@ -27,7 +27,8 @@ import lk.picksmart.ui.theme.Spacing
  * A row of segments with one selected, e.g. Day / Week / Month on Reports. The selected segment is
  * filled and bold, not colour alone, and the group reads as radio buttons. [accent] gives it an
  * outline and a brand-tinted selection, for a toggle that sits beside other controls (Estimated /
- * Cash). With [fill] each segment takes an equal share of the width.
+ * Cash); it is also more compact, about 44 dp tall, and Compose still extends each segment's touch
+ * area to 48 dp. With [fill] each segment takes an equal share of the width.
  */
 @Composable
 fun <T> SegmentedControl(
@@ -48,7 +49,7 @@ fun <T> SegmentedControl(
     ) {
         Row(
             Modifier
-                .padding(Spacing.xs)
+                .padding(if (accent) ACCENT_INSET else Spacing.xs)
                 .selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
@@ -67,13 +68,16 @@ fun <T> SegmentedControl(
                 ) {
                     Box(
                         Modifier
-                            .defaultMinSize(minHeight = Spacing.touchTarget)
-                            .padding(horizontal = if (fill) Spacing.s else Spacing.m, vertical = Spacing.s),
+                            .defaultMinSize(minHeight = if (accent) ACCENT_SEGMENT_HEIGHT else Spacing.touchTarget)
+                            .padding(
+                                horizontal = if (fill) Spacing.s else Spacing.m,
+                                vertical = if (accent) Spacing.xs else Spacing.s,
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
                         // One line, shrinking to fit its share of the width at large font sizes, so
                         // "Month" never breaks mid-word. The floor is in dp so it stays small.
-                        val style = MaterialTheme.typography.titleSmall
+                        val style = if (accent) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleSmall
                         BasicText(
                             optionLabel(option),
                             style = style.copy(
@@ -95,3 +99,9 @@ fun <T> SegmentedControl(
         }
     }
 }
+
+/** Height of one segment in the compact [SegmentedControl] with `accent`. */
+private val ACCENT_SEGMENT_HEIGHT = 36.dp
+
+/** Gap between the compact control's outline and its segments. */
+private val ACCENT_INSET = 3.dp

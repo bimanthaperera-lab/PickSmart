@@ -50,7 +50,7 @@ import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.ScreenTitle
-import lk.picksmart.ui.components.SecondaryButton
+import lk.picksmart.ui.components.BorderlessButton
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
@@ -131,7 +131,7 @@ private fun Header(onAddTrip: () -> Unit) {
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ScreenTitle(stringResource(R.string.history_title))
-        SecondaryButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
+        BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
     }
 }
 

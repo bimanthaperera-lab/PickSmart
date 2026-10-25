@@ -37,7 +37,11 @@ fun PicksmartCard(
     }
 }
 
-/** A small card with a label above a large value, e.g. "Gross income / Rs. 6,850.00". */
+/**
+ * A small card with a label above a large value, e.g. "Gross income / Rs. 6,850.00". When the card
+ * is taller than its content (a [StatGrid] pair), the value sits at the bottom, so values in a row
+ * line up even when one label wraps onto two lines.
+ */
 @Composable
 fun StatCard(
     label: String,
@@ -47,6 +51,7 @@ fun StatCard(
 ) {
     PicksmartCard(modifier) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.titleLarge, color = valueColor)
     }
 }

@@ -302,3 +302,13 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Vehicle rates.** The maintenance reserve rate shows as the wrench icon and "Rs. 2.00/km" (the word "reserve" is gone from the screen); screen readers hear "Maintenance reserve, Rs. 2.00/km". Each rate stays on one line and moves to the next row whole instead of breaking.
 - **Estimated / Cash toggle is compact.** About 44 dp tall instead of about 58 dp, with smaller label text; Compose still gives each segment a 48 dp touch area. Day / Week / Month keeps its size.
 - **History "Add trip" has no border.** New `BorderlessButton` (a text button with the icon) in `ui/components/Buttons.kt`.
+
+## 2026-10-25 — Reports under Account, icon tiles, field and theme fixes
+
+*Owner asked for each change; the details are the default.*
+
+- **Reports left the bottom bar.** The bar is now Home, Check Ride, History, Account. Reports opens from a "Profit reports" row in its own "Reports" section on the Account tab, above Records, and is a detail screen with a back arrow; the export icon stays in its header. CLAUDE.md section 9 and 13a are updated. `ic_nav_reports_filled` is no longer used.
+- **Platform fee field.** With the field empty, "Platform fee" sat inside it next to the Rs. / % switch and wrapped onto two lines on a 384 dp phone. Number field labels now stay on one line and shrink slightly to fit (down to 10 sp) instead of wrapping.
+- **Theme.** "System default" is now "System".
+- **Icon tiles.** `ChoiceGrid` takes an optional `optionIcon`; with it each tile shows the icon above the label, labels may wrap between words, tiles in a row share one height, and an odd last tile fills its row. Used for expense category, income type and vehicle type, with the icons those records already show in lists.
+- **"Other" income icon** is a new wallet (`ic_wallet`) instead of the plus-in-a-circle, which read as an "add" button.

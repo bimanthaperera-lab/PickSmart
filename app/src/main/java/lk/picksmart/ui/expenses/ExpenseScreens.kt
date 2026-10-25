@@ -216,6 +216,7 @@ private fun ExpenseForm(state: EditExpenseUiState.Editing, onChange: (ExpenseFor
         selected = form.category,
         optionLabel = { stringResource(it.label) },
         onSelect = { onChange(form.copy(category = it)) },
+        optionIcon = { it.icon },
     )
     NumberField(
         value = form.amount,

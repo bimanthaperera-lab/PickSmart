@@ -53,7 +53,6 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
-import lk.picksmart.ui.settings.LanguageChips
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.ui.account.ForgotPasswordScreen
 import lk.picksmart.ui.account.LoginScreen
@@ -63,10 +62,12 @@ import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.navigation.ForgotPasswordRoute
 import lk.picksmart.ui.navigation.LoginRoute
 import lk.picksmart.ui.navigation.RegisterRoute
 import lk.picksmart.ui.navigation.popIfOn
+import lk.picksmart.ui.settings.LanguageChips
 import lk.picksmart.ui.splash.WelcomeScreen
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.VehicleFormFields
@@ -155,6 +156,7 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
             onPageShown = viewModel::showIntroPage,
             onDone = viewModel::finishIntro,
         )
+        OnboardingStep.RESTORE -> RestoreStep(state.restore, onRetry = viewModel::restore, onSkip = viewModel::skipRestore)
         OnboardingStep.VEHICLE -> {
             val defaultName = stringResource(state.form.type.label)
             VehicleStep(
@@ -437,6 +439,41 @@ private fun VehicleStep(
             fuelPriceSuggestions = fuelPriceSuggestions,
         )
         PrimaryButton(stringResource(R.string.action_continue), onContinue, Modifier.fillMaxWidth())
+    }
+}
+
+/** After signing in: the rider's backup comes back before setup asks for a vehicle. */
+@Composable
+private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.screen, vertical = Spacing.l),
+        verticalArrangement = Arrangement.spacedBy(Spacing.l),
+    ) {
+        ScreenTitle(stringResource(R.string.onboarding_restore_title))
+        when (state) {
+            RestoreState.RUNNING -> {
+                Text(
+                    stringResource(R.string.onboarding_restore_body),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                LoadingState()
+            }
+            RestoreState.OFFLINE, RestoreState.FAILED -> {
+                ErrorState(
+                    stringResource(
+                        if (state == RestoreState.OFFLINE) R.string.onboarding_restore_offline else R.string.onboarding_restore_failed,
+                    ),
+                )
+                PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth())
+                SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth())
+            }
+        }
     }
 }
 

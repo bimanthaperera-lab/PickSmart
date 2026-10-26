@@ -66,6 +66,7 @@ import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.AuthResult
 import lk.picksmart.data.account.PhotoSaveResult
 import lk.picksmart.data.account.ProfilePhotoCache
+import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.domain.model.Gender
 import lk.picksmart.ui.components.DetailHeader
@@ -432,6 +433,7 @@ class ProfileViewModel(
     private val photos: ProfilePhotoCache,
     private val preferences: UserPreferencesRepository,
     private val resolver: ContentResolver,
+    private val sync: SyncProvider,
 ) : ViewModel() {
     val account: StateFlow<AccountUi> = accountUi
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountUi.Loading)
@@ -499,14 +501,30 @@ class ProfileViewModel(
     }
 
     /** Deletes the sign-in account and what is kept for it here; the rider's records stay. */
-    fun deleteAccount() = perform(null) {
-        val uid = provider.profile.first()?.uid
-        val result = provider.deleteAccount()
-        if (result == AuthResult.Success && uid != null) {
-            preferences.clearPersonalDetails(uid)
-            photos.clearAll(uid)
+    /**
+     * Deletes the cloud backup, then the sign-in account and what is kept for it here; the rider's
+     * records stay on the phone. If the backup can't be deleted (offline), nothing is.
+     */
+    fun deleteAccount() {
+        if (mutableStatus.value.busy) return
+        mutableStatus.value = ProfileStatus(busy = true)
+        viewModelScope.launch {
+            if (!sync.deleteCloudData()) {
+                mutableStatus.value = ProfileStatus(message = R.string.profile_delete_cloud_failed, isError = true)
+                return@launch
+            }
+            val uid = provider.profile.first()?.uid
+            mutableStatus.value = when (val result = provider.deleteAccount()) {
+                AuthResult.Success -> {
+                    if (uid != null) {
+                        preferences.clearPersonalDetails(uid)
+                        photos.clearAll(uid)
+                    }
+                    ProfileStatus()
+                }
+                is AuthResult.Failure -> ProfileStatus(message = result.error.message(), isError = true)
+            }
         }
-        result
     }
 
     /** Runs one request at a time. */
@@ -532,6 +550,7 @@ class ProfileViewModel(
                     container.profilePhotos,
                     container.userPreferences,
                     application.contentResolver,
+                    container.sync,
                 )
             }
         }

@@ -5,8 +5,8 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 ## Status
 
 - **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
-- **Next step:** Owner: decide what V2 starts with; run the offer reader probe on a phone with Uber Driver; read Uber's driver terms on third-party tools. Before uploading V1 to Play, decide whether the offer reader ships in it or in a later update (`docs/decisions.md`, 2026-10-26).
-- **Last updated:** 2026-10-26 (Sinhala and Tamil translations added; digit limits on every number field and overflow guards; Profile: own photo, gender and date of birth, sign-in method row removed; no restart or blank frame when the language changes)
+- **Next step:** V2 started with cloud backup (Phase 8c, branch `v2`). Owner: create the Firestore database, publish `firestore.rules` and test backup and restore on two phones (`docs/cloud-backup.md`). Then Claude: Firebase App Check (Play Integrity) before release. Still open from V1: run the offer reader probe with Uber Driver, read Uber's driver terms, and decide whether the offer reader ships in V1 (`docs/decisions.md`, 2026-10-26).
+- **Last updated:** 2026-10-26 (cloud backup with Firestore on `v2`: database v5, merge and restore, Account tab backup card; profile photo format and size limits)
 
 ## Open questions for the owner
 
@@ -211,7 +211,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 ## Phase 8c — Optional account and cloud backup
 
 - [x] `AccountProvider` interface with Firebase and no-op implementations; app builds and runs with `google-services.json` absent (checked 2026-10-23)
-- [ ] `SyncProvider` interface with a no-op implementation (with sync)
+- [x] `SyncProvider` interface with a no-op implementation (with sync; branch `v2`, 2026-10-26)
 - [x] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
 - [x] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
 - [x] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"; restyled to the mockups without the Phone button
@@ -222,11 +222,13 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Owner: test sign-up, sign-in, Google, reset and Profile on a real phone (Claude can't create accounts or sign in)
 - [ ] Firebase budget alerts at 50/80/100% (when moving to Blaze)
 - [x] Create an account later from the Account tab without losing local data (nothing local is touched; backup comes with sync)
-- [ ] Firestore per-user storage with security rules isolating each rider; offline persistence on
+- [x] Firestore per-user storage with security rules isolating each rider (`firestore.rules`); Firestore keeps queued writes offline, Room stays the source (2026-10-26)
+- [ ] Owner: create the Firestore database, publish `firestore.rules`, test backup and restore on two phones (`docs/cloud-backup.md`)
 - [ ] Firebase App Check with the Play Integrity provider on Firestore; a failed check stops only backup, with a plain message, never local use
-- [ ] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud
+- [x] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud (DB v5 with migration test; `CloudSyncTest` on the emulator, 2026-10-26)
+- [x] Restore on a new phone from "I already have an account"; Cloud backup card on the Account tab; Delete account removes the cloud data first
 - [x] Sign-out keeps local data; "Delete account" action (deletes the sign-in account; cloud data joins it with sync)
-- [ ] Play Data safety form and privacy policy updated; marketing promise reworded
+- [ ] Play Data safety form and privacy policy updated; marketing promise reworded (draft updated in `docs/privacy.md`; owner to review and add a web deletion route)
 
 **Later (not this phase):** Facebook login (Meta developer app, Facebook SDK, Meta app review).
 

@@ -1,5 +1,6 @@
 package lk.picksmart.domain.usecase
 
+import kotlinx.coroutines.flow.first
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.model.VehicleInput
@@ -16,5 +17,19 @@ class CompleteOnboarding(
     suspend operator fun invoke(input: VehicleInput, isSample: Boolean) {
         val id = vehicles.create(input, isSample)
         preferences.completeOnboarding(defaultVehicleId = id)
+    }
+
+    /** True when the phone has a vehicle in use, for example one restored from the rider's backup. */
+    suspend fun hasVehicle(): Boolean = vehicles.activeVehicles.first().isNotEmpty()
+
+    /**
+     * Finishes setup for a rider whose backup brought their vehicles back: the vehicle the backup
+     * made active stays active, else the first one. Nothing new is saved.
+     */
+    suspend fun withRestoredVehicle() {
+        val inUse = vehicles.activeVehicles.first()
+        val activeId = preferences.defaultVehicleId.first()
+        val chosen = inUse.firstOrNull { it.id == activeId } ?: inUse.first()
+        preferences.completeOnboarding(defaultVehicleId = chosen.id)
     }
 }

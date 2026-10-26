@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Picksmart cloud backup (CLAUDE.md section 14). Each rider can read and write only their own
+// users/{uid} document and the record collections under it. Everything else is closed.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /{kind}/{syncId} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null
+          && request.auth.uid == uid
+          && kind in ['vehicles', 'trips', 'other_income', 'fuel_logs', 'expenses']
+          && request.resource.data.updatedAt is int
+          && request.resource.data.deleted is bool;
+      }
+    }
+  }
+}

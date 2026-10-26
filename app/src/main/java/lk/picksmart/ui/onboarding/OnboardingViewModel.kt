@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,9 @@ import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.sync.SyncProblem
+import lk.picksmart.data.sync.SyncProvider
+import lk.picksmart.data.sync.SyncStatus
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.usecase.CompleteOnboarding
@@ -29,7 +33,10 @@ import lk.picksmart.ui.vehicle.VehicleFormResult
 import lk.picksmart.ui.vehicle.VehicleFormState
 import lk.picksmart.ui.vehicle.validate
 
-enum class OnboardingStep { WELCOME, INTRO, VEHICLE, PERMISSIONS, SAFETY }
+enum class OnboardingStep { WELCOME, INTRO, RESTORE, VEHICLE, PERMISSIONS, SAFETY }
+
+/** Bringing back a signed-in rider's backup: still running, or why it stopped. */
+enum class RestoreState { RUNNING, OFFLINE, FAILED }
 
 /** How many "how it works" pages the intro has. */
 const val INTRO_PAGE_COUNT = 3
@@ -44,18 +51,23 @@ data class OnboardingUiState(
     val pending: VehicleInput? = null,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
+    val restore: RestoreState = RestoreState.RUNNING,
+    /** The rider's backup brought back a vehicle, so setup finishes without a new one. */
+    val restored: Boolean = false,
 )
 
 /**
  * First-launch setup: welcome, the "how it works" intro, the rider's own vehicle numbers, the
- * optional permissions (notifications, Read ride offers), then the safety notice. A rider who signs in from the welcome screen goes straight to the vehicle. Nothing
- * is saved until the rider accepts the notice; finishing flips the onboarding flag, which takes
- * the app to Home.
+ * optional permissions (notifications, Read ride offers), then the safety notice. A rider who
+ * signs in from the welcome screen skips the intro: their backup is restored first, and if it
+ * brings back a vehicle they go straight to the permissions. Nothing new is saved until the rider
+ * accepts the notice; finishing flips the onboarding flag, which takes the app to Home.
  */
 class OnboardingViewModel(
     private val completeOnboarding: CompleteOnboarding,
     account: AccountProvider,
     preferences: UserPreferencesRepository,
+    private val sync: SyncProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingUiState())
@@ -81,8 +93,32 @@ class OnboardingViewModel(
     /** Last intro page done, or "Skip": on to the vehicle. */
     fun finishIntro() = _state.update { it.copy(step = OnboardingStep.VEHICLE) }
 
-    /** Signed in or registered from the welcome screen: the intro is skipped. */
-    fun signedIn() = _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+    private var restoring: Job? = null
+
+    /** Signed in or registered from the welcome screen: the intro is skipped, and the backup restored. */
+    fun signedIn() {
+        _state.update { it.copy(step = OnboardingStep.RESTORE) }
+        restore()
+    }
+
+    /** Downloads the rider's backup (CLAUDE.md section 14); a new account simply has none. */
+    fun restore() {
+        restoring?.cancel()
+        _state.update { it.copy(restore = RestoreState.RUNNING) }
+        restoring = viewModelScope.launch {
+            val status = sync.syncNow()
+            if (status is SyncStatus.Stopped) {
+                val problem = if (status.problem == SyncProblem.OFFLINE) RestoreState.OFFLINE else RestoreState.FAILED
+                _state.update { it.copy(restore = problem) }
+                return@launch
+            }
+            val restored = completeOnboarding.hasVehicle()
+            _state.update { it.copy(step = if (restored) OnboardingStep.PERMISSIONS else OnboardingStep.VEHICLE, restored = restored) }
+        }
+    }
+
+    /** Restoring failed and the rider goes on: the backup joins this phone once it's online. */
+    fun skipRestore() = _state.update { it.copy(step = OnboardingStep.VEHICLE) }
 
     fun updateForm(form: VehicleFormState) = _state.update {
         // Clear an error as soon as the rider edits; it's re-checked on Continue.
@@ -113,8 +149,13 @@ class OnboardingViewModel(
             when (current.step) {
                 OnboardingStep.WELCOME -> it
                 OnboardingStep.INTRO -> it.copy(step = OnboardingStep.WELCOME)
+                OnboardingStep.RESTORE -> {
+                    restoring?.cancel()
+                    it.copy(step = OnboardingStep.WELCOME)
+                }
                 OnboardingStep.VEHICLE -> it.copy(step = OnboardingStep.INTRO, introPage = INTRO_PAGE_COUNT - 1)
-                OnboardingStep.PERMISSIONS -> it.copy(step = OnboardingStep.VEHICLE)
+                OnboardingStep.PERMISSIONS ->
+                    if (it.restored) it.copy(step = OnboardingStep.WELCOME, restored = false) else it.copy(step = OnboardingStep.VEHICLE)
                 OnboardingStep.SAFETY -> it.copy(step = OnboardingStep.PERMISSIONS, saveFailed = false)
             }
         }
@@ -122,12 +163,12 @@ class OnboardingViewModel(
 
     fun finish() {
         val current = _state.value
-        val input = current.pending ?: return
-        if (current.saving) return
+        val input = current.pending
+        if (current.saving || (input == null && !current.restored)) return
         _state.update { it.copy(saving = true, saveFailed = false) }
         viewModelScope.launch {
             try {
-                completeOnboarding(input, isSample = false)
+                if (input != null) completeOnboarding(input, isSample = false) else completeOnboarding.withRestoredVehicle()
                 // On success the onboarding flag flips and the app moves to Home.
             } catch (e: CancellationException) {
                 throw e
@@ -148,7 +189,7 @@ class OnboardingViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as PicksmartApplication
-                OnboardingViewModel(app.container.completeOnboarding, app.container.account, app.container.userPreferences)
+                OnboardingViewModel(app.container.completeOnboarding, app.container.account, app.container.userPreferences, app.container.sync)
             }
         }
     }

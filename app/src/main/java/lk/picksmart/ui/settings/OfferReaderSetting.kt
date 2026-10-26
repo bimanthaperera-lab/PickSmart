@@ -91,7 +91,7 @@ private fun rememberReaderEnabled(): Pair<Boolean, () -> Unit> {
 }
 
 /**
- * "Read offers" with a switch, for the top of Check a Ride. While the reader is on in Android, the
+ * "Read offers" with a switch, for the top of Home. While the reader is on in Android, the
  * switch pauses and resumes it at once. The first time, it shows the disclosure, then opens
  * Android's Accessibility settings, where only the rider can turn it on.
  */

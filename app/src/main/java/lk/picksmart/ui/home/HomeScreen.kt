@@ -48,6 +48,7 @@ import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.history.HistoryRow
 import lk.picksmart.ui.history.TripRow
+import lk.picksmart.ui.settings.OfferReaderSwitch
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.util.formatDecimal
@@ -142,12 +143,20 @@ private fun HomeHeader() {
     val date = remember(pattern, locale) {
         todayInColombo().format(DateTimeFormatter.ofPattern(pattern, locale))
     }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-        BrandMark()
-        Column {
-            Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            ScreenTitle(stringResource(R.string.home_title))
+    // The offer reader's switch sits on the right; at large font sizes it moves under the title.
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            BrandMark()
+            Column {
+                Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ScreenTitle(stringResource(R.string.home_title))
+            }
         }
+        OfferReaderSwitch()
     }
 }
 

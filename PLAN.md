@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 7 — Dashboard, reports and export, done (2026-10-23). Phase 6c still has two open items: the onboarding CPC price pre-fill, and the rest of its emulator check.
-- **Next step:** Owner: try Reports (Day, Week, Month, Estimated and Cash) and the export icon on a phone; sign-up and sign-in checks from 8c; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 6c emulator check, pre-fill the CPC price on onboarding, then Phase 8.
-- **Last updated:** 2026-10-26 (merged `fix/ui-polish`; Reports, Home and History follow the active vehicle). Earlier, 2026-10-23 (Phase 7: one accounting use case for Home and Reports; Reports built from the week mockup with Estimated / Cash, a daily Canvas chart and incomplete-data notes; CSV export through the share sheet)
+- **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
+- **Next step:** Owner: decide what V2 starts with; run the offer reader probe on a phone with Uber Driver; read Uber's driver terms on third-party tools. Before uploading V1 to Play, decide whether the offer reader ships in it or in a later update (`docs/decisions.md`, 2026-10-26).
+- **Last updated:** 2026-10-26 (V1 marked: merged `fix/ui-polish` and the probe; Reports, Home and History follow the active vehicle; Phase 8e offer reader with the PROFIT / LOSS badge, checked on the emulator)
 
 ## Open questions for the owner
 

@@ -345,3 +345,9 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Debug sample offer screen** (`SampleOfferActivity`, debug only): three made-up offers and "no offer", with Decline / Accept at the bottom to check taps still work with the badge showing. The debug `offer_reader.xml` adds Picksmart's own package, and the service reads Picksmart's own windows only when the sample's marker line is on screen. *Default.*- **Reads on start.** The reader reads the screen as soon as it connects, so an offer already showing when it is turned on (or restarted by Android) gets a badge without waiting for a change. *Default, found in the emulator check.*
 - **Testing note.** `uiautomator dump` connects as its own accessibility client and suppresses other accessibility services while it runs, which restarts the reader. Check the badge with screenshots and coordinate taps, not uiautomator. *Default.*
 
+## 2026-10-26 — V1 and V2
+
+- **V1 is everything built so far,** at version 1.0.0 (`versionCode` stays 1, since nothing has been uploaded to Play). It is tagged `v1.0.0` on `main`. It includes the offer reader (Phase 8e). *Owner asked for what is built so far to be V1.*
+- **V2 work happens on branch `v2`,** made from the `v1.0.0` tag. `main` stays at V1 until V2 is merged back. A fix V1 needs is made on `main` and merged into `v2`. *Default.*
+- **Play and the offer reader.** Play's AccessibilityService policy allows a read-only, disclosed, consented use, but the Device and Network Abuse policy bans apps that use a service against its terms, and the disclosure must also appear during normal app use, not only behind a settings row. Claude recommended uploading V1 without the reader and adding it in a later update, so a rejection can't block the whole app. *Open, owner to decide before upload.*
+

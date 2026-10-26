@@ -16,7 +16,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import lk.picksmart.domain.model.FuelPriceList
 import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.model.Gender
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.PersonalDetails
 import lk.picksmart.domain.model.ThemeMode
 
 /**
@@ -89,6 +91,39 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setMobileNumber(uid: String, number: String?) {
         dataStore.edit {
             if (number.isNullOrBlank()) it.remove(Keys.mobileNumber(uid)) else it[Keys.mobileNumber(uid)] = number
+        }
+    }
+
+    /**
+     * The mobile number, gender and birth date the rider added for this account. They stay on the
+     * device and are kept when the rider signs out, like the mobile number.
+     */
+    fun personalDetails(uid: String): Flow<PersonalDetails> = dataStore.data
+        .map { prefs ->
+            PersonalDetails(
+                mobile = prefs[Keys.mobileNumber(uid)],
+                gender = prefs[Keys.gender(uid)]?.let { stored -> Gender.entries.firstOrNull { it.name == stored } },
+                birthDate = prefs[Keys.birthDate(uid)]?.toLocalDateOrNull(),
+            )
+        }
+        .distinctUntilChanged()
+
+    /** Saves the gender, or removes it when [gender] is null. */
+    suspend fun setGender(uid: String, gender: Gender?) {
+        dataStore.edit { if (gender == null) it.remove(Keys.gender(uid)) else it[Keys.gender(uid)] = gender.name }
+    }
+
+    /** Saves the birth date, or removes it when [date] is null. */
+    suspend fun setBirthDate(uid: String, date: LocalDate?) {
+        dataStore.edit { if (date == null) it.remove(Keys.birthDate(uid)) else it[Keys.birthDate(uid)] = date.toString() }
+    }
+
+    /** Removes everything [personalDetails] holds for [uid], when the account is deleted. */
+    suspend fun clearPersonalDetails(uid: String) {
+        dataStore.edit {
+            it.remove(Keys.mobileNumber(uid))
+            it.remove(Keys.gender(uid))
+            it.remove(Keys.birthDate(uid))
         }
     }
 
@@ -226,6 +261,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
 
         // Account (CLAUDE.md section 14), one key per signed-in user.
         fun mobileNumber(uid: String) = stringPreferencesKey("account_mobile_$uid")
+        fun gender(uid: String) = stringPreferencesKey("account_gender_$uid")
+        fun birthDate(uid: String) = stringPreferencesKey("account_birth_date_$uid")
     }
 }
 

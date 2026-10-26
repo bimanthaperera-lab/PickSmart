@@ -3,9 +3,11 @@ package lk.picksmart.ui.components
 import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -52,26 +54,65 @@ fun DateField(
     PickerField(label, formatPattern(date, stringResource(R.string.pattern_date_field)), { open = true }, modifier)
     if (!open) return
 
+    PickDateDialog(
+        initial = date,
+        onPick = onDateChange,
+        onDismiss = { open = false },
+        maxDate = maxDate,
+    )
+}
+
+/**
+ * The date picker on its own, for a row that isn't a [DateField] (such as Profile's date of birth).
+ * Only dates from [minDate] to [maxDate] can be picked. With no [initial] date it opens on
+ * [shownWhenEmpty]'s month. [onRemove], when given, adds a Remove button that clears the date.
+ */
+@Composable
+fun PickDateDialog(
+    initial: LocalDate?,
+    onPick: (LocalDate) -> Unit,
+    onDismiss: () -> Unit,
+    minDate: LocalDate? = null,
+    maxDate: LocalDate? = null,
+    shownWhenEmpty: LocalDate? = null,
+    onRemove: (() -> Unit)? = null,
+) {
     // The Material date picker works in UTC midnight millis.
     val state = rememberDatePickerState(
-        initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
-        selectableDates = remember(maxDate) {
+        initialSelectedDateMillis = initial?.let(::utcMillis),
+        initialDisplayedMonthMillis = (initial ?: shownWhenEmpty)?.let(::utcMillis),
+        yearRange = (minDate?.year ?: DatePickerDefaults.YearRange.first)..(maxDate?.year ?: DatePickerDefaults.YearRange.last),
+        selectableDates = remember(minDate, maxDate) {
             object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long) = maxDate == null || utcDate(utcTimeMillis) <= maxDate
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val day = utcDate(utcTimeMillis)
+                    return (minDate == null || day >= minDate) && (maxDate == null || day <= maxDate)
+                }
 
-                override fun isSelectableYear(year: Int) = maxDate == null || year <= maxDate.year
+                override fun isSelectableYear(year: Int) =
+                    (minDate == null || year >= minDate.year) && (maxDate == null || year <= maxDate.year)
             }
         },
     )
     DatePickerDialog(
-        onDismissRequest = { open = false },
+        onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
-                state.selectedDateMillis?.let { onDateChange(utcDate(it)) }
-                open = false
+                state.selectedDateMillis?.let { onPick(utcDate(it)) }
+                onDismiss()
             }) { Text(stringResource(R.string.action_ok)) }
         },
-        dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
+        dismissButton = {
+            Row {
+                if (onRemove != null) {
+                    TextButton(onClick = {
+                        onRemove()
+                        onDismiss()
+                    }) { Text(stringResource(R.string.action_remove)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
+            }
+        },
     ) {
         DatePicker(state)
     }
@@ -139,10 +180,13 @@ private fun PickerField(label: String, value: String, onClick: () -> Unit, modif
     }
 }
 
+/** [value] in a date or time [pattern] from strings.xml, in the language the app is showing. */
 @Composable
-private fun formatPattern(value: TemporalAccessor, pattern: String): String {
+fun formatPattern(value: TemporalAccessor, pattern: String): String {
     val locale = LocalConfiguration.current.locales[0]
     return remember(value, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(value) }
 }
 
 private fun utcDate(utcMillis: Long): LocalDate = Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()
+
+private fun utcMillis(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()

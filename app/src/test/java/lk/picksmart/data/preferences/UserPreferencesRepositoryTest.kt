@@ -12,7 +12,9 @@ import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelPriceList
 import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.model.Gender
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.PersonalDetails
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.ThemeMode
 import org.junit.Assert.assertEquals
@@ -51,6 +53,23 @@ class UserPreferencesRepositoryTest {
         prefs.setMobileNumber("a", " ")
         assertNull(prefs.mobileNumber("a").first())
         assertEquals("071 000 0000", prefs.mobileNumber("b").first())
+    }
+
+    @Test
+    fun `gender and date of birth are kept per account and cleared with the account`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.setMobileNumber("a", "077 123 4567")
+        prefs.setGender("a", Gender.FEMALE)
+        prefs.setBirthDate("a", LocalDate.of(1990, 5, 17))
+        prefs.setGender("b", Gender.PREFER_NOT_TO_SAY)
+        assertEquals(PersonalDetails("077 123 4567", Gender.FEMALE, LocalDate.of(1990, 5, 17)), prefs.personalDetails("a").first())
+        assertEquals(PersonalDetails(gender = Gender.PREFER_NOT_TO_SAY), prefs.personalDetails("b").first())
+
+        prefs.setBirthDate("a", null)
+        assertNull(prefs.personalDetails("a").first().birthDate)
+        prefs.clearPersonalDetails("a")
+        assertEquals(PersonalDetails(), prefs.personalDetails("a").first())
+        assertEquals(Gender.PREFER_NOT_TO_SAY, prefs.personalDetails("b").first().gender)
     }
 
     @Test

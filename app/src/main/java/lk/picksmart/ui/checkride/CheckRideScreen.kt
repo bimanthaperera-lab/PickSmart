@@ -93,6 +93,7 @@ import lk.picksmart.util.parseRupeesToCents
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.settings.OfferReaderSwitch
 import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
@@ -146,7 +147,16 @@ fun CheckRideScreen(
         val panelMaxHeight = maxHeight * 0.55f
         Column(Modifier.fillMaxSize()) {
             TabScreen(Modifier.weight(1f)) {
-                ScreenTitle(stringResource(R.string.check_ride_title))
+                // The offer reader's switch sits beside the title, so it takes no height from the
+                // result (CLAUDE.md section 9); at large font sizes it moves under it.
+                FlowRow(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ScreenTitle(stringResource(R.string.check_ride_title))
+                    if (state is CheckRideUiState.Ready) OfferReaderSwitch()
+                }
                 when (val s = state) {
                     CheckRideUiState.Loading -> LoadingState()
                     CheckRideUiState.NoVehicle -> EmptyState(

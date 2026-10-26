@@ -524,9 +524,14 @@
     <string name="offer_reader_disclosure_title">Read ride offers?</string>
     <string name="offer_reader_disclosure_body">Picksmart can read the fare and distances on a ride offer in Uber Driver and show the estimated profit or loss in a small badge at the top of the screen.\n\nIt uses Android\'s accessibility service to read the text on the offer only. It never taps, accepts or declines anything. What it reads stays on this phone: it is not saved, logged or sent anywhere.\n\nRide apps may not allow other apps to read their screens. Using this could get your driver account warned or blocked. Use it at your own risk.\n\nThe result is an estimate from your vehicle\'s rates. Always check before you accept.</string>
     <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
-    <string name="offer_reader_turn_off_title">Turn off reading ride offers?</string>
-    <string name="offer_reader_turn_off_body">Turn off Picksmart in Android\'s Accessibility settings. The rest of the app works the same.</string>
-    <string name="offer_reader_open_settings">Open Accessibility settings</string>
+    <string name="offer_reader_paused">Paused · not reading offers</string>
+    <!-- The switch at the top of Check a Ride -->
+    <string name="offer_reader_switch_label">Read offers</string>
+    <string name="offer_reader_manage_on_body">Picksmart is reading new offers in Uber Driver.\n\nPause stops it until you resume; it stays on in Android, so ride apps can still see it is turned on.\n\nTurn off completely switches it off in Android too. Turning it on again then needs Accessibility settings.</string>
+    <string name="offer_reader_manage_paused_body">Paused: Picksmart reads nothing and shows no badge.\n\nIt is still on in Android, so ride apps can still see it is turned on. Turn off completely to switch it off in Android too.</string>
+    <string name="offer_reader_pause">Pause</string>
+    <string name="offer_reader_resume">Resume</string>
+    <string name="offer_reader_turn_off_completely">Turn off completely</string>
     <string name="offer_reader_settings_hint">In Accessibility, open Picksmart under Downloaded apps (or Installed apps) and turn it on.</string>
     <string name="offer_reader_service_summary">Shows the estimated profit or loss of a ride offer. Reads the offer only, never taps.</string>
     <string name="offer_reader_service_description">Reads the fare and distances on ride offers in Uber Driver, on this phone only, to show the estimated profit or loss in a small badge. It never taps, accepts or declines anything, and nothing it reads is saved or sent anywhere. Ride apps may not allow this, and a driver account could be warned or blocked.</string>

@@ -20,6 +20,7 @@ import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.usecase.OfferReading
 import lk.picksmart.domain.usecase.checkOffer
 import lk.picksmart.domain.usecase.parseOfferText
+import java.lang.ref.WeakReference
 
 /**
  * The offer reader (CLAUDE.md N5, section 9b). When a listed ride app's window changes, it reads
@@ -37,6 +38,7 @@ class OfferReaderService : AccessibilityService() {
     private lateinit var badge: OfferBadge
 
     @Volatile private var vehicle: Vehicle? = null
+    @Volatile private var paused = false
     @Volatile private var lastInputs = LastCheckInputs()
 
     /** The offer shown in the badge, or the one the rider hid, so the same offer isn't redrawn. */
@@ -54,17 +56,27 @@ class OfferReaderService : AccessibilityService() {
         val container = (application as PicksmartApplication).container
         scope.launch { container.vehicles.defaultVehicle.collect { vehicle = it; refresh() } }
         scope.launch { container.userPreferences.lastCheckInputs.collect { lastInputs = it; refresh() } }
+        scope.launch {
+            container.userPreferences.offerReaderPaused.collect {
+                paused = it
+                if (it) clearBadge() else handler.post(read)
+            }
+        }
+        running = WeakReference(this)
         // An offer may already be on screen when the reader is turned on or restarted.
         handler.post(read)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // Paused in the app: nothing is read at all.
+        if (paused) return
         // Window changes come in bursts; read once they settle.
         handler.removeCallbacks(read)
         handler.postDelayed(read, SETTLE_MS)
     }
 
     private fun readActiveWindow() {
+        if (paused) return
         val root = rootInActiveWindow
         val targets = serviceInfo?.packageNames?.toSet().orEmpty()
         if (root == null || root.packageName?.toString() !in targets) {
@@ -108,7 +120,8 @@ class OfferReaderService : AccessibilityService() {
 
     private fun clearBadge() {
         shown = null
-        badge.hide()
+        handler.removeCallbacks(clear)
+        if (::badge.isInitialized) badge.hide()
     }
 
     /** The text and descriptions of visible nodes, in reading order, up to [MAX_NODES]. */
@@ -130,6 +143,7 @@ class OfferReaderService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        if (running?.get() === this) running = null
         handler.removeCallbacksAndMessages(null)
         if (::badge.isInitialized) badge.hide()
         scope.cancel()
@@ -141,6 +155,19 @@ class OfferReaderService : AccessibilityService() {
         private const val CLEAR_AFTER_MS = 1_500L
         private const val SHOW_AT_MOST_MS = 45_000L
         private const val MAX_NODES = 400
+
+        /** The connected service, so the app can turn it off completely ([turnOff]). */
+        @Volatile private var running: WeakReference<OfferReaderService>? = null
+
+        /**
+         * Turns the reader off in Android's Accessibility settings too, as if the rider had done it
+         * there. Returns false when it isn't running, so the caller can open those settings.
+         */
+        fun turnOff(): Boolean {
+            val service = running?.get() ?: return false
+            service.disableSelf()
+            return true
+        }
 
         /** The first line of the debug build's sample offer screen. */
         const val SAMPLE_OFFER_MARKER = "Picksmart sample offer (debug)"

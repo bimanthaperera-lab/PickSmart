@@ -351,3 +351,11 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **V2 work happens on branch `v2`,** made from the `v1.0.0` tag. `main` stays at V1 until V2 is merged back. A fix V1 needs is made on `main` and merged into `v2`. *Default.*
 - **Play and the offer reader.** Play's AccessibilityService policy allows a read-only, disclosed, consented use, but the Device and Network Abuse policy bans apps that use a service against its terms, and the disclosure must also appear during normal app use, not only behind a settings row. Claude recommended uploading V1 without the reader and adding it in a later update, so a rejection can't block the whole app. *Open, owner to decide before upload.*
 
+## 2026-10-26 — Offer reader switch inside the app
+
+- **Android only lets the rider turn an accessibility service on,** in its own settings, so the first turn-on still goes there (after the disclosure). Everything after that is inside Picksmart. *Owner asked for in-app on/off; the limit is Android's.*
+- **Pause / Resume** is a DataStore flag (`offer_reader_paused`). While paused the service ignores every event and reads nothing, and the badge is cleared. The service stays on in Android, so ride apps can still see an enabled accessibility service; the manage dialog says so. *Default.*
+- **Turn off completely** calls `disableSelf()`, which switches it off in Android's settings too; turning it on again needs those settings. If the service isn't running, the button opens them instead. *Default.*
+- **Where:** a "Read offers" switch beside the Check a Ride title (no extra height, so the result still fits; it wraps under the title at large fonts), and the "Read ride offers" row on the Account tab (On / Paused / Off) with the manage dialog. Its first tap when off shows the disclosure, which also puts the disclosure in the normal app flow Play asks for. Accepting the disclosure clears a leftover pause. *Default.*
+- **Testing note:** reinstalling the app, and `uiautomator dump`, both unbind the reader for a moment, so the app can briefly show Off. *Default.*
+

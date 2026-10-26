@@ -37,6 +37,18 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         .map { it[Keys.ONBOARDING_COMPLETE] ?: false }
         .distinctUntilChanged()
 
+    /**
+     * True while the rider has paused the offer reader inside Picksmart (CLAUDE.md section 9b): it
+     * stays on in Android's Accessibility settings but reads nothing and shows no badge.
+     */
+    val offerReaderPaused: Flow<Boolean> = dataStore.data
+        .map { it[Keys.OFFER_READER_PAUSED] ?: false }
+        .distinctUntilChanged()
+
+    suspend fun setOfferReaderPaused(paused: Boolean) {
+        dataStore.edit { it[Keys.OFFER_READER_PAUSED] = paused }
+    }
+
     /** The vehicle Check a Ride pre-fills from, or null before setup. */
     val defaultVehicleId: Flow<Long?> = dataStore.data
         .map { it[Keys.DEFAULT_VEHICLE_ID] }
@@ -188,6 +200,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         val DEFAULT_VEHICLE_ID = longPreferencesKey("default_vehicle_id")
+        val OFFER_READER_PAUSED = booleanPreferencesKey("offer_reader_paused")
 
         // Last-used Check a Ride inputs. An absent key means the field was left empty.
         val CHECK_PLATFORM = stringPreferencesKey("check_platform")

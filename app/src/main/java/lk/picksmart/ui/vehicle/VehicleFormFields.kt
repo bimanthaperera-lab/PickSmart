@@ -17,8 +17,7 @@ import lk.picksmart.ui.theme.Spacing
 
 /**
  * The vehicle fields shared by onboarding and Edit vehicle. Picking a fuel type fills in its price
- * from [fuelPriceSuggestions] (`fuelPriceSuggestions`). The optional number plate shows only when
- * [showPlateNumber] is set (Edit vehicle), so onboarding stays short.
+ * from [fuelPriceSuggestions] (`fuelPriceSuggestions`). The number plate is optional.
  */
 @Composable
 fun VehicleFormFields(
@@ -27,7 +26,6 @@ fun VehicleFormFields(
     onChange: (VehicleFormState) -> Unit,
     modifier: Modifier = Modifier,
     fuelPriceSuggestions: Map<FuelType, Long> = emptyMap(),
-    showPlateNumber: Boolean = false,
 ) {
     val currency = stringResource(R.string.currency_prefix)
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
@@ -46,17 +44,15 @@ fun VehicleFormFields(
             label = stringResource(R.string.vehicle_field_name),
             placeholder = stringResource(R.string.vehicle_field_name_placeholder),
         )
-        if (showPlateNumber) {
-            TextInputField(
-                value = state.plateNumber,
-                onValueChange = { onChange(state.copy(plateNumber = it)) },
-                label = stringResource(R.string.vehicle_field_plate),
-                placeholder = stringResource(R.string.vehicle_field_plate_placeholder),
-                supportingText = stringResource(R.string.vehicle_field_plate_help),
-                maxLength = PLATE_NUMBER_MAX_LENGTH,
-                capitalization = KeyboardCapitalization.Characters,
-            )
-        }
+        TextInputField(
+            value = state.plateNumber,
+            onValueChange = { onChange(state.copy(plateNumber = it)) },
+            label = stringResource(R.string.vehicle_field_plate),
+            placeholder = stringResource(R.string.vehicle_field_plate_placeholder),
+            supportingText = stringResource(R.string.vehicle_field_plate_help),
+            maxLength = PLATE_NUMBER_MAX_LENGTH,
+            capitalization = KeyboardCapitalization.Characters,
+        )
         ChoiceGrid(
             label = stringResource(R.string.vehicle_field_fuel_type),
             options = FuelType.entries,

@@ -14,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
+import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.usecase.OfferReading
@@ -44,6 +45,9 @@ class OfferReaderService : AccessibilityService() {
 
     private val read = Runnable { readActiveWindow() }
     private val clear = Runnable { clearBadge() }
+
+    // The badge's words follow the rider's language below Android 13 too.
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
 
     override fun onServiceConnected() {
         badge = OfferBadge(this) { hiddenByRider = shown }

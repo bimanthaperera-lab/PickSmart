@@ -53,6 +53,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
+import lk.picksmart.ui.settings.LanguageChips
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.ui.account.ForgotPasswordScreen
 import lk.picksmart.ui.account.LoginScreen
@@ -170,6 +171,8 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
 @Composable
 private fun WelcomeStep(canSignIn: Boolean, onStart: () -> Unit, onSignIn: () -> Unit) {
     WelcomeScreen {
+        // The language comes first, so a rider reads everything after it in their own.
+        LanguageChips(Modifier.padding(bottom = Spacing.s))
         PrimaryButton(stringResource(R.string.onboarding_get_started), onStart, Modifier.fillMaxWidth())
         if (canSignIn) {
             TextButton(

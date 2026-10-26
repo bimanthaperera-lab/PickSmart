@@ -1,6 +1,7 @@
 package lk.picksmart
 
 import android.app.UiModeManager
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.ui.navigation.PicksmartApp
 import lk.picksmart.ui.onboarding.OnboardingScreen
@@ -36,6 +38,9 @@ import lk.picksmart.ui.splash.SplashScreen
 import lk.picksmart.ui.theme.PicksmartTheme
 
 class MainActivity : ComponentActivity() {
+    // The rider's language below Android 13 (AppLanguageStore); Android applies it itself on 13+.
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

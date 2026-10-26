@@ -533,6 +533,11 @@
     <string name="offer_badge_amounts">%1$s · %2$s/km</string>
     <string name="offer_badge_source">Read from screen · %1$s</string>
     <string name="offer_badge_hide_hint">Hold to hide</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">Phone\'s language</string>
+    <string name="language_name_en" translatable="false">English</string>
+    <string name="language_name_si" translatable="false">සිංහල</string>
+    <string name="language_name_ta" translatable="false">தமிழ்</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_version">Version</string>
     <string name="theme_system">System</string>

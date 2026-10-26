@@ -22,11 +22,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.BuildConfig
+import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.R
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.model.Vehicle
@@ -47,7 +49,7 @@ import lk.picksmart.ui.vehicle.SwitchVehicleDialog
 import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
- * The settings list: vehicles, fuel price, reports, records, reading ride offers, theme and version. Shown under the profile card
+ * The settings list: vehicles, fuel price, reports, records, reading ride offers, language, theme and version. Shown under the profile card
  * on the Account tab, and works the same whether or not the rider is signed in. Adding a vehicle
  * past the limit opens [onVehicleLimit] instead of the form.
  */
@@ -66,6 +68,9 @@ fun SettingsSections(
     val vehicle by viewModel.vehicle.collectAsStateWithLifecycle()
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    // Changing the language recreates the screen, so reading it once per composition is enough.
+    val language = AppLanguageStore.current(LocalContext.current)
 
     Column {
         VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, viewModel::setActiveVehicle, onOpenFuelPrice)
@@ -84,13 +89,22 @@ fun SettingsSections(
         OfferReaderSetting()
         SectionLabel(stringResource(R.string.settings_section_app))
         ListGroup(
-            rows = listOf {
-                ListRow(
-                    title = stringResource(R.string.settings_theme),
-                    value = themeMode?.let { stringResource(it.label) },
-                    onClick = { showThemeDialog = true },
-                )
-            },
+            rows = listOf(
+                {
+                    ListRow(
+                        title = stringResource(R.string.settings_language),
+                        value = language.displayName(),
+                        onClick = { showLanguageDialog = true },
+                    )
+                },
+                {
+                    ListRow(
+                        title = stringResource(R.string.settings_theme),
+                        value = themeMode?.let { stringResource(it.label) },
+                        onClick = { showThemeDialog = true },
+                    )
+                },
+            ),
         )
         SectionLabel(stringResource(R.string.settings_section_about))
         ListGroup(
@@ -99,6 +113,8 @@ fun SettingsSections(
             },
         )
     }
+
+    if (showLanguageDialog) LanguageDialog(selected = language, onDismiss = { showLanguageDialog = false })
 
     val current = themeMode
     if (showThemeDialog && current != null) {

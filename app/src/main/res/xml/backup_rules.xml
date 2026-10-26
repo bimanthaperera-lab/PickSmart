@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 and below. Keep in sync with data_extraction_rules.xml. -->
+<!-- Android 11 and below. The language file is only written below Android 13. Keep in sync with data_extraction_rules.xml. -->
 <full-backup-content>
     <include domain="database" path="." />
     <include domain="file" path="datastore/" />
+        <include domain="sharedpref" path="app_language.xml" />
 </full-backup-content>

@@ -73,6 +73,7 @@ class SampleOfferActivity : ComponentActivity() {
             listOf("UberX", "LKR 850.00", "4 min (1.2 km) away", "18 min (7.5 km) trip"),
             listOf("UberX", "LKR 300.00", "9 min (3.0 km) away", "35 min (15.0 km) trip"),
             listOf("Tuk", "LKR 1,450.00", "6 min (2.1 km) away", "24 min (9.8 km) trip"),
+            listOf("UberX", "LKR 150.00", "12 min (4.0 km) away", "40 min (16.0 km) trip"),
         )
     }
 }

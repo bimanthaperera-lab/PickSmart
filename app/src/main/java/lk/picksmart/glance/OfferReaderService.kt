@@ -50,6 +50,8 @@ class OfferReaderService : AccessibilityService() {
         val container = (application as PicksmartApplication).container
         scope.launch { container.vehicles.defaultVehicle.collect { vehicle = it; refresh() } }
         scope.launch { container.userPreferences.lastCheckInputs.collect { lastInputs = it; refresh() } }
+        // An offer may already be on screen when the reader is turned on or restarted.
+        handler.post(read)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {

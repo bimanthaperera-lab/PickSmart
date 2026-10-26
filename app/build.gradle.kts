@@ -66,6 +66,20 @@ android {
         compose = true
         buildConfig = true
     }
+
+    lint {
+        // Sinhala and Tamil are translated after the English text lands; a string without a
+        // translation shows in English, so a gap is a warning, not a failed build.
+        warning += "MissingTranslation"
+    }
+
+    bundle {
+        // The rider picks the app language inside Picksmart, which may differ from the phone's,
+        // so every install from Play must carry Sinhala and Tamil, not only the phone's language.
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 // Exported schemas are committed and also served to device tests as assets (MigrationTestHelper).

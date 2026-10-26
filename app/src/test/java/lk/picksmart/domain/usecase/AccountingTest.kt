@@ -97,6 +97,16 @@ class AccountingTest {
     }
 
     @Test
+    fun aPerKmFigureTooLargeForALongIsLeftOutInsteadOfCrashing() {
+        // Values far beyond the input limits, as an older version could have saved them.
+        val huge = g1.copy(id = 6, fareCents = 500_000_000_000_000_000L, pickupKm = 0.0, tripKm = 0.0)
+        val tiny = g1.copy(id = 7, pickupKm = 0.05, tripKm = 0.0)
+        val s = calculator.summarizeDay(day, listOf(huge, tiny), emptyList(), emptyList())
+        assertEquals(2, s.completedTrips)
+        assertNull(s.tripProfitPerKmCents)
+    }
+
+    @Test
     fun anEmptyDayHasNoPerKmFigure() {
         val s = calculator.summarizeDay(day, listOf(g1.copy(status = TripStatus.OFFER_CHECK)), emptyList(), listOf(expense(30_000)))
         assertTrue(s.isEmpty)

@@ -14,6 +14,7 @@ import lk.picksmart.ui.components.ChoiceGrid
 import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.InputDigits
 
 /**
  * The vehicle fields shared by onboarding and Edit vehicle. Picking a fuel type fills in its price
@@ -76,6 +77,7 @@ fun VehicleFormFields(
             label = stringResource(R.string.vehicle_field_efficiency),
             suffix = stringResource(R.string.unit_km_per_litre),
             maxDecimals = 1,
+            maxIntegerDigits = InputDigits.EFFICIENCY,
             supportingText = stringResource(R.string.vehicle_field_efficiency_help),
             error = errors[VehicleField.EFFICIENCY]?.let { fieldErrorText(it, R.string.vehicle_error_efficiency_required) },
         )

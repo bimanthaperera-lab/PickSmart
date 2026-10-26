@@ -51,6 +51,7 @@ import lk.picksmart.ui.components.neutralRecordIcon
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.formatDecimal
 import java.time.LocalDate
@@ -293,6 +294,7 @@ private fun FuelForm(state: EditFuelUiState.Editing, onChange: (FuelFormState) -
         onValueChange = { onChange(form.withLitres(it)) },
         label = stringResource(R.string.fuel_litres),
         suffix = stringResource(R.string.unit_litre_short),
+        maxIntegerDigits = InputDigits.LITRES,
         supportingText = workedOut.takeIf { form.typed == FuelAmount.TOTAL && form.litres.isNotEmpty() },
         error = errors[FuelField.LITRES]?.message(R.string.fuel_error_litres_required),
     )
@@ -316,6 +318,7 @@ private fun FuelForm(state: EditFuelUiState.Editing, onChange: (FuelFormState) -
         label = stringResource(R.string.fuel_odometer),
         suffix = stringResource(R.string.unit_km),
         maxDecimals = 1,
+        maxIntegerDigits = InputDigits.ODOMETER,
         supportingText = stringResource(R.string.fuel_odometer_help),
         error = errors[FuelField.ODOMETER]?.message(R.string.vehicle_error_invalid),
         imeAction = ImeAction.Done,

@@ -42,4 +42,30 @@ class NumberInputTest {
     fun `non-western digits are not accepted`() {
         assertEquals("", sanitizeDecimalInput("١٢٣", 2))
     }
+
+    @Test
+    fun `typing past the whole-number limit is refused`() {
+        assertEquals("1234567", limitDecimalInput("1234567", "12345678", 2, 7))
+        assertEquals("1234567", limitDecimalInput("1234567", "12394567", 2, 7))
+        assertEquals("1234567.5", limitDecimalInput("1234567", "1234567.5", 2, 7))
+        assertEquals("999.5", limitDecimalInput("999.5", "9999.5", 1, 3))
+    }
+
+    @Test
+    fun `typing within the limit works as before`() {
+        assertEquals("123", limitDecimalInput("12", "123", 2, 4))
+        assertEquals("1000.00", limitDecimalInput("", "Rs. 1,000.00", 2, 7))
+        assertEquals("", limitDecimalInput("5", "", 2, 4))
+    }
+
+    @Test
+    fun `a pasted number that is too long is cut to the limit`() {
+        assertEquals("9999", limitDecimalInput("", "999999999999999999999", 1, 4))
+        assertEquals("1234567.89", limitDecimalInput("", "123456789012.89", 2, 7))
+    }
+
+    @Test
+    fun `a value saved over the limit can still be shortened`() {
+        assertEquals("123456789", limitDecimalInput("1234567890", "123456789", 2, 7))
+    }
 }

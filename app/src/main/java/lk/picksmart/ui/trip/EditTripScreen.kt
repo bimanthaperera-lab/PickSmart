@@ -74,6 +74,7 @@ import lk.picksmart.ui.components.TimeField
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.style
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.decimalToInput
 
 @Composable
@@ -233,6 +234,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
                         placeholder = zero,
                         suffix = km,
                         maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
                         error = errors.text(InputField.PICKUP_KM),
                     )
                 },
@@ -245,6 +247,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
                         placeholder = zero,
                         suffix = km,
                         maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
                         supportingText = stringResource(R.string.check_optional),
                         error = errors.text(InputField.RETURN_KM),
                     )
@@ -312,6 +315,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
                         placeholder = zero,
                         suffix = km,
                         maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
                         error = errors.text(InputField.PICKUP_KM),
                     )
                 },
@@ -324,6 +328,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
                         placeholder = zero,
                         suffix = km,
                         maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
                         error = errors.text(InputField.TRIP_KM),
                     )
                 },
@@ -336,6 +341,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
                         placeholder = zero,
                         suffix = km,
                         maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
                         supportingText = stringResource(R.string.check_optional),
                         error = errors.text(InputField.RETURN_KM),
                     )

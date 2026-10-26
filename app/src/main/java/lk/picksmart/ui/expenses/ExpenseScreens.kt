@@ -52,6 +52,7 @@ import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
 import java.time.LocalDate
+import lk.picksmart.util.InputDigits
 
 /** Expenses: this month's total, the entries newest first, and "Add expense". */
 @Composable
@@ -233,6 +234,7 @@ private fun ExpenseForm(state: EditExpenseUiState.Editing, onChange: (ExpenseFor
             label = stringResource(R.string.expense_odometer),
             suffix = stringResource(R.string.unit_km),
             maxDecimals = 1,
+            maxIntegerDigits = InputDigits.ODOMETER,
             supportingText = stringResource(R.string.expense_odometer_help),
             error = state.odometerError?.message(R.string.vehicle_error_invalid),
         )

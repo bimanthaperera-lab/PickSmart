@@ -88,6 +88,7 @@ import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NumberField
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.parseRupeesToCents
 import lk.picksmart.ui.components.PicksmartCard
@@ -303,6 +304,7 @@ private fun CheckRideForm(
                     placeholder = zero,
                     suffix = km,
                     maxDecimals = 1,
+                    maxIntegerDigits = InputDigits.DISTANCE,
                     error = errors.text(InputField.PICKUP_KM),
                 )
             },
@@ -315,6 +317,7 @@ private fun CheckRideForm(
                     placeholder = zero,
                     suffix = km,
                     maxDecimals = 1,
+                    maxIntegerDigits = InputDigits.DISTANCE,
                     error = errors.text(InputField.TRIP_KM),
                 )
             },
@@ -327,6 +330,7 @@ private fun CheckRideForm(
                     placeholder = zero,
                     suffix = km,
                     maxDecimals = 1,
+                    maxIntegerDigits = InputDigits.DISTANCE,
                     supportingText = stringResource(R.string.check_optional),
                     error = errors.text(InputField.RETURN_KM),
                     imeAction = if (form.overrides == null) ImeAction.Done else ImeAction.Next,
@@ -563,6 +567,7 @@ private fun RateOverridesCard(
                 label = stringResource(R.string.vehicle_field_efficiency),
                 suffix = stringResource(R.string.unit_km_per_litre),
                 maxDecimals = 1,
+                maxIntegerDigits = InputDigits.EFFICIENCY,
                 error = errors.text(InputField.FUEL_EFFICIENCY),
             )
             NumberField(

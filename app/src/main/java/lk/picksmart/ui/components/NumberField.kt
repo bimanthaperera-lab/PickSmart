@@ -18,12 +18,14 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
-import lk.picksmart.util.sanitizeDecimalInput
+import lk.picksmart.util.InputDigits
+import lk.picksmart.util.limitDecimalInput
 
 /**
- * A number input with a numeric keyboard. Typing is cleaned with [sanitizeDecimalInput], so the
- * value is always empty or a non-negative number. Use [prefix] for "Rs." and [suffix] for units
- * such as "km", and [trailing] for a small control at the field's end.
+ * A number input with a numeric keyboard. Typing is cleaned and limited with [limitDecimalInput],
+ * so the value is always empty or a non-negative number of at most [maxIntegerDigits] whole
+ * digits (default: money, see [InputDigits]). Use [prefix] for "Rs." and [suffix] for units such
+ * as "km", and [trailing] for a small control at the field's end.
  *
  * @param error Shown under the field and announced by screen readers; null when valid.
  */
@@ -37,6 +39,7 @@ fun NumberField(
     prefix: String? = null,
     suffix: String? = null,
     maxDecimals: Int = 2,
+    maxIntegerDigits: Int = InputDigits.MONEY,
     supportingText: String? = null,
     error: String? = null,
     imeAction: ImeAction = ImeAction.Next,
@@ -44,7 +47,7 @@ fun NumberField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(sanitizeDecimalInput(it, maxDecimals)) },
+        onValueChange = { onValueChange(limitDecimalInput(value, it, maxDecimals, maxIntegerDigits)) },
         label = { FieldLabelText(label) },
         placeholder = placeholder?.let { { Text(it) } },
         prefix = prefix?.let { { Text(it) } },

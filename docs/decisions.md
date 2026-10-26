@@ -382,3 +382,8 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Asked again in context** for a rider who skipped it: turning on Read ride offers still asks for notifications. *Default.*
 - **New `ic_bell` icon** (24-unit, 2-unit round stroke), also usable for the alerts inbox later. *Default.*
 - **Testing note.** Clearing the app's data also turns its accessibility service off in Android, and resets runtime permissions. Back up with `adb exec-out run-as lk.picksmart tar -cf - databases files shared_prefs` first, and restore through `/data/local/tmp`. *Default.*
+
+## 2026-10-26 — Badge says "Estimate", not "Read from screen"
+
+- **Owner asked** to remove "Read from screen" from the badge. Claude explained it isn't required by Android or Play; it came from N6, so the rider knows the numbers came from reading the screen and may be wrong, and so the badge doesn't look like part of Uber's screen. "Powered by Picksmart" already covers the second point. The owner chose a short **"Estimate · <vehicle>"** so the rider still knows to check. *Owner.*
+- **N6, 9a and 9b** now say the badge is labelled as an estimate. The Add trip notice ("These numbers were read from the screen…") is unchanged. *Default.*

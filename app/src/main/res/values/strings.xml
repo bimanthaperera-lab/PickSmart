@@ -546,7 +546,7 @@
     <string name="offer_reader_service_summary">Shows the estimated profit or loss of a ride offer. Reads the offer only, never taps.</string>
     <string name="offer_reader_service_description">Reads the fare and distances on ride offers in Uber Driver, on this phone only, to show the estimated profit or loss in a small badge. It never taps, accepts or declines anything, and nothing it reads is saved or sent anywhere. Ride apps may not allow this, and a driver account could be warned or blocked.</string>
     <string name="offer_badge_amounts">%1$s · %2$s/km</string>
-    <string name="offer_badge_source">Read from screen · %1$s</string>
+    <string name="offer_badge_source">Estimate · %1$s</string>
     <string name="offer_badge_hide_hint">Hold to hide</string>
     <string name="offer_badge_powered">Powered by Picksmart</string>
     <string name="offer_save_channel_name">Save offers as trips</string>

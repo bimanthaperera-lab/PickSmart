@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -119,7 +120,7 @@ class ProfilePhotoCache(private val directory: File) {
         val side = minOf(bitmap.width, bitmap.height)
         val cropped = Bitmap.createBitmap(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side)
         if (side <= SIZE_PX) return cropped
-        val scaled = Bitmap.createScaledBitmap(cropped, SIZE_PX, SIZE_PX, true)
+        val scaled = cropped.scale(SIZE_PX, SIZE_PX)
         if (cropped !== bitmap) cropped.recycle()
         return scaled
     }

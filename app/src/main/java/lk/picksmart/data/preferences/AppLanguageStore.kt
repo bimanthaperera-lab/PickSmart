@@ -30,8 +30,9 @@ object AppLanguageStore {
     }
 
     /**
-     * Shows the app in [language] from now on. The screen is recreated in the new language: by
-     * Android on 13+, by [activity] below that.
+     * Shows the app in [language] from now on. On 13+ Android sends the activity a configuration
+     * change, which it handles in place (the screens redraw in the new language, with no restart
+     * and no blank frame). Below 13 the language is applied in [wrap], so [activity] is recreated.
      */
     fun set(activity: Activity, language: AppLanguage) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

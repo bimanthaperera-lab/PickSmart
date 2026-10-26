@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
 - **Next step:** Owner: decide what V2 starts with; run the offer reader probe on a phone with Uber Driver; read Uber's driver terms on third-party tools. Before uploading V1 to Play, decide whether the offer reader ships in it or in a later update (`docs/decisions.md`, 2026-10-26).
-- **Last updated:** 2026-10-26 (V1 marked: merged `fix/ui-polish` and the probe; Reports, Home and History follow the active vehicle; Phase 8e offer reader with the PROFIT / LOSS badge, checked on the emulator)
+- **Last updated:** 2026-10-26 (digit limits on every number field and overflow guards; Profile: own photo, gender and date of birth, sign-in method row removed; no restart or blank frame when the language changes)
 
 ## Open questions for the owner
 

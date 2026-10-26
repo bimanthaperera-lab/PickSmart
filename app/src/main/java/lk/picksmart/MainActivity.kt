@@ -56,7 +56,6 @@ class MainActivity : ComponentActivity() {
             splashScreen.setOnExitAnimationListener { it.remove() }
         }
         val container = (application as PicksmartApplication).container
-        val preferences = container.userPreferences
         // App start: check the published fuel price in the background (CLAUDE.md section 8a).
         if (savedInstanceState == null) {
             container.refreshFuelPrices()
@@ -65,9 +64,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // The app waits for the stored theme and setup flag, so a rider never sees a flash of
-            // the wrong theme or of onboarding.
-            val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = null)
-            val onboardingComplete by preferences.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
+            // the wrong theme or of onboarding. Once loaded they stay loaded, so a recreated
+            // screen has them at once.
+            val startup by container.startupSettings.collectAsStateWithLifecycle()
+            val themeMode = startup?.themeMode
+            val onboardingComplete = startup?.onboardingComplete
 
             // The splash is drawn on the very first frame, before those load, so the logo on the
             // system splash never gives way to a blank screen. It stays for SplashMillis and until
@@ -76,7 +77,7 @@ class MainActivity : ComponentActivity() {
             if (!splashDone) {
                 LaunchedEffect(Unit) {
                     delay(SplashMillis)
-                    snapshotFlow { themeMode != null && onboardingComplete != null }.first { it }
+                    snapshotFlow { startup != null }.first { it }
                     splashDone = true
                 }
             }

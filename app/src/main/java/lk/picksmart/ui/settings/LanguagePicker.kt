@@ -17,8 +17,10 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -42,13 +44,26 @@ fun AppLanguage.displayName(): String = stringResource(
     },
 )
 
+/**
+ * The language the rider chose, read again when the app's language changes. On Android 13+ the
+ * screen isn't recreated for that (MainActivity handles the change), so it must follow the
+ * configuration rather than be read once.
+ */
+@Composable
+fun rememberChosenLanguage(): AppLanguage {
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    return remember(configuration) { AppLanguageStore.current(context) }
+}
+
 /** English, සිංහල, தமிழ் as chips, for the welcome screen. Choosing one redraws the app in it. */
 @Composable
 fun LanguageChips(modifier: Modifier = Modifier) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     ChoiceChips(
         options = listOf(AppLanguage.ENGLISH, AppLanguage.SINHALA, AppLanguage.TAMIL),
-        selected = AppLanguageStore.showing(context),
+        selected = remember(configuration) { AppLanguageStore.showing(context) },
         optionLabel = { it.displayName() },
         onSelect = { language -> context.findActivity()?.let { AppLanguageStore.set(it, language) } },
         modifier = modifier,

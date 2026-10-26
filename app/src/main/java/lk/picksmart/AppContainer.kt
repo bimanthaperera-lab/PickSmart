@@ -9,6 +9,10 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.FirebaseAccountProvider
@@ -25,6 +29,7 @@ import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.CompleteOnboarding
 import lk.picksmart.domain.usecase.FuelPriceUpdates
 import java.time.Clock
@@ -72,6 +77,16 @@ class AppContainer(context: Context) {
     /** Work that should finish even if the screen that started it closes, such as a price check. */
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    /**
+     * The theme and setup flag MainActivity waits for, kept loaded while the app runs. A screen
+     * recreated later (below Android 13, a language change does that) has them on its first frame
+     * instead of drawing a blank one while DataStore loads.
+     */
+    val startupSettings: StateFlow<StartupSettings?> by lazy {
+        combine(userPreferences.themeMode, userPreferences.onboardingComplete, ::StartupSettings)
+            .stateIn(applicationScope, SharingStarted.Eagerly, null)
+    }
+
     val fuelPriceSource: FuelPriceSource by lazy {
         val url = BuildConfig.FUEL_PRICE_URL.takeIf { it.isNotBlank() }
         FuelPriceSource(url?.let(::HttpsFuelPriceFetcher), userPreferences, clock)
@@ -105,3 +120,6 @@ class AppContainer(context: Context) {
         }
     }
 }
+
+/** What the first screen depends on: the rider's theme and whether setup is done. */
+data class StartupSettings(val themeMode: ThemeMode, val onboardingComplete: Boolean)

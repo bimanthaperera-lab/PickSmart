@@ -191,7 +191,7 @@ fun ProfileScreen(
                     {
                         ListRow(
                             title = stringResource(R.string.profile_gender),
-                            subtitle = stringResource(R.string.profile_on_phone_only),
+                            subtitle = stringResource(R.string.profile_mobile_optional),
                             value = signedIn.details.gender?.let { stringResource(it.label) } ?: stringResource(R.string.profile_add),
                             onClick = { choosingGender = true },
                         )
@@ -199,7 +199,7 @@ fun ProfileScreen(
                     {
                         ListRow(
                             title = stringResource(R.string.profile_birth_date),
-                            subtitle = stringResource(R.string.profile_on_phone_only),
+                            subtitle = stringResource(R.string.profile_mobile_optional),
                             value = signedIn.details.birthDate?.let { formatPattern(it, stringResource(R.string.pattern_date_field)) }
                                 ?: stringResource(R.string.profile_add),
                             onClick = { pickingBirthDate = true },
@@ -263,6 +263,10 @@ fun ProfileScreen(
                 onSelect = {
                     choosingGender = false
                     viewModel.saveGender(it)
+                },
+                onRemove = {
+                    choosingGender = false
+                    viewModel.saveGender(null)
                 },
                 onDismiss = { choosingGender = false },
             )
@@ -328,7 +332,7 @@ private val Gender.label: Int
     }
 
 @Composable
-private fun GenderDialog(selected: Gender?, onSelect: (Gender) -> Unit, onDismiss: () -> Unit) {
+private fun GenderDialog(selected: Gender?, onSelect: (Gender) -> Unit, onRemove: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.profile_gender)) },
@@ -351,6 +355,11 @@ private fun GenderDialog(selected: Gender?, onSelect: (Gender) -> Unit, onDismis
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        dismissButton = if (selected != null) {
+            { TextButton(onClick = onRemove) { Text(stringResource(R.string.action_remove)) } }
+        } else {
+            null
+        },
     )
 }
 
@@ -457,7 +466,8 @@ class ProfileViewModel(
         AuthResult.Success
     }
 
-    fun saveGender(gender: Gender) = perform(null) {
+    /** Saves the gender, or removes it when [gender] is null. */
+    fun saveGender(gender: Gender?) = perform(null) {
         provider.profile.first()?.uid?.let { preferences.setGender(it, gender) }
         AuthResult.Success
     }

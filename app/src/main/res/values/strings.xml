@@ -713,7 +713,6 @@
     <string name="profile_photo_failed">Couldn\'t use that photo. Try another one.</string>
     <string name="profile_gender">Gender</string>
     <string name="profile_birth_date">Date of birth</string>
-    <string name="profile_on_phone_only">Optional · stays on this phone</string>
     <string name="profile_photo_note">Your photo, gender and date of birth stay on this phone. They aren\'t uploaded or shared.</string>
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>

@@ -22,13 +22,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.BuildConfig
-import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.R
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.model.Vehicle
@@ -69,8 +67,7 @@ fun SettingsSections(
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
-    // Changing the language recreates the screen, so reading it once per composition is enough.
-    val language = AppLanguageStore.current(LocalContext.current)
+    val language = rememberChosenLanguage()
 
     Column {
         VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, viewModel::setActiveVehicle, onOpenFuelPrice)

@@ -4,6 +4,10 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.domain.usecase.OfferReading
+import lk.picksmart.domain.usecase.OfferToSave
+import java.time.Instant
 
 @Serializable data object HomeRoute
 @Serializable data object CheckRideRoute
@@ -22,11 +26,38 @@ data class EditVehicleRoute(val vehicleId: Long) {
     }
 }
 
-/** Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History. */
+/**
+ * Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History, and from the offer
+ * reader's "Save this trip?" notification, which fills the new trip with the offer's numbers
+ * ([forOffer]). An offer fare of 0 means the trip isn't from an offer.
+ */
 @Serializable
-data class EditTripRoute(val tripId: Long) {
+data class EditTripRoute(
+    val tripId: Long,
+    val offerFareCents: Long = 0,
+    val offerPickupKm: Double = -1.0,
+    val offerTripKm: Double = -1.0,
+    val offerPlatform: Platform = Platform.OTHER,
+    val offerReadAtMillis: Long = 0,
+) {
+    /** The offer to fill a new trip with, or null for a blank one. Distances below 0 weren't read. */
+    fun offer(): OfferToSave? {
+        if (tripId != NEW || offerFareCents <= 0) return null
+        val reading = OfferReading(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 })
+        return OfferToSave(reading, offerPlatform, Instant.ofEpochMilli(offerReadAtMillis))
+    }
+
     companion object {
         const val NEW = 0L
+
+        fun forOffer(offer: OfferToSave) = EditTripRoute(
+            tripId = NEW,
+            offerFareCents = offer.reading.fareCents,
+            offerPickupKm = offer.reading.pickupKm ?: -1.0,
+            offerTripKm = offer.reading.tripKm ?: -1.0,
+            offerPlatform = offer.platform,
+            offerReadAtMillis = offer.readAt.toEpochMilli(),
+        )
     }
 }
 

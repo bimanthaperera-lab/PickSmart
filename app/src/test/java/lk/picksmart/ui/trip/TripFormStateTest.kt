@@ -8,11 +8,14 @@ import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.TripInput
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.domain.usecase.OfferReading
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.domain.usecase.countedProfitCents
 import lk.picksmart.domain.usecase.newTrip
 import lk.picksmart.ui.checkride.CheckRideError
 import lk.picksmart.ui.checkride.CheckRideFormState
 import lk.picksmart.ui.checkride.CheckRideOutcome
+import lk.picksmart.ui.navigation.EditTripRoute
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -132,5 +135,40 @@ class TripFormStateTest {
         assertEquals("", form.ride.pickupKm)
         assertEquals("", form.ride.tripKm)
         assertEquals("", form.ride.otherCosts)
+    }
+
+    /** Sample offer (made-up numbers): G1's fare and distances, read at 4:42:20 PM Colombo time. */
+    private val g1Offer = OfferToSave(OfferReading(100_000, 2.0, 8.0), Platform.UBER, Instant.parse("2026-10-21T11:12:20Z"))
+
+    @Test
+    fun `an offer fills a completed trip that saves as G1`() {
+        val last = LastCheckInputs(platform = Platform.PICKME, commissionType = CommissionType.AMOUNT, commissionHundredths = 20_000, tripKm = 5.0)
+        val form = offerTripForm(last, g1Offer)
+        assertEquals(TripStatus.COMPLETED, form.status)
+        assertEquals(LocalDate.of(2026, 10, 21), form.date)
+        assertEquals(LocalTime.of(16, 42), form.time)
+        assertEquals(Platform.UBER, form.ride.platform)
+        assertEquals("1000", form.ride.fare)
+        assertEquals("2", form.ride.pickupKm)
+        assertEquals("8", form.ride.tripKm)
+        assertEquals("", form.ride.returnKm)
+        assertEquals(70_500L, calculator.countedProfitCents(newTrip(valid(form), 1, 1)))
+    }
+
+    @Test
+    fun `an offer without a pickup distance leaves the pickup empty`() {
+        val form = offerTripForm(LastCheckInputs(), g1Offer.copy(reading = OfferReading(85_000, null, 6.5)))
+        assertEquals("850", form.ride.fare)
+        assertEquals("", form.ride.pickupKm)
+        assertEquals("6.5", form.ride.tripKm)
+    }
+
+    @Test
+    fun `the Add trip route carries an offer and back`() {
+        assertEquals(g1Offer, EditTripRoute.forOffer(g1Offer).offer())
+        val noPickup = g1Offer.copy(reading = OfferReading(85_000, null, 6.5))
+        assertEquals(noPickup, EditTripRoute.forOffer(noPickup).offer())
+        assertNull(EditTripRoute(EditTripRoute.NEW).offer())
+        assertNull(EditTripRoute(5).offer())
     }
 }

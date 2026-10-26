@@ -4,6 +4,9 @@
     <!-- Only for the read-only fuel price download (CLAUDE.md section 8a). -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Android 13+: asked for when the rider turns on the offer reader, for "Save this trip?" (section 9b). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Auto Backup is on, limited by explicit rules (CLAUDE.md section 10). -->
     <application
         android:name=".PicksmartApplication"

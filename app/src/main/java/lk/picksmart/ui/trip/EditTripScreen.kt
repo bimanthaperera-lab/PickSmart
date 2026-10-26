@@ -197,6 +197,9 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
     if (form.status == TripStatus.OFFER_CHECK) {
         NoticeCard(title = stringResource(R.string.trip_status_offer), body = stringResource(R.string.trip_offer_notice))
     }
+    if (state.fromOffer) {
+        NoticeCard(title = stringResource(R.string.trip_from_offer_title), body = stringResource(R.string.trip_from_offer_notice))
+    }
 
     FieldRow(
         stacked,

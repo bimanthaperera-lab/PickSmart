@@ -522,7 +522,7 @@
     <string name="offer_reader_on">On · shows profit or loss on new offers</string>
     <string name="offer_reader_off">Off</string>
     <string name="offer_reader_disclosure_title">Read ride offers?</string>
-    <string name="offer_reader_disclosure_body">Picksmart can read the fare and distances on a ride offer in Uber Driver and show the estimated profit or loss in a small badge at the top of the screen.\n\nIt uses Android\'s accessibility service to read the text on the offer only. It never taps, accepts or declines anything. What it reads stays on this phone: it is not saved, logged or sent anywhere.\n\nRide apps may not allow other apps to read their screens. Using this could get your driver account warned or blocked. Use it at your own risk.\n\nThe result is an estimate from your vehicle\'s rates. Always check before you accept.</string>
+    <string name="offer_reader_disclosure_body">Picksmart can read the fare and distances on a ride offer in Uber Driver and show the estimated profit or loss in a small badge at the top of the screen.\n\nIt uses Android\'s accessibility service to read the text on the offer only. It never taps, accepts or declines anything. What it reads stays on this phone: it is not saved, logged or sent anywhere.\n\nWhen an offer closes, a notification asks whether you took it. Tapping it fills in a trip for you to check; nothing is saved until you tap Save.\n\nRide apps may not allow other apps to read their screens. Using this could get your driver account warned or blocked. Use it at your own risk.\n\nThe result is an estimate from your vehicle\'s rates. Always check before you accept.</string>
     <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
     <string name="offer_reader_paused">Paused · not reading offers</string>
     <!-- The switch at the top of Check a Ride -->
@@ -538,6 +538,14 @@
     <string name="offer_badge_amounts">%1$s · %2$s/km</string>
     <string name="offer_badge_source">Read from screen · %1$s</string>
     <string name="offer_badge_hide_hint">Hold to hide</string>
+    <string name="offer_badge_powered">Powered by Picksmart</string>
+    <string name="offer_save_channel_name">Save offers as trips</string>
+    <string name="offer_save_channel_description">After the offer reader shows a ride offer, asks whether to save it as a trip.</string>
+    <string name="offer_save_title">Took this ride? Save it as a trip</string>
+    <string name="offer_save_body">%1$s · %2$s km · tap to check and save</string>
+    <string name="offer_save_public_title">Save your last ride offer as a trip</string>
+    <string name="trip_from_offer_title">Filled from the ride offer</string>
+    <string name="trip_from_offer_notice">These numbers were read from the screen. Check the fare and distances, and add any return trip or other costs, before you save.</string>
     <string name="settings_language">Language</string>
     <string name="language_system">Phone\'s language</string>
     <string name="language_name_en" translatable="false">English</string>

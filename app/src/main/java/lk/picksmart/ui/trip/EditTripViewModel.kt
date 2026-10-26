@@ -46,6 +46,7 @@ sealed interface EditTripUiState {
      *   or cancelled trip can't go back to being an offer.
      * @property shownErrors Live errors plus, after a save attempt, the "required" ones.
      * @property vehicle The trip's vehicle; picked while adding, fixed once saved.
+     * @property fromOffer A new trip filled from the offer reader's notification, to be checked.
      */
     data class Editing(
         val form: TripFormState,
@@ -56,6 +57,7 @@ sealed interface EditTripUiState {
         val outcome: CheckRideOutcome,
         val shownErrors: Map<InputField, CheckRideError>,
         val vehicle: RecordVehicle = RecordVehicle(),
+        val fromOffer: Boolean = false,
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
         val done: Boolean = false,
@@ -72,7 +74,9 @@ class EditTripViewModel(
     private val clock: Clock,
 ) : ViewModel() {
 
-    private val tripId = savedStateHandle.toRoute<EditTripRoute>().tripId
+    private val route = savedStateHandle.toRoute<EditTripRoute>()
+    private val tripId = route.tripId
+    private val offer = route.offer()
     private var vehicleId = 0L
     private var recordVehicle = RecordVehicle()
     private var triedSave = false
@@ -90,7 +94,8 @@ class EditTripViewModel(
                 } else {
                     vehicleId = vehicle.id
                     recordVehicle = RecordVehicle(vehicles.activeVehicles.first(), vehicle.id, vehicle.name, editable = true)
-                    val form = newTripForm(preferences.lastCheckInputs.first(), now.toLocalDate(), now.toLocalTime())
+                    val last = preferences.lastCheckInputs.first()
+                    val form = offer?.let { offerTripForm(last, it) } ?: newTripForm(last, now.toLocalDate(), now.toLocalTime())
                     editing(form, vehicle.rates(), isNew = true, listOf(TripStatus.COMPLETED, TripStatus.CANCELLED), now.toLocalDate())
                 }
             } else {
@@ -183,7 +188,7 @@ class EditTripViewModel(
         } else {
             live
         }
-        return EditTripUiState.Editing(form, rates, isNew, statuses, today, outcome, shown, recordVehicle)
+        return EditTripUiState.Editing(form, rates, isNew, statuses, today, outcome, shown, recordVehicle, fromOffer = offer != null)
     }
 
     companion object {

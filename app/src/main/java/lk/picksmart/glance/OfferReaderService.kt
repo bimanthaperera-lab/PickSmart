@@ -16,16 +16,22 @@ import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.usecase.OfferReading
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.domain.usecase.checkOffer
 import lk.picksmart.domain.usecase.parseOfferText
+import lk.picksmart.ui.notifications.OfferSaveNotification
 import java.lang.ref.WeakReference
+import java.time.Instant
 
 /**
  * The offer reader (CLAUDE.md N5, section 9b). When a listed ride app's window changes, it reads
  * the visible text, finds an offer's fare and distances with [parseOfferText], and shows the
- * estimated profit or loss in an [OfferBadge], using the active vehicle's rates.
+ * estimated profit or loss in an [OfferBadge], using the active vehicle's rates. When the offer
+ * leaves the screen it asks, in a notification, whether to save it as a trip
+ * ([OfferSaveNotification]); only the numbers go into it, and the rider saves them in the app.
  *
  * It only reads. It never performs an action, gesture or global action, and the text it reads is
  * kept in memory for one calculation and never logged, saved or sent. Which apps it reads is set
@@ -45,6 +51,13 @@ class OfferReaderService : AccessibilityService() {
     private var shown: OfferReading? = null
     private var hiddenByRider: OfferReading? = null
 
+    /** Where and when [shown] was read, for the "Save this trip?" notification. */
+    private var shownPackage: String? = null
+    private var shownAt: Instant? = null
+
+    /** The offer last offered for saving, so the same offer isn't offered again. */
+    private var lastAsked: OfferReading? = null
+
     private val read = Runnable { readActiveWindow() }
     private val clear = Runnable { clearBadge() }
 
@@ -59,7 +72,7 @@ class OfferReaderService : AccessibilityService() {
         scope.launch {
             container.userPreferences.offerReaderPaused.collect {
                 paused = it
-                if (it) clearBadge() else handler.post(read)
+                if (it) clearBadge(askToSave = false) else handler.post(read)
             }
         }
         running = WeakReference(this)
@@ -98,6 +111,10 @@ class OfferReaderService : AccessibilityService() {
         handler.removeCallbacks(clear)
         if (reading == hiddenByRider) return
         hiddenByRider = null
+        if (reading != shown) {
+            shownPackage = root.packageName?.toString()
+            shownAt = (application as PicksmartApplication).container.clock.instant()
+        }
         shown = reading
         refresh()
         handler.postDelayed(clear, SHOW_AT_MOST_MS)
@@ -118,10 +135,26 @@ class OfferReaderService : AccessibilityService() {
         handler.postDelayed(clear, CLEAR_AFTER_MS)
     }
 
-    private fun clearBadge() {
+    /**
+     * Hides the badge. When the offer has left the screen ([askToSave]), asks whether to save it:
+     * Picksmart can't tell whether the rider accepted it.
+     */
+    private fun clearBadge(askToSave: Boolean = true) {
+        val offer = shown
+        val readAt = shownAt
         shown = null
         handler.removeCallbacks(clear)
         if (::badge.isInitialized) badge.hide()
+        if (askToSave && offer != null && readAt != null && offer != lastAsked && vehicle != null) {
+            lastAsked = offer
+            OfferSaveNotification.post(this, OfferToSave(offer, platformOf(shownPackage), readAt))
+        }
+    }
+
+    /** The ride app an offer came from; Picksmart's own sample and unknown apps use the last-used platform. */
+    private fun platformOf(packageName: String?): Platform = when (packageName) {
+        UBER_DRIVER -> Platform.UBER
+        else -> lastInputs.platform
     }
 
     /** The text and descriptions of visible nodes, in reading order, up to [MAX_NODES]. */
@@ -155,6 +188,7 @@ class OfferReaderService : AccessibilityService() {
         private const val CLEAR_AFTER_MS = 1_500L
         private const val SHOW_AT_MOST_MS = 45_000L
         private const val MAX_NODES = 400
+        private const val UBER_DRIVER = "com.ubercab.driver"
 
         /** The connected service, so the app can turn it off completely ([turnOff]). */
         @Volatile private var running: WeakReference<OfferReaderService>? = null

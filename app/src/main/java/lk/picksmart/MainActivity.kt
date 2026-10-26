@@ -2,6 +2,7 @@ package lk.picksmart
 
 import android.app.UiModeManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -32,12 +33,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.ui.navigation.PicksmartApp
+import lk.picksmart.ui.notifications.OfferSaveNotification
 import lk.picksmart.ui.onboarding.OnboardingScreen
 import lk.picksmart.ui.splash.SplashScreen
 import lk.picksmart.ui.theme.PicksmartTheme
 
 class MainActivity : ComponentActivity() {
+    /** An offer from a tap on "Save this trip?", waiting for the app to open Add trip with it. */
+    private var offerToSave by mutableStateOf<OfferToSave?>(null)
+
     // The rider's language below Android 13 (AppLanguageStore); Android applies it itself on 13+.
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
 
@@ -52,7 +58,10 @@ class MainActivity : ComponentActivity() {
         val container = (application as PicksmartApplication).container
         val preferences = container.userPreferences
         // App start: check the published fuel price in the background (CLAUDE.md section 8a).
-        if (savedInstanceState == null) container.refreshFuelPrices()
+        if (savedInstanceState == null) {
+            container.refreshFuelPrices()
+            offerToSave = OfferSaveNotification.offerFrom(intent)
+        }
 
         setContent {
             // The app waits for the stored theme and setup flag, so a rider never sees a flash of
@@ -137,8 +146,13 @@ class MainActivity : ComponentActivity() {
         PicksmartTheme(darkTheme = darkTheme) {
             // Setup runs only while the flag is false; finishing it flips the flag and this
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
-            if (onboardingComplete) PicksmartApp() else OnboardingScreen()
+            if (onboardingComplete) PicksmartApp(offerToSave, onOfferOpened = { offerToSave = null }) else OnboardingScreen()
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        OfferSaveNotification.offerFrom(intent)?.let { offerToSave = it }
     }
 
     private companion object {

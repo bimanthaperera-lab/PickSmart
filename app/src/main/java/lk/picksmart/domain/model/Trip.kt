@@ -1,7 +1,10 @@
 package lk.picksmart.domain.model
 
+import androidx.annotation.Keep
 import java.time.Instant
 
+/** Kept by R8: it is a type-safe navigation argument (EditTripRoute). */
+@Keep
 enum class Platform { UBER, PICKME, COURIER, OWN_DELIVERY, OTHER }
 
 enum class TripStatus {

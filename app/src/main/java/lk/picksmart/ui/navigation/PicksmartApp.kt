@@ -14,6 +14,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -30,6 +31,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.ui.account.AccountScreen
 import lk.picksmart.ui.account.ForgotPasswordScreen
 import lk.picksmart.ui.account.LoginScreen
@@ -51,12 +53,22 @@ import lk.picksmart.ui.vehicle.EditVehicleScreen
 import lk.picksmart.ui.vehicle.VehicleLimitScreen
 import kotlin.reflect.KClass
 
-/** The app shell: bottom navigation around the four tabs. */
+/**
+ * The app shell: bottom navigation around the four tabs. [offerToSave], from a tap on the offer
+ * reader's "Save this trip?" notification, opens Add trip filled with it, then [onOfferOpened].
+ */
 @Composable
-fun PicksmartApp() {
+fun PicksmartApp(offerToSave: OfferToSave? = null, onOfferOpened: () -> Unit = {}) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+
+    LaunchedEffect(offerToSave) {
+        if (offerToSave != null) {
+            navController.navigate(EditTripRoute.forOffer(offerToSave))
+            onOfferOpened()
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

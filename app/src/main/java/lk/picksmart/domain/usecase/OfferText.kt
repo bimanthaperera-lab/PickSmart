@@ -7,9 +7,11 @@ import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Vehicle
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 
 /**
  * The numbers found on a ride offer by the offer reader (CLAUDE.md section 9b). Untrusted (N6):
@@ -21,6 +23,13 @@ import java.math.RoundingMode
 data class OfferReading(val fareCents: Long, val pickupKm: Double?, val tripKm: Double?) {
     val totalKm: Double get() = (pickupKm ?: 0.0) + (tripKm ?: 0.0)
 }
+
+/**
+ * An offer the reader showed, for the "Save this trip?" notification: its numbers, which ride
+ * app it came from and when it was read. It only fills the Add trip form; the rider checks and
+ * saves it there (N6).
+ */
+data class OfferToSave(val reading: OfferReading, val platform: Platform, val readAt: Instant)
 
 private val MONEY_BEFORE = Regex("""(?i)(?<![\w+])(?:rs\.?|lkr|රු\.?)\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)""")
 private val MONEY_AFTER = Regex("""(?i)(?<![\w.,])([0-9][0-9,]*(?:\.[0-9]{1,2})?)\s*(?:lkr|rs\.?)(?!\w)""")

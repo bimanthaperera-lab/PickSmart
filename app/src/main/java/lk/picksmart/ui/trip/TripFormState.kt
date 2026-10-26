@@ -8,6 +8,7 @@ import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripInput
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.ui.checkride.CheckRideError
 import lk.picksmart.ui.checkride.CheckRideFormState
 import lk.picksmart.ui.checkride.CheckRideOutcome
@@ -128,3 +129,21 @@ fun newTripForm(last: LastCheckInputs, date: LocalDate, time: LocalTime) = TripF
     time = time.withSecond(0).withNano(0),
     ride = last.copy(otherCostsCents = null, pickupKm = null, tripKm = null, returnKm = null).toFormState(),
 )
+
+/**
+ * A completed trip filled from an offer the reader showed: its fare, distances and ride app, at
+ * the time it was read, with the fee setup of the last check (as on the badge). The rider checks
+ * it before saving (N6).
+ */
+fun offerTripForm(last: LastCheckInputs, offer: OfferToSave): TripFormState {
+    val local = offer.readAt.atZone(ColomboZone)
+    val blank = newTripForm(last.copy(platform = offer.platform), local.toLocalDate(), local.toLocalTime())
+    val reading = offer.reading
+    return blank.copy(
+        ride = blank.ride.copy(
+            fare = hundredthsToInput(reading.fareCents),
+            pickupKm = reading.pickupKm?.let(::decimalToInput).orEmpty(),
+            tripKm = reading.tripKm?.let(::decimalToInput).orEmpty(),
+        ),
+    )
+}

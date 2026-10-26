@@ -1,9 +1,14 @@
 package lk.picksmart.ui.settings
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -91,15 +97,34 @@ private fun rememberReaderEnabled(): Pair<Boolean, () -> Unit> {
 }
 
 /**
+ * What accepting the disclosure does: clears a leftover pause, asks for notifications (Android
+ * 13+, for "Save this trip?"; the reader works without them), then opens Android's Accessibility
+ * settings, where only the rider can turn the reader on.
+ */
+@Composable
+private fun rememberTurnOn(viewModel: OfferReaderViewModel): () -> Unit {
+    val context = LocalContext.current
+    val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        context.openAccessibilitySettings()
+    }
+    return {
+        viewModel.setPaused(false)
+        val needsAsking = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        if (needsAsking) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) else context.openAccessibilitySettings()
+    }
+}
+
+/**
  * "Read offers" with a switch, for the top of Home. While the reader is on in Android, the
  * switch pauses and resumes it at once. The first time, it shows the disclosure, then opens
  * Android's Accessibility settings, where only the rider can turn it on.
  */
 @Composable
 fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)) {
-    val context = LocalContext.current
     val (enabled, _) = rememberReaderEnabled()
     val paused by viewModel.paused.collectAsStateWithLifecycle()
+    val turnOn = rememberTurnOn(viewModel)
     var showDisclosure by rememberSaveable { mutableStateOf(false) }
     val on = enabled && !paused
 
@@ -132,8 +157,7 @@ fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewM
         DisclosureDialog(
             onAccept = {
                 showDisclosure = false
-                viewModel.setPaused(false)
-                context.openAccessibilitySettings()
+                turnOn()
             },
             onDismiss = { showDisclosure = false },
         )
@@ -149,6 +173,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
     val context = LocalContext.current
     val (enabled, recheck) = rememberReaderEnabled()
     val paused by viewModel.paused.collectAsStateWithLifecycle()
+    val turnOn = rememberTurnOn(viewModel)
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val status = when {
         !enabled -> OfferReaderStatus.OFF
@@ -178,8 +203,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
         OfferReaderStatus.OFF -> DisclosureDialog(
             onAccept = {
                 showDialog = false
-                viewModel.setPaused(false)
-                context.openAccessibilitySettings()
+                turnOn()
             },
             onDismiss = { showDialog = false },
         )

@@ -711,6 +711,8 @@
     <string name="profile_change_photo_description">Change profile photo</string>
     <string name="profile_remove_photo">Remove photo</string>
     <string name="profile_photo_failed">Couldn\'t use that photo. Try another one.</string>
+    <string name="profile_photo_unsupported">Choose a JPG, PNG, WebP or HEIC photo.</string>
+    <string name="profile_photo_too_large">That photo is over 20 MB. Choose a smaller one.</string>
     <string name="profile_gender">Gender</string>
     <string name="profile_birth_date">Date of birth</string>
     <string name="profile_photo_note">Your photo, gender and date of birth stay on this phone. They aren\'t uploaded or shared.</string>

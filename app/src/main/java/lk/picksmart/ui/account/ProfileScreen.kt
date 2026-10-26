@@ -64,6 +64,7 @@ import lk.picksmart.PicksmartApplication
 import lk.picksmart.R
 import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.AuthResult
+import lk.picksmart.data.account.PhotoSaveResult
 import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.domain.model.Gender
@@ -456,9 +457,19 @@ class ProfileViewModel(
     }
 
     /** Makes the picked image the rider's photo; only a small square copy is kept. */
-    fun savePhoto(uri: Uri) = perform(null) {
-        val uid = provider.profile.first()?.uid ?: return@perform AuthResult.Success
-        if (photos.saveOwn(uid, resolver, uri)) AuthResult.Success else null
+    fun savePhoto(uri: Uri) {
+        if (mutableStatus.value.busy) return
+        mutableStatus.value = ProfileStatus(busy = true)
+        viewModelScope.launch {
+            val uid = provider.profile.first()?.uid
+            val result = if (uid == null) PhotoSaveResult.SAVED else photos.saveOwn(uid, resolver, uri)
+            mutableStatus.value = when (result) {
+                PhotoSaveResult.SAVED -> ProfileStatus()
+                PhotoSaveResult.UNSUPPORTED_FORMAT -> ProfileStatus(message = R.string.profile_photo_unsupported, isError = true)
+                PhotoSaveResult.TOO_LARGE -> ProfileStatus(message = R.string.profile_photo_too_large, isError = true)
+                PhotoSaveResult.UNREADABLE -> ProfileStatus(message = R.string.profile_photo_failed, isError = true)
+            }
+        }
     }
 
     fun removePhoto() = perform(null) {
@@ -498,15 +509,14 @@ class ProfileViewModel(
         result
     }
 
-    /** Runs one request at a time. An [action] returning null means the photo couldn't be used. */
-    private fun perform(@StringRes successMessage: Int?, action: suspend () -> AuthResult?) {
+    /** Runs one request at a time. */
+    private fun perform(@StringRes successMessage: Int?, action: suspend () -> AuthResult) {
         if (mutableStatus.value.busy) return
         mutableStatus.value = ProfileStatus(busy = true)
         viewModelScope.launch {
             mutableStatus.value = when (val result = action()) {
                 AuthResult.Success -> ProfileStatus(message = successMessage)
                 is AuthResult.Failure -> ProfileStatus(message = result.error.message(), isError = true)
-                null -> ProfileStatus(message = R.string.profile_photo_failed, isError = true)
             }
         }
     }

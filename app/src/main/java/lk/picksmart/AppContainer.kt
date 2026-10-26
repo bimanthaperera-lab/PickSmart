@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lk.picksmart.data.account.AccountProvider
+import lk.picksmart.data.account.AppCheck
 import lk.picksmart.data.account.FirebaseAccountProvider
 import lk.picksmart.data.account.NoOpAccountProvider
 import lk.picksmart.data.account.ProfilePhotoCache
@@ -107,9 +108,11 @@ class AppContainer(context: Context) {
     /**
      * The optional account (CLAUDE.md section 14). Firebase only when the build has
      * `google-services.json` and it started; otherwise the app runs signed out with no sign-in.
+     * App Check is installed first, so every Firebase request after it carries a token.
      */
     val account: AccountProvider by lazy {
         if (BuildConfig.FIREBASE_ENABLED && FirebaseApp.getApps(appContext).isNotEmpty()) {
+            AppCheck.install(FirebaseApp.getInstance())
             FirebaseAccountProvider(FirebaseAuth.getInstance(), appContext)
         } else {
             NoOpAccountProvider
@@ -131,7 +134,7 @@ class AppContainer(context: Context) {
         val dao = database.syncDao()
         val cloudSync = CloudSync(
             dao = dao,
-            cloud = FirestoreCloudStore(firestore),
+            cloud = FirestoreCloudStore(firestore, AppCheck::passes),
             settings = DataStoreSyncedSettings(userPreferences, dao),
             transaction = { block -> database.withTransaction { block() } },
         )

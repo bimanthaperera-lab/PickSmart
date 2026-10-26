@@ -234,6 +234,7 @@ private fun backupStatusText(status: SyncStatus): String = when (status) {
     is SyncStatus.Stopped -> when (status.problem) {
         SyncProblem.OFFLINE -> stringResource(R.string.backup_offline)
         SyncProblem.REFUSED -> stringResource(R.string.backup_refused)
+        SyncProblem.UNVERIFIED -> stringResource(R.string.backup_unverified)
         SyncProblem.FAILED -> stringResource(R.string.backup_failed)
     }
 }

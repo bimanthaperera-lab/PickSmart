@@ -464,10 +464,14 @@ private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> 
                 )
                 LoadingState()
             }
-            RestoreState.OFFLINE, RestoreState.FAILED -> {
+            RestoreState.OFFLINE, RestoreState.UNVERIFIED, RestoreState.FAILED -> {
                 ErrorState(
                     stringResource(
-                        if (state == RestoreState.OFFLINE) R.string.onboarding_restore_offline else R.string.onboarding_restore_failed,
+                        when (state) {
+                            RestoreState.OFFLINE -> R.string.onboarding_restore_offline
+                            RestoreState.UNVERIFIED -> R.string.onboarding_restore_unverified
+                            else -> R.string.onboarding_restore_failed
+                        },
                     ),
                 )
                 PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth())

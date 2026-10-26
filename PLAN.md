@@ -5,8 +5,8 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 ## Status
 
 - **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
-- **Next step:** V2 started with cloud backup (Phase 8c, branch `v2`). Owner: create the Firestore database, publish `firestore.rules` and test backup and restore on two phones (`docs/cloud-backup.md`). Then Claude: Firebase App Check (Play Integrity) before release. Still open from V1: run the offer reader probe with Uber Driver, read Uber's driver terms, and decide whether the offer reader ships in V1 (`docs/decisions.md`, 2026-10-26).
-- **Last updated:** 2026-10-26 (cloud backup with Firestore on `v2`: database v5, merge and restore, Account tab backup card; profile photo format and size limits)
+- **Next step:** V2 started with cloud backup (Phase 8c, branch `v2`). Owner: create the Firestore database, publish `firestore.rules` and test backup and restore on two phones (`docs/cloud-backup.md`). Then register App Check (Play Integrity, debug tokens) and enforce it for Firestore once the metrics look right (`docs/cloud-backup.md`, "App Check"); the app side is done. Still open from V1: run the offer reader probe with Uber Driver, read Uber's driver terms, and decide whether the offer reader ships in V1 (`docs/decisions.md`, 2026-10-26).
+- **Last updated:** 2026-10-26 (Firebase App Check on `v2`; before that, cloud backup with Firestore: database v5, merge and restore, Account tab backup card)
 
 ## Open questions for the owner
 
@@ -224,7 +224,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [x] Create an account later from the Account tab without losing local data (nothing local is touched; backup comes with sync)
 - [x] Firestore per-user storage with security rules isolating each rider (`firestore.rules`); Firestore keeps queued writes offline, Room stays the source (2026-10-26)
 - [ ] Owner: create the Firestore database, publish `firestore.rules`, test backup and restore on two phones (`docs/cloud-backup.md`)
-- [ ] Firebase App Check with the Play Integrity provider on Firestore; a failed check stops only backup, with a plain message, never local use
+- [x] Firebase App Check: Play Integrity in release builds, the debug provider in debug builds; a failed check stops only backup, with a plain message, never local use (2026-10-26)
+- [ ] Owner: register Play Integrity and debug tokens in App Check, watch the Firestore metrics, then enforce for Firestore only (`docs/cloud-backup.md`, "App Check")
 - [x] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud (DB v5 with migration test; `CloudSyncTest` on the emulator, 2026-10-26)
 - [x] Restore on a new phone from "I already have an account"; Cloud backup card on the Account tab; Delete account removes the cloud data first
 - [x] Sign-out keeps local data; "Delete account" action (deletes the sign-in account; cloud data joins it with sync)

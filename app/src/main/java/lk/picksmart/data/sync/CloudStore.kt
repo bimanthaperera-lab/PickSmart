@@ -8,8 +8,11 @@ enum class SyncProblem {
     /** No internet, or the server didn't answer in time. Tried again later. */
     OFFLINE,
 
-    /** The server refused: signed out meanwhile, or the app couldn't be verified (App Check). */
+    /** The server refused the request, for example because the rider was signed out meanwhile. */
     REFUSED,
+
+    /** The server refused because this copy of the app couldn't be verified (App Check). */
+    UNVERIFIED,
 
     /** Anything else. */
     FAILED,

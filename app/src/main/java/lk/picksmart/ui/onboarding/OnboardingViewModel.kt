@@ -36,7 +36,7 @@ import lk.picksmart.ui.vehicle.validate
 enum class OnboardingStep { WELCOME, INTRO, RESTORE, VEHICLE, PERMISSIONS, SAFETY }
 
 /** Bringing back a signed-in rider's backup: still running, or why it stopped. */
-enum class RestoreState { RUNNING, OFFLINE, FAILED }
+enum class RestoreState { RUNNING, OFFLINE, UNVERIFIED, FAILED }
 
 /** How many "how it works" pages the intro has. */
 const val INTRO_PAGE_COUNT = 3
@@ -108,7 +108,11 @@ class OnboardingViewModel(
         restoring = viewModelScope.launch {
             val status = sync.syncNow()
             if (status is SyncStatus.Stopped) {
-                val problem = if (status.problem == SyncProblem.OFFLINE) RestoreState.OFFLINE else RestoreState.FAILED
+                val problem = when (status.problem) {
+                    SyncProblem.OFFLINE -> RestoreState.OFFLINE
+                    SyncProblem.UNVERIFIED -> RestoreState.UNVERIFIED
+                    else -> RestoreState.FAILED
+                }
                 _state.update { it.copy(restore = problem) }
                 return@launch
             }

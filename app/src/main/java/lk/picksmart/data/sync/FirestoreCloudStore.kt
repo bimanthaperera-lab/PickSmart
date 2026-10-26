@@ -21,8 +21,13 @@ import java.util.Date
  *
  * Reads go to the server ([Source.SERVER]), never Firestore's cache. Writes are batched, and each
  * document also gets a server timestamp so other devices can ask for "what changed since".
+ *
+ * [appVerified] tells a refusal by App Check apart from one by the security rules.
  */
-class FirestoreCloudStore(private val firestore: FirebaseFirestore) : CloudStore {
+class FirestoreCloudStore(
+    private val firestore: FirebaseFirestore,
+    private val appVerified: suspend () -> Boolean,
+) : CloudStore {
 
     override suspend fun changedSince(uid: String, kind: String, sinceMillis: Long?): List<CloudDocument> = call {
         var query: Query = records(uid, kind).orderBy(SERVER_TIME).limit(PAGE_SIZE.toLong())
@@ -84,12 +89,7 @@ class FirestoreCloudStore(private val firestore: FirebaseFirestore) : CloudStore
     } catch (e: CancellationException) {
         throw e
     } catch (e: FirebaseFirestoreException) {
-        val problem = when (e.code) {
-            FirebaseFirestoreException.Code.UNAVAILABLE, FirebaseFirestoreException.Code.DEADLINE_EXCEEDED -> SyncProblem.OFFLINE
-            FirebaseFirestoreException.Code.PERMISSION_DENIED, FirebaseFirestoreException.Code.UNAUTHENTICATED -> SyncProblem.REFUSED
-            else -> SyncProblem.FAILED
-        }
-        throw CloudException(problem, e)
+        throw CloudException(firestoreProblem(e.code, appVerified), e)
     } catch (e: Exception) {
         throw CloudException(SyncProblem.FAILED, e)
     }
@@ -103,3 +103,15 @@ class FirestoreCloudStore(private val firestore: FirebaseFirestore) : CloudStore
         const val WRITE_TIMEOUT_MILLIS = 30_000L
     }
 }
+
+/**
+ * What a Firestore error code means for the rider. Firestore answers a request that failed App
+ * Check the same way as one the security rules refused, so a refusal asks [appVerified] which it was.
+ */
+internal suspend fun firestoreProblem(code: FirebaseFirestoreException.Code, appVerified: suspend () -> Boolean): SyncProblem =
+    when (code) {
+        FirebaseFirestoreException.Code.UNAVAILABLE, FirebaseFirestoreException.Code.DEADLINE_EXCEEDED -> SyncProblem.OFFLINE
+        FirebaseFirestoreException.Code.PERMISSION_DENIED, FirebaseFirestoreException.Code.UNAUTHENTICATED ->
+            if (appVerified()) SyncProblem.REFUSED else SyncProblem.UNVERIFIED
+        else -> SyncProblem.FAILED
+    }

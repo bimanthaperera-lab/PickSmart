@@ -17,8 +17,8 @@ These rules override everything else in this file. Other sections refer back to 
 - **N2. Nothing is counted twice.** Commission, fuel and maintenance follow the accounting rules in section 7 exactly.
 - **N3. Calculations are pure and tested.** All formulas live in `domain/calculator`, never in Composables or ViewModels, and are covered by the golden tests in section 6.
 - **N4. Local-first; the account is optional.** The app is fully usable with no account and no backend, and that is the default. The agreed network features are: the read-only fuel price download (section 8a, no user data), and an optional account with cloud backup (section 14, only after the rider signs in and consents). No analytics, location, ads (until the final phase) or other uploads. A rider who skips the account keeps everything on-device, as before.
-- **N5. Driver apps are never read or automated.** Picksmart never reads another app's screen or acts inside it. This rules out, for any purpose: AccessibilityService reading of Uber, PickMe or courier apps; MediaProjection or screen-capture frame-grabbing of them; overlays that read or sit on top of their controls; and any automated tap or action. The rider always types or confirms the numbers. The reasons are in section 9a.
-- **N6. OCR output is untrusted.** The rider always reviews and confirms extracted values before anything is calculated or saved.
+- **N5. Driver apps are never controlled; reading is opt-in and limited.** Picksmart never acts inside another app: no automated tap, gesture, typing or scrolling, no MediaProjection or screen capture, and no overlay on top of its controls. The one thing allowed is the **offer reader** (section 9b): an AccessibilityService, off by default and turned on by the rider after a plain disclosure, that reads only the text of a ride offer in the listed ride apps, keeps it in memory to calculate the result, and never logs, stores or uploads that text. Owner decision 2026-10-26; the risks the owner accepted are in section 9b.
+- **N6. OCR and screen-read output is untrusted.** Values from a screenshot or from the offer reader are never saved without the rider reviewing and confirming them. The offer reader may show a live estimate in the floating badge, labelled as read from the screen; saving that offer still goes through the Check a Ride form.
 - **N7. Records are never destroyed silently.** No destructive Room migrations, and every delete needs confirmation. A rider's data survives every app update: each schema change ships a tested `Migration`, `fallbackToDestructiveMigration` is never used in any build type, and an update never resets, clears or re-onboards a rider who already has data.
 - **N8. Results are verified, not claimed.** Never say a build or test passed unless you ran it and saw it pass.
 - **N9. Offline-first.** Every core screen (Check a Ride, History, Reports, fuel log, expenses, income, alerts inbox) works with no internet, using data on the device. The online features are the fuel price download (section 8a), which degrades to the last saved price, and account sign-in and sync (section 14), which is optional and runs in the background; neither ever blocks a core screen. Sign-in and verification themselves need internet and say so.
@@ -66,6 +66,7 @@ Act as a careful senior Android engineer with good product judgement.
 | Image import | Android Photo Picker and share intents |
 | OCR | ML Kit Text Recognition v2, Latin script, unbundled model via Google Play services |
 | Background work | WorkManager for the daily summary and the fuel price check only. No continuous foreground service in the MVP. |
+| Offer reader (optional) | A read-only `AccessibilityService` limited to the ride apps' packages, `canPerformGestures=false`, off by default (section 9b). It draws its result badge as an accessibility overlay. |
 | Notifications | Local only, through `NotificationManager`, one channel per type. No push service (no Firebase). |
 | Network | A read-only HTTPS GET for the fuel price file (section 8a), and the optional account/sync in section 14. The price file URL is a `BuildConfig` field. |
 | Accounts & sync (optional) | Firebase Authentication (email/password and Google; Facebook later; no phone OTP) and Cloud Firestore for per-user backup, behind an interface so the app builds and runs with them absent. See section 14. |
@@ -376,7 +377,7 @@ On first launch, the splash settles into a welcome screen (the logo stays where 
 
 ## 9a. Glance surfaces and notifications
 
-The goal is a near-instant read on an offer without ever reading the ride app. Every surface below takes numbers the rider types or confirms.
+The goal is a near-instant read on an offer. Every surface below takes numbers the rider types or confirms, except the opt-in offer reader (section 9b), which fills the badge from the offer's text and labels the result as read from the screen.
 
 ### Shift reminder
 
@@ -390,12 +391,12 @@ The goal is a near-instant read on an offer without ever reading the ride app. E
 
 ### Floating bubble (optional, off by default, advanced)
 
-A draggable overlay that expands into the same small calculator. The rider types the fare and distance; the bubble never reads what is on screen. It is off by default and lives behind an "advanced" switch in Notifications & glance, because of the obscured-touch limit below.
+A draggable overlay that expands into the same small calculator. The rider types the fare and distance; with the offer reader on (section 9b), the badge also shows the latest offer's result on its own. It is off by default and lives behind an "advanced" switch in Notifications & glance, because of the obscured-touch limit below.
 
 **Obscured-touch limit (must be designed around).** When an overlay sits over another app's control, Android marks touches on that control as obscured (`MotionEvent.FLAG_WINDOW_IS_OBSCURED`), and an app that calls `setFilterTouchesWhenObscured(true)` — some banking and ride apps do — will silently ignore the tap. So the bubble can stop a rider accepting a request if it covers the Accept button. This cannot be fully removed while any overlay exists; it can only be avoided by keeping the overlay away from that button. The rules below are mandatory, not cosmetic:
 
 - **Two states, one visible at a time.** Collapsed is a small badge showing the magic number (for example "Rs. 91/km"); expanded is the calculator. Tapping the badge expands it; the expanded "−" collapses it. Never show both at once.
-- **Auto-collapse on a request.** When a ride request is likely on screen, collapse to the badge so the calculator never covers the request card. (Detect this without reading the other app — for example a heads-up notification from a ride app via the notification listener the rider opted into, or simply on a timer; never by reading the app's screen, per N5.)
+- **Auto-collapse on a request.** When a ride request is likely on screen, collapse to the badge so the calculator never covers the request card. (With the offer reader on, it knows when an offer card is showing; otherwise use a timer.)
 - **Safe-corner snap.** The badge defaults to a top corner and snaps back out of the bottom-centre region (the lower ~25% of the screen, where Accept buttons usually sit). The rider can drag it, but it will not rest in that region.
 - **Hold to hide.** Long-pressing the badge hides the overlay immediately (a panic gesture); the rider brings it back from the tile or Settings.
 - **On-enable warning.** Turning the bubble on requests `SYSTEM_ALERT_WINDOW` with a plain explanation and warns that some ride apps block taps under an overlay, so they should move the badge aside before accepting. The app is fully usable with the bubble off; the shift notification (not an overlay) is the default glance surface and can never block a tap.
@@ -416,25 +417,31 @@ Android notifications are easy to miss or swipe away, so every alert is also kep
 - Posting a system notification and adding an inbox row happen together, so the two never disagree. Opening the inbox or an alert marks it read in both places.
 - The inbox never shows anything that needs the network to load; a fuel price alert is written when the price is fetched and then reads offline like the rest.
 
-## 9b. Why auto-reading is excluded
+## 9b. Offer reader (owner decision 2026-10-26)
 
-If asked to auto-read the ride app (AccessibilityService, MediaProjection, or a reading overlay), do not implement it. Explain the reasons rather than treating it as a styling choice:
+Until 2026-10-26 auto-reading was excluded. The owner decided to allow **reading** the ride offer, never acting on it, so the badge can show PROFIT or LOSS the moment an offer appears. What it does and the rules it must keep:
 
-- **Rider account risk.** Uber, PickMe and similar apps run anti-automation and anti-fraud checks. Overlays on, or programmatic reading of, their screens can get a driver's account flagged or banned. Protecting the rider's livelihood outweighs the seconds saved.
-- **Play policy.** AccessibilityService for a non-accessibility purpose needs prominent disclosure and approval and risks removal. MediaProjection is cleaner but still carries a persistent capture notice and, on Android 14+, per-session consent, so it is not truly "instant".
-- **Device cost.** Continuous frame-grabbing plus OCR drains battery and heats low-end phones, against this project's stated priority.
-- **Script limits.** ML Kit reads Latin text only, so Sinhala and Tamil screens would fail anyway.
-
-The approved path to the same value is section 9a (shift reminder, tile, bubble) plus the share-to-app OCR flow (section 11), where the rider shares a screenshot and confirms the values.
+- **What it reads.** An `AccessibilityService` (`glance/OfferReaderService`) listens only to the ride apps' packages listed in its config (`com.ubercab.driver` first; PickMe Driver once its package is confirmed with the probe in `docs/screen-read-probe.md`). When a window changes it walks the node tree, collects the visible text in memory, and hands it to the pure parser (`domain/usecase/OfferText.kt`), which finds the fare and the pickup and trip distances. Nothing else is kept.
+- **What it never does.** No `performAction`, gestures (`canPerformGestures=false`), typing, scrolling or global actions; no screen capture; no logging, storing or uploading of screen text (not even in debug logs); no reading of any app outside the list.
+- **How the result is shown.** The same calculator and rates as Check a Ride: the active vehicle's rates and the last-used fee settings, so payout-mode riders get payout maths. The badge shows the band label and icon ("PROFIT", "LOSS", "BELOW TARGET"), the net amount and per km, and "Read from screen". It sits in a top corner, never over the Accept button, and follows the obscured-touch rules in section 9a. It clears when the offer card closes or after a short time.
+- **Opt-in.** Off by default. Turning it on shows a prominent disclosure (what is read, that nothing leaves the phone, the account risk below) before sending the rider to Android's Accessibility settings. It can be turned off there or from the app at any time. The rest of the app works the same with it off.
+- **Risks the owner accepted** (2026-10-26, after they were explained):
+  - **Rider accounts.** Ride apps can see that an accessibility service is enabled and can't tell reading from clicking. Their driver terms generally forbid third-party tools that interact with or extract data from the app, so a driver could be warned or blocked. The disclosure says so plainly, and Picksmart never promises it is safe.
+  - **Play policy.** A non-accessibility use of the AccessibilityService API needs the Play Console declaration, a prominent in-app disclosure and a video of the feature, and can still be rejected or removed. If Play rejects it, the reader is removed from the release build and the manual surfaces in section 9a remain.
+  - **It can stop working.** A ride app can mark its views as sensitive to non-accessibility services (`accessibilityDataSensitive`, Android 14+) or change its layout at any time. A failed read shows "Couldn't read this offer", never a guess.
+  - **Script.** The parser expects Latin digits and "Rs", "LKR" or "km"; an offer shown in other forms is not read.
+- **Debug probe.** `docs/screen-read-probe.md` describes a debug-only service (never in release builds) that logs money, distance and time values from the ride app's tree, and only the length of any other text, so the parser can be fitted to the real offer card. Its logs are never committed or shared.
+- **Testing.** The parser is a pure function with text fixtures (made-up values, never real screenshots or passenger data). A debug-only sample offer screen lets the service be checked on an emulator without a ride app.
 
 ## 10. Privacy, safety and platform compliance
 
 - See N4, N5 and N6.
 - Request only the permissions an implemented feature needs. No precise location in the MVP.
 - `INTERNET` is used for the fuel price download (section 8a), the optional account and sync (section 14), and, in the final phase, ads. The Data safety form declares the price download sends no personal data, and that the optional account stores an identifier, email, name, optional mobile number and backed-up app data for backup only.
+- The offer reader's `BIND_ACCESSIBILITY_SERVICE` service is enabled only by the rider, after the disclosure in section 9b. The Data safety form and privacy policy say that offer text is read on the device only and never collected or shared.
 - `POST_NOTIFICATIONS` (Android 13+) is requested in context, not on first launch. `SYSTEM_ALERT_WINDOW` (draw over other apps) is requested only if the rider turns on the floating bubble, and the app works fully without it.
 - Screenshot import must be started by the user through the Photo Picker or the share sheet.
-- Never claim an official Uber or PickMe integration, and never promise the app can stop a driver account from being blocked.
+- Never claim an official Uber or PickMe integration, and never promise the app can stop a driver account from being blocked, nor that the offer reader is safe for a driver account.
 - **Backup:** Android Auto Backup is enabled with explicit rules that include the Room database and DataStore and exclude caches. This is disclosed in the privacy policy. CSV export is the user's manual backup.
 - Before release, check the current Google Play policies, Data safety requirements and AdMob requirements; they change.
 
@@ -486,7 +493,7 @@ app/src/main/java/<package>/
     fuel/  fuelprice/  expenses/  income/  reports/  ocr/
     settings/        (the settings list shown under the profile card on the Account tab)
     notifications/   (channels, shift reminder, scheduled WorkManager jobs)
-    glance/          (Quick Settings tile service, floating bubble service)
+    glance/          (Quick Settings tile service, floating bubble service, offer reader service and its badge)
     account/         (Account tab, Login, Register, Forgot password, Profile screen, form rules, Google picker)
     profile/         (Phase 8d additions to the Profile screen: tier, daily ride counts, lifetime stats)
     plan/            (PlanProvider, feature flags, Play Billing, Premium screen)

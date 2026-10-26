@@ -185,11 +185,25 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Quick Settings tile opening a mini fare check
 - [ ] Floating bubble (off by default, advanced) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it
 - [ ] Bubble obscured-touch safeguards: two states with one visible at a time, auto-collapse on a request, snap out of the bottom-centre region, long-press to hide
-- [ ] No reading of any other app on any surface (N5)
+- [ ] No acting inside any other app on any surface; reading only through the opt-in offer reader (N5, Phase 8e)
 - [ ] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header); posting a notification also writes an inbox row; 30-day retention; reads offline
 - [ ] Migration and migration test for the `Alert` table
 
 **Done when:** a rider sees their minimum fare per km at a glance while riding, and can check a fare from the tile, with no notification sound while riding and no access to the ride app.
+
+## Phase 8e — Offer reader (owner decision 2026-10-26)
+
+- [x] CLAUDE.md N5, N6, 9a, 9b and 10 changed to allow read-only offer reading, with the risks the owner accepted
+- [ ] Pure parser for the fare, pickup km and trip km from an offer's text, with fixtures (`OfferTextTest`)
+- [ ] Quick check from the active vehicle and last-used fee settings, through `ProfitCalculator`
+- [ ] Read-only `OfferReaderService` limited to the ride apps' packages; no actions, gestures, logs or storage of screen text
+- [ ] Result badge in a top corner: band label and icon, net, per km, "Read from screen"; clears when the offer goes; never in the bottom-centre region; long-press hides it
+- [ ] Opt-in switch on the Account tab with the prominent disclosure, then Android's Accessibility settings
+- [ ] Debug-only sample offer screen to check it on the emulator
+- [ ] Run the probe on a phone with Uber Driver and adjust the parser to the real offer card; add PickMe Driver's package
+- [ ] Play Console AccessibilityService declaration, disclosure video, Data safety and privacy policy
+
+**Done when:** with the reader on, an offer in a listed ride app shows PROFIT or LOSS in the badge within a second, nothing is tapped or stored, and the app works the same with it off.
 
 ## Phase 8c — Optional account and cloud backup
 

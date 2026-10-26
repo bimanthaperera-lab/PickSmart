@@ -482,6 +482,8 @@
     <string name="vehicle_switch_title">Switch vehicle</string>
     <string name="vehicle_switch_body">Check a Ride and new records use its rates. Saved records keep theirs.</string>
     <string name="record_vehicle_label">Vehicle</string>
+    <string name="vehicle_scope_for">%1$s · vehicle in use</string>
+    <string name="vehicle_scope_shared_note">Incentives, tips and expenses with no vehicle belong to no single vehicle, so they are not counted here.</string>
     <string name="vehicle_delete">Delete vehicle</string>
     <!-- %1$s: the vehicle's name -->
     <string name="vehicle_delete_title">Delete %1$s?</string>

@@ -16,11 +16,15 @@ import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.usecase.AccountingRecords
+import lk.picksmart.domain.usecase.DateRange
 import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.FuelPriceUpdates
+import lk.picksmart.domain.usecase.VehicleScope
+import lk.picksmart.domain.usecase.activeVehicleScope
 import lk.picksmart.domain.usecase.estimate
-import lk.picksmart.domain.usecase.summarizeDay
+import lk.picksmart.domain.usecase.summarizePeriod
 import lk.picksmart.ui.history.HistoryRow
 import lk.picksmart.ui.history.vehicleNamesForRows
 import lk.picksmart.util.ColomboZone
@@ -30,17 +34,24 @@ sealed interface HomeUiState {
     data object Loading : HomeUiState
 
     /**
-     * @property vehicleName The default vehicle, named on the profit card; null before one exists.
-     * @property recent The newest few trips of any day, offers included (they are marked as such).
+     * @property vehicleName The active vehicle, named on the profit card; null before one exists.
+     * @property sharedLeftOut True when [summary] is one of several vehicles' and today has other
+     *   income or expenses with no vehicle, which belong to no single vehicle and so aren't in it.
+     * @property recent The newest few trips of any day and vehicle, offers included (they are
+     *   marked as such).
      */
     data class Loaded(
         val summary: PeriodSummary,
         val vehicleName: String?,
+        val sharedLeftOut: Boolean,
         val recent: List<HistoryRow>,
     ) : HomeUiState
 }
 
-/** Today's figures (estimated view, CLAUDE.md section 7) and the latest trips. Works offline. */
+/**
+ * Today's figures (estimated view, CLAUDE.md section 7) for the active vehicle, and the latest
+ * trips. Switching the vehicle switches the figures. Works offline.
+ */
 class HomeViewModel(
     trips: TripRepository,
     otherIncome: OtherIncomeRepository,
@@ -51,19 +62,18 @@ class HomeViewModel(
     private val fuelPriceUpdates: FuelPriceUpdates,
 ) : ViewModel() {
 
-    val state: StateFlow<HomeUiState> = combine(
-        trips.all,
-        otherIncome.all,
-        expenses.all,
-        vehicles.defaultVehicle,
-        vehicles.allVehicles,
-    ) { allTrips, income, costs, vehicle, vehicleList ->
+    // Home's day is the estimated view, which uses no fill-ups.
+    private val records = combine(trips.all, otherIncome.all, expenses.all) { t, i, e -> AccountingRecords(t, i, e, emptyList()) }
+
+    val state: StateFlow<HomeUiState> = combine(records, vehicles.defaultVehicle, vehicles.allVehicles) { all, active, vehicleList ->
         val names = vehicleNamesForRows(vehicleList)
-        val today = clock.instant().atZone(ColomboZone).toLocalDate()
+        val today = DateRange.day(clock.instant().atZone(ColomboZone).toLocalDate())
+        val scope = activeVehicleScope(active, vehicleList)
         HomeUiState.Loaded(
-            summary = calculator.summarizeDay(today, allTrips, income, costs),
-            vehicleName = vehicle?.name,
-            recent = allTrips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it), names[it.vehicleId]) },
+            summary = calculator.summarizePeriod(today, all.forVehicle(scope)),
+            vehicleName = active?.name,
+            sharedLeftOut = scope != VehicleScope.All && all.hasSharedRecordsIn(today),
+            recent = all.trips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it), names[it.vehicleId]) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
 

@@ -33,6 +33,7 @@ import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.PublishedPriceAction
 import lk.picksmart.ui.components.BrandMark
+import lk.picksmart.ui.components.InfoNote
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
 import lk.picksmart.ui.components.rememberRecordDate
@@ -77,6 +78,7 @@ fun HomeScreen(
             is HomeUiState.Loaded -> {
                 NetProfitCard(s.summary, s.vehicleName)
                 TodayStats(s.summary)
+                if (s.sharedLeftOut) InfoNote(stringResource(R.string.vehicle_scope_shared_note))
                 PrimaryButton(
                     stringResource(R.string.action_check_ride),
                     onCheckRide,

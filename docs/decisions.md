@@ -322,3 +322,11 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **"Maintenance & repair" is "Maintenance".**
 - **Material Symbols not adopted.** An uncommitted change that had replaced every icon with Material Symbols (and deleted `make_icons.py`) was found in the working tree; the owner chose to discard it and keep the hand-drawn set.
 - **Vehicle type keeps the large icons.** On the owner's request, the vehicle type grid (onboarding and Edit vehicle) uses `ChoiceGrid(largeIcons = true)`: a 28 dp icon above the name, as in the first icon version. Expense category and income type keep the small 20 dp icon beside the label. The press ripple stays everywhere (owner).
+
+## 2026-10-26 — Reports and Home follow the active vehicle
+
+- **No filter.** Reports and Home's today card show the active vehicle's figures, so switching the vehicle (Check a Ride chips or Account → Vehicles) switches them. The owner turned down a separate "All vehicles / per vehicle" picker. A rider with one vehicle (archived ones counted) sees every record, as before. *Owner.*
+- **What belongs to a vehicle.** Its trips, its fill-ups and the expenses saved on it (`AccountingRecords.forVehicle`). Other income has no vehicle, and neither do expenses saved without one, so a vehicle's figures leave them out and say so in a note ("…belong to no single vehicle, so they are not counted here"). Each record belongs to at most one vehicle, so nothing is counted twice; `VehicleScopeTest` checks that the vehicles plus the shared records add up to the old all-vehicle totals. *Default.*
+- **Reports header** shows "<vehicle> · vehicle in use" when the rider has several vehicles. Home's card already named the active vehicle; it now also counts only that vehicle. Home's "Recent trips" still lists every vehicle's trips (each row names its vehicle). *Default.*
+- **Known gap.** An archived vehicle can't be made active, so its trips no longer show in Reports (they stay in History and the CSV export). Owner to decide whether that is acceptable. *Open.*
+- **Branches.** `fix/ui-polish` was merged into `main`. `spike/accessibility-probe` was not: it adds an AccessibilityService that reads Uber Driver's screen, which CLAUDE.md N5 rules out for any purpose, even in debug builds. *Waiting for the owner.*

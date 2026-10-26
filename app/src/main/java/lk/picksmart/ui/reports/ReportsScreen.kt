@@ -95,6 +95,13 @@ fun ReportsScreen(
                     onAction = onCheckRide,
                 )
                 is ReportsUiState.Loaded -> {
+                    s.vehicleName?.let {
+                        Text(
+                            stringResource(R.string.vehicle_scope_for, it),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     SegmentedControl(
                         options = ReportPeriod.entries,
                         selected = s.period,
@@ -125,6 +132,7 @@ fun ReportsScreen(
                             title = stringResource(R.string.reports_period_empty_title),
                             body = stringResource(R.string.reports_period_empty_body),
                         )
+                        if (s.sharedLeftOut) InfoNote(stringResource(R.string.vehicle_scope_shared_note))
                     } else {
                         Report(s, onOpenFuelLog)
                     }
@@ -160,6 +168,7 @@ private fun Report(s: ReportsUiState.Loaded, onOpenFuelLog: () -> Unit) {
             )
         }
     }
+    if (s.sharedLeftOut) InfoNote(stringResource(R.string.vehicle_scope_shared_note))
     if (summary.offers > 0) {
         Text(
             pluralStringResource(R.plurals.reports_offers_note, summary.offers, summary.offers),

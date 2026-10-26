@@ -56,7 +56,7 @@ class UserPreferencesRepositoryTest {
     }
 
     @Test
-    fun `gender and date of birth are kept per account and cleared with the account`() = runTest {
+    fun `gender and date of birth are kept per account`() = runTest {
         val prefs = UserPreferencesRepository(store())
         prefs.setMobileNumber("a", "077 123 4567")
         prefs.setGender("a", Gender.FEMALE)
@@ -67,8 +67,6 @@ class UserPreferencesRepositoryTest {
 
         prefs.setBirthDate("a", null)
         assertNull(prefs.personalDetails("a").first().birthDate)
-        prefs.clearPersonalDetails("a")
-        assertEquals(PersonalDetails(), prefs.personalDetails("a").first())
         assertEquals(Gender.PREFER_NOT_TO_SAY, prefs.personalDetails("b").first().gender)
     }
 
@@ -194,5 +192,28 @@ class UserPreferencesRepositoryTest {
         assertEquals(1L, prefs.fuelPriceAutoNoticeVehicleId.first())
         prefs.setFuelPriceAutoNoticeVehicleId(null)
         assertNull(prefs.fuelPriceAutoNoticeVehicleId.first())
+    }
+
+    @Test
+    fun `clearing the rider's data restarts setup and keeps the theme and published prices`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.completeOnboarding(defaultVehicleId = 7)
+        prefs.setThemeMode(ThemeMode.DARK)
+        prefs.setFuelPriceList(priceList)
+        prefs.setFuelPriceLastCheckAt(1_000L)
+        prefs.setMobileNumber("a", "077 123 4567")
+        prefs.setGender("b", Gender.FEMALE)
+        prefs.rememberFuelPrices(mapOf(FuelType.PETROL_92 to 30_000L))
+
+        prefs.clearRiderData()
+
+        assertFalse(prefs.onboardingComplete.first())
+        assertNull(prefs.defaultVehicleId.first())
+        assertEquals(PersonalDetails(), prefs.personalDetails("a").first())
+        assertEquals(PersonalDetails(), prefs.personalDetails("b").first())
+        assertEquals(emptyMap<FuelType, Long>(), prefs.ownFuelPrices.first())
+        assertEquals(ThemeMode.DARK, prefs.themeMode.first())
+        assertEquals(priceList, prefs.fuelPriceList.first())
+        assertEquals(1_000L, prefs.fuelPriceLastCheckAt.first())
     }
 }

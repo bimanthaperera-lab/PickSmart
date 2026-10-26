@@ -10,7 +10,7 @@ Last updated: 2026-10-26 (optional account and cloud backup, on branch `v2`).
 - **Optional account (Firebase Authentication).** A rider may create an account with email and password, or sign in with Google. Firebase then holds the account identifier, email address, name and, for Google sign-in, the profile photo link. Email verification and password reset emails are sent by Firebase.
 - **Cloud backup (Cloud Firestore), only while signed in.** The rider's records are copied to their own space in Firestore (`users/{uid}`) so they can sign in on another phone and get them back: vehicles, trips and checked offers, other income, fuel log, expenses, which vehicle is active, and the optional mobile number the rider typed. Firestore security rules let only that rider read or write it. A deleted record keeps only its id and time in the cloud, so other phones delete it too. Data is encrypted in transit (HTTPS).
 - **Not backed up:** the profile photo the rider chose, gender and date of birth (these stay on the phone), app settings such as theme and language, and the text the offer reader sees on screen (never stored anywhere).
-- **Signing out** stops backup and keeps everything on the phone. **Delete account** (Profile) deletes the cloud backup first, then the account; records on the phone stay unless the rider removes them.
+- **Signing out** stops backup and keeps everything on the phone. **Delete account** (Profile) warns first and asks the rider to confirm it's them, then deletes the cloud backup, the account, and every record and setting on the phone (the theme, app language and published fuel prices stay).
 - Android Auto Backup is on. If the rider has Google backup turned on, Android may copy the app's database and settings to the rider's own Google account, as it does for other apps. Caches are never included. Picksmart's developer can't see these backups.
 - **CSV export (Reports).** The rider can export their records as CSV files and choose, in Android's share sheet, which app receives them (email, Drive, WhatsApp and so on). Picksmart sends them nowhere itself. The files are written to the app's cache, which is never backed up, and each export deletes the previous one. Under Play's Data safety rules, data the user chooses to send with the share sheet is not "shared" by the app.
 - Network use: the fuel price download described below, and, for a rider who signs in, Firebase Authentication and Firestore. There is no analytics, no advertising, no crash reporting and no location access.
@@ -30,7 +30,7 @@ Last updated: 2026-10-26 (optional account and cloud backup, on branch `v2`).
 >
 > **Account and backup (optional).** You can use Picksmart without an account. If you create one (with email or Google), we use Google Firebase to keep your account (your email, name and an account ID) and, while you're signed in, a backup of your vehicles, trips, offers you checked, fuel log, expenses, other income, which vehicle you use, and the mobile number if you entered one. Only you can access your backup; it's used only so you can restore your records on another phone. Your profile photo, gender and date of birth stay on your phone and aren't backed up. Signing out stops the backup and keeps your records on your phone.
 >
-> **Deleting your account.** In Picksmart, open Account, then your profile, then Delete account. This deletes your cloud backup and your account. Your records stay on your phone until you remove them or uninstall the app.
+> **Deleting your account.** In Picksmart, open Account, then your profile, then Delete account. This deletes your cloud backup, your account, and your trips, records and settings on this phone. It can't be undone; export your records as CSV first if you want a copy.
 >
 > **Fuel prices.** When you're online, Picksmart downloads a public list of CPC fuel prices, at most twice a day. This download doesn't include any information about you or your phone. The website that hosts the list sees your IP address, as with any website; Picksmart doesn't collect it.
 >
@@ -52,7 +52,7 @@ Last updated: 2026-10-26 (optional account and cloud backup, on branch `v2`).
 | Personal info | Name, Email address, User IDs, Phone number (optional). Collected, optional, for Account management and App functionality. |
 | Financial info | Other financial info (the rider's earnings and costs: trips, income, expenses, fuel). Collected, optional, for App functionality (backup). |
 | Is all of the user data collected by your app encrypted in transit? | Yes (HTTPS / TLS). |
-| Do you provide a way for users to request that their data is deleted? | Yes: in-app "Delete account" deletes the account and cloud backup. Also provide a web link or email for deletion requests, which Play requires. |
+| Do you provide a way for users to request that their data is deleted? | Yes: in-app "Delete account" deletes the account, the cloud backup and the data on the phone. Also provide a web link or email for deletion requests, which Play requires. |
 
 Notes for the form:
 

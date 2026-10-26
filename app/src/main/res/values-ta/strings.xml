@@ -595,7 +595,5 @@
     <string name="profile_sign_out_body">உங்கள் சவாரிகள் மற்றும் பதிவுகள் இந்த ஃபோனில் இருக்கும். எந்த நேரத்திலும் மீண்டும் உள்நுழையலாம்.</string>
     <string name="profile_delete_account">கணக்கை நீக்கு (Delete account)</string>
     <string name="profile_delete_title">உங்கள் கணக்கை நீக்கவா?</string>
-    <string name="profile_delete_body">இது உங்கள் Picksmart கணக்கை நீக்கும், இதைச் செயல்தவிர்க்க முடியாது. உங்கள் சவாரிகள் மற்றும் பதிவுகள் இந்த ஃபோனில் இருக்கும்.</string>
     <string name="profile_delete_confirm">கணக்கை நீக்கு</string>
-    <string name="profile_records_stay">வெளியேறுவது அல்லது உங்கள் கணக்கை நீக்குவது ஒருபோதும் உங்கள் சவாரிகளையும் பதிவுகளையும் இந்த ஃபோனிலிருந்து அகற்றாது.</string>
 </resources>

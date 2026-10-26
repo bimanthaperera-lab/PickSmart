@@ -14,6 +14,7 @@ import lk.picksmart.R
 import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.AuthError
 import lk.picksmart.data.account.AuthResult
+import lk.picksmart.data.account.IdentityProof
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.domain.model.SignInMethod
 import lk.picksmart.domain.model.UserProfile
@@ -141,6 +142,7 @@ private class FakeAccount(private val result: AuthResult = AuthResult.Success) :
     override suspend fun signOut() {
         user.value = null
     }
+    override suspend fun confirmIdentity(proof: IdentityProof) = result
     override suspend fun deleteAccount() = result
 
     companion object {

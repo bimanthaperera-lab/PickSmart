@@ -118,12 +118,19 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { if (date == null) it.remove(Keys.birthDate(uid)) else it[Keys.birthDate(uid)] = date.toString() }
     }
 
-    /** Removes everything [personalDetails] holds for [uid], when the account is deleted. */
-    suspend fun clearPersonalDetails(uid: String) {
-        dataStore.edit {
-            it.remove(Keys.mobileNumber(uid))
-            it.remove(Keys.gender(uid))
-            it.remove(Keys.birthDate(uid))
+    /**
+     * When the rider deletes their account (CLAUDE.md section 14): removes every setting that is
+     * theirs, including setup, so the app starts again at the welcome screen. Keeps the theme and
+     * the published fuel price list, which belong to the phone, not to the rider.
+     */
+    suspend fun clearRiderData() {
+        dataStore.edit { prefs ->
+            val kept = prefs.asMap().filterKeys { it in Keys.phoneSettings }
+            prefs.clear()
+            kept.forEach { (key, value) ->
+                @Suppress("UNCHECKED_CAST")
+                prefs[key as Preferences.Key<Any>] = value
+            }
         }
     }
 
@@ -263,6 +270,14 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
         fun mobileNumber(uid: String) = stringPreferencesKey("account_mobile_$uid")
         fun gender(uid: String) = stringPreferencesKey("account_gender_$uid")
         fun birthDate(uid: String) = stringPreferencesKey("account_birth_date_$uid")
+
+        /** What [clearRiderData] keeps. */
+        val phoneSettings: Set<Preferences.Key<*>> = setOf(
+            THEME_MODE,
+            FUEL_PRICE_EFFECTIVE_FROM,
+            FUEL_PRICE_FETCHED_AT,
+            FUEL_PRICE_LAST_CHECK_AT,
+        ) + FuelType.entries.map(::fuelPriceCents)
     }
 }
 

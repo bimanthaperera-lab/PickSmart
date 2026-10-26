@@ -83,6 +83,7 @@ fun AuthError.message(): Int = when (this) {
     AuthError.TOO_MANY_ATTEMPTS -> R.string.auth_error_too_many
     AuthError.ACCOUNT_DISABLED -> R.string.auth_error_disabled
     AuthError.RECENT_SIGN_IN_REQUIRED -> R.string.auth_error_recent_sign_in
+    AuthError.DIFFERENT_ACCOUNT -> R.string.auth_error_different_account
     AuthError.NOT_AVAILABLE -> R.string.account_unavailable
     AuthError.UNKNOWN -> R.string.auth_error_unknown
 }

@@ -11,7 +11,7 @@ Optional backup for signed-in riders (CLAUDE.md section 14). Built on branch `v2
 - **Merge:** last write wins by each record's `updatedAt`; a tie keeps the phone's copy. Deletes are kept as tombstones (`sync_tombstones`), so a stale copy can't bring a record back. Vehicles are archived, never deleted. The phone's data is never replaced by an empty or older cloud copy.
 - **New phone:** "I already have an account" restores the backup before setup. If it brings back a vehicle, the vehicle step is skipped. Offline, the rider can retry or set up a vehicle; the backup joins later.
 - **Another rider on the same phone:** everything on the phone is uploaded to the account that signed in, and their own backup is merged in.
-- **Delete account:** deletes the cloud data first, then the account. Offline, nothing is deleted.
+- **Delete account:** a warning lists what goes; the rider confirms it's them (password, or Google), because Firebase deletes an account only after a recent sign-in. Then the cloud data is deleted, then the account, then everything on the phone (`DeleteAccount`, `PhoneDataEraser`), and the app returns to the welcome screen. Offline or a wrong password: nothing is deleted. If the account itself can't be deleted after the cloud data was, the phone keeps its records and the rider can try again.
 - **Status:** the Account tab shows a Cloud backup card when signed in: last backup time, waiting for internet, changes not backed up yet, and Back up now.
 
 ## Owner setup (before testing on a phone)

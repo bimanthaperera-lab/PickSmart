@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
+import java.io.File
 import java.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,7 @@ import lk.picksmart.data.account.FirebaseAccountProvider
 import lk.picksmart.data.account.NoOpAccountProvider
 import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.export.CsvExporter
+import lk.picksmart.data.local.PhoneDataEraser
 import lk.picksmart.data.local.PicksmartDatabase
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.remote.FuelPriceSource
@@ -43,6 +45,7 @@ import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.CompleteOnboarding
+import lk.picksmart.domain.usecase.DeleteAccount
 import lk.picksmart.domain.usecase.FuelPriceUpdates
 
 // One DataStore per process. The file lives under files/datastore/, which Auto Backup includes.
@@ -142,6 +145,12 @@ class AppContainer(context: Context) {
     }
 
     val profilePhotos: ProfilePhotoCache by lazy { ProfilePhotoCache(appContext.filesDir.resolve("profile_photo")) }
+
+    /** Deletes the cloud backup, the account and the rider's data on this phone (CLAUDE.md section 14). */
+    val deleteAccount: DeleteAccount by lazy {
+        val eraser = PhoneDataEraser(database, userPreferences, profilePhotos, File(appContext.cacheDir, CsvExporter.DIRECTORY))
+        DeleteAccount(account, sync, eraser::erase)
+    }
 
     /**
      * Checks the published fuel price in the background (at most every 12 hours), then applies it

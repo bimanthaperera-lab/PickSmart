@@ -709,6 +709,7 @@
     <string name="auth_error_too_many">Too many attempts. Wait a few minutes and try again.</string>
     <string name="auth_error_disabled">This account has been turned off.</string>
     <string name="auth_error_recent_sign_in">For your safety, sign out and sign in again, then try once more.</string>
+    <string name="auth_error_different_account">That\'s a different Google account. Choose the account you\'re signed in with.</string>
     <string name="auth_error_unknown">Something went wrong. Try again.</string>
     <string name="auth_error_google_no_account">No Google account on this phone. Add one in Android settings, or use email.</string>
     <string name="auth_error_google_failed">Google sign-in didn\'t work. Try again, or use email.</string>
@@ -748,8 +749,18 @@
     <string name="profile_sign_out_body">Your trips and records stay on this phone. Sign in again any time.</string>
     <string name="profile_delete_account">Delete account</string>
     <string name="profile_delete_title">Delete your account?</string>
-    <string name="profile_delete_body">This deletes your Picksmart account and its cloud backup, and can\'t be undone. Your trips and records stay on this phone.</string>
+    <string name="profile_delete_body">This can\'t be undone. It permanently deletes:</string>
+    <string name="profile_delete_item">• %1$s</string>
+    <string name="profile_delete_item_account">Your Picksmart account</string>
+    <string name="profile_delete_item_backup">Your cloud backup</string>
+    <string name="profile_delete_item_phone">Everything on this phone: vehicles, trips, fuel logs, expenses, income, profile details and settings</string>
+    <string name="profile_delete_export_hint">Want a copy first? Cancel and export your records as CSV. Picksmart then starts again from the welcome screen. This needs internet.</string>
+    <string name="profile_delete_password_label">Your password</string>
+    <string name="profile_delete_password_hint">Enter your password to confirm it\'s you.</string>
+    <string name="profile_delete_google_hint">You\'ll choose your Google account to confirm it\'s you.</string>
+    <string name="profile_deleting">Deleting…</string>
+    <string name="profile_delete_account_failed">Your cloud backup was deleted, but your account wasn\'t. Your records are still on this phone. Check your internet connection and try again.</string>
     <string name="profile_delete_cloud_failed">Couldn\'t delete your cloud backup. Check your internet connection and try again.</string>
-    <string name="profile_delete_confirm">Delete account</string>
-    <string name="profile_records_stay">Signing out or deleting your account never removes your trips and records from this phone.</string>
+    <string name="profile_delete_confirm">Delete everything</string>
+    <string name="profile_records_stay">Signing out keeps your trips and records on this phone. Deleting your account removes them from this phone and from the cloud.</string>
 </resources>

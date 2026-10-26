@@ -575,12 +575,12 @@ The fifth bottom-bar tab is **Account** (it replaces Settings).
 - **Photo:** the rider can choose their own photo with the Photo Picker (Change photo, or tap the avatar) and remove it again; otherwise the Google account photo for Google sign-in, else initials. A chosen photo is cropped to a 512 px square and kept on the device only, never uploaded (that would need Cloud Storage and the Blaze plan); it stays on sign-out and is deleted with the account. If it can't load, initials show.
 - **Gender and date of birth:** optional, stored on the device only, kept on sign-out and removed with the account. Gender is Male, Female, Other or Prefer not to say; the date of birth is between 1 Jan 1900 and today.
 - **Mobile number:** optional, typed by the rider on Register or Profile, labelled "Not verified" because there is no OTP. It is stored on the device and in the rider's own Firestore profile, and is never used to send SMS or shared.
-- Actions: Edit (name, mobile number), Sign out (keeps local data), and "Delete account and cloud data" (with confirmation, N7).
+- Actions: Edit (name, mobile number), Sign out (keeps local data), and Delete account (owner decision 2026-10-26). Delete account shows a warning listing what goes (the account, the cloud backup, and everything on this phone), asks the rider to confirm it's them (their password, or Google's account picker), then deletes the cloud backup, the account, and every record and setting on the phone except the theme, the app language and the published fuel price list, and returns to the welcome screen. It always erases the phone, so a new account made on it never shows the old records. If any step fails (offline, wrong password), the steps after it don't run and the phone's records stay. Sign-out still keeps everything.
 
 ### Compliance
 
 - The Play Data safety form must now declare the account identifier, email, name, optional mobile number and the backed-up app data, how they are used (backup/sync only), and that they are encrypted in transit. Update it in the same release.
-- The privacy policy explains the optional account, what is stored, and how to delete it. Provide an in-app "Delete account and cloud data" action that removes the Firestore data and the auth user; local data deletion stays the rider's choice.
+- The privacy policy explains the optional account, what is stored, and how to delete it. Provide an in-app Delete account action that removes the Firestore data, the auth user and the rider's data on the phone (see "Profile screen").
 - The marketing promise changes from "your data stays on your phone" to "works offline; your data stays on your phone unless you choose to back it up". Update the store listing and any posts.
 
 ## 15. Plans and monetization

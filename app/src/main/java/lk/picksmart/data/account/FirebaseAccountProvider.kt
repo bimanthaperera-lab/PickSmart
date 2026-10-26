@@ -5,6 +5,7 @@ import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -86,6 +87,15 @@ class FirebaseAccountProvider(
         runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
     }
 
+    override suspend fun confirmIdentity(proof: IdentityProof) = attempt {
+        val user = checkNotNull(auth.currentUser)
+        val credential = when (proof) {
+            is IdentityProof.Password -> EmailAuthProvider.getCredential(checkNotNull(user.email), proof.password)
+            is IdentityProof.Google -> GoogleAuthProvider.getCredential(proof.idToken, null)
+        }
+        user.reauthenticate(credential).await()
+    }
+
     override suspend fun deleteAccount() = attempt {
         checkNotNull(auth.currentUser).delete().await()
         runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
@@ -119,7 +129,10 @@ private fun Exception.toAuthError(): AuthError = when (this) {
         if (errorCode == "ERROR_EMAIL_ALREADY_IN_USE") AuthError.EMAIL_IN_USE else AuthError.OTHER_SIGN_IN_METHOD
     is FirebaseAuthInvalidCredentialsException ->
         if (errorCode == "ERROR_INVALID_EMAIL") AuthError.INVALID_EMAIL else AuthError.WRONG_CREDENTIALS
-    is FirebaseAuthInvalidUserException ->
-        if (errorCode == "ERROR_USER_DISABLED") AuthError.ACCOUNT_DISABLED else AuthError.WRONG_CREDENTIALS
+    is FirebaseAuthInvalidUserException -> when (errorCode) {
+        "ERROR_USER_DISABLED" -> AuthError.ACCOUNT_DISABLED
+        "ERROR_USER_MISMATCH" -> AuthError.DIFFERENT_ACCOUNT
+        else -> AuthError.WRONG_CREDENTIALS
+    }
     else -> AuthError.UNKNOWN
 }

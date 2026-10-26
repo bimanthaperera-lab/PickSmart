@@ -50,9 +50,10 @@ class CsvExporter(
         }
     }
 
-    private companion object {
+    companion object {
+        /** Under the cache directory; erased with the rider's data. */
         const val DIRECTORY = "exports"
-        const val AUTHORITY_SUFFIX = "exports"
-        val BOM = Char(0xFEFF).toString()
+        private const val AUTHORITY_SUFFIX = "exports"
+        private val BOM = Char(0xFEFF).toString()
     }
 }

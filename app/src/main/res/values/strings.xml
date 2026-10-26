@@ -454,7 +454,7 @@
     <string name="onboarding_safety_title">Before you ride</string>
     <string name="onboarding_safety_estimates">Results are estimates, based on the numbers you enter.</string>
     <string name="onboarding_safety_stopped">Only check ride offers when you\'re stopped safely.</string>
-    <string name="onboarding_safety_no_reading">Picksmart never reads or taps inside Uber, PickMe or other apps. You type the numbers.</string>
+    <string name="onboarding_safety_no_reading">Picksmart never taps inside Uber, PickMe or other apps. You type the numbers, unless you turn on Read ride offers.</string>
     <string name="onboarding_safety_on_device">Your records stay on this phone and work without internet.</string>
     <string name="onboarding_safety_accept">I understand, start</string>
     <string name="onboarding_save_failed">Couldn\'t save your vehicle. Please try again.</string>

@@ -194,12 +194,12 @@ Claude uses the default shown until the owner answers, and moves answered items 
 ## Phase 8e — Offer reader (owner decision 2026-10-26)
 
 - [x] CLAUDE.md N5, N6, 9a, 9b and 10 changed to allow read-only offer reading, with the risks the owner accepted
-- [ ] Pure parser for the fare, pickup km and trip km from an offer's text, with fixtures (`OfferTextTest`)
-- [ ] Quick check from the active vehicle and last-used fee settings, through `ProfitCalculator`
-- [ ] Read-only `OfferReaderService` limited to the ride apps' packages; no actions, gestures, logs or storage of screen text
-- [ ] Result badge in a top corner: band label and icon, net, per km, "Read from screen"; clears when the offer goes; never in the bottom-centre region; long-press hides it
-- [ ] Opt-in switch on the Account tab with the prominent disclosure, then Android's Accessibility settings
-- [ ] Debug-only sample offer screen to check it on the emulator
+- [x] Pure parser for the fare, pickup km and trip km from an offer's text, with fixtures (`OfferTextTest`)
+- [x] Quick check from the active vehicle and last-used fee settings, through `ProfitCalculator`
+- [x] Read-only `OfferReaderService` limited to the ride apps' packages; no actions, gestures, logs or storage of screen text
+- [x] Result badge in a top corner: band label and icon, net, per km, "Read from screen"; clears when the offer goes; never in the bottom-centre region; long-press hides it (built; on-screen check waiting for the reader to be turned on in the emulator)
+- [x] Opt-in switch on the Account tab with the prominent disclosure, then Android's Accessibility settings
+- [x] Debug-only sample offer screen to check it on the emulator
 - [ ] Run the probe on a phone with Uber Driver and adjust the parser to the real offer card; add PickMe Driver's package
 - [ ] Play Console AccessibilityService declaration, disclosure video, Data safety and privacy policy
 

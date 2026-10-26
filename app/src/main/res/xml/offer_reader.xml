@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The offer reader (CLAUDE.md section 9b). Reads window text in the listed ride apps only and can
+    perform no gestures. packageNames is the one list of apps it reads; the service takes it from here.
+    The debug build overrides this file to add its own sample offer screen.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canPerformGestures="false"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/offer_reader_service_description"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="150"
+    android:packageNames="com.ubercab.driver"
+    android:summary="@string/offer_reader_service_summary" />

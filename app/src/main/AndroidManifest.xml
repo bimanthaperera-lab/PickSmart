@@ -26,6 +26,23 @@
             </intent-filter>
         </activity>
 
+        <!--
+            The offer reader (CLAUDE.md section 9b): read-only, no gestures, off until the rider turns it on
+            in Android's Accessibility settings after the in-app disclosure.
+        -->
+        <service
+            android:name=".glance.OfferReaderService"
+            android:exported="false"
+            android:label="@string/offer_reader_title"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/offer_reader" />
+        </service>
+
         <!-- Hands the CSV export to the app the rider picks in the share sheet (Reports). -->
         <provider
             android:name="androidx.core.content.FileProvider"

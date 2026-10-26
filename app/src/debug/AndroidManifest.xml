@@ -17,6 +17,12 @@
                 android:resource="@xml/screen_read_probe" />
         </service>
 
+        <!-- Debug only: a made-up offer card for checking the offer reader without a ride app. -->
+        <activity
+            android:name="lk.picksmart.sample.SampleOfferActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Picksmart" />
+
     </application>
 
 </manifest>

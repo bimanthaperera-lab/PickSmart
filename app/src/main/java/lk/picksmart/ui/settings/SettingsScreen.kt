@@ -47,7 +47,7 @@ import lk.picksmart.ui.vehicle.SwitchVehicleDialog
 import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
- * The settings list: vehicles, fuel price, reports, records, theme and version. Shown under the profile card
+ * The settings list: vehicles, fuel price, reports, records, reading ride offers, theme and version. Shown under the profile card
  * on the Account tab, and works the same whether or not the rider is signed in. Adding a vehicle
  * past the limit opens [onVehicleLimit] instead of the form.
  */
@@ -81,6 +81,7 @@ fun SettingsSections(
         )
         SectionLabel(stringResource(R.string.settings_section_records))
         RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
+        OfferReaderSetting()
         SectionLabel(stringResource(R.string.settings_section_app))
         ListGroup(
             rows = listOf {

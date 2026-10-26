@@ -51,5 +51,5 @@ val IncomeType.icon: Int
         IncomeType.INCENTIVE -> R.drawable.ic_gift
         IncomeType.TIP -> R.drawable.ic_thumb_up
         IncomeType.BONUS -> R.drawable.ic_star
-        IncomeType.OTHER -> R.drawable.ic_plus_circle
+        IncomeType.OTHER -> R.drawable.ic_wallet
     }

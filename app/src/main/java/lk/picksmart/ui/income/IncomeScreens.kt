@@ -225,6 +225,7 @@ private fun IncomeForm(state: EditIncomeUiState.Editing, onChange: (IncomeFormSt
         selected = form.type,
         optionLabel = { stringResource(it.label) },
         onSelect = { onChange(form.copy(type = it)) },
+        optionIcon = { it.icon },
     )
     NumberField(
         value = form.amount,

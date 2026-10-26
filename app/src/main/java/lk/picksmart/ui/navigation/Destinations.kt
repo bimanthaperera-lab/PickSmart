@@ -8,6 +8,7 @@ import lk.picksmart.R
 @Serializable data object HomeRoute
 @Serializable data object CheckRideRoute
 @Serializable data object HistoryRoute
+/** Day, week and month reports with CSV export. Opened from the Account tab. */
 @Serializable data object ReportsRoute
 /** The Account tab: profile card and settings (CLAUDE.md section 14). Replaced the Settings tab. */
 @Serializable data object AccountRoute
@@ -81,7 +82,8 @@ data class EditExpenseRoute(val expenseId: Long) {
 @Serializable data object FuelPriceRoute
 
 /**
- * The five bottom-bar tabs (CLAUDE.md section 9), in display order. The selected tab shows
+ * The four bottom-bar tabs, in display order. Reports moved from the bar into the Account tab
+ * (docs/decisions.md, 2026-10-25). The selected tab shows
  * [selectedIcon], a filled version of [icon].
  */
 enum class TopLevelDestination(
@@ -93,6 +95,5 @@ enum class TopLevelDestination(
     HOME(HomeRoute, R.string.nav_home, R.drawable.ic_nav_home, R.drawable.ic_nav_home_filled),
     CHECK_RIDE(CheckRideRoute, R.string.nav_check_ride, R.drawable.ic_nav_check_ride, R.drawable.ic_nav_check_ride_filled),
     HISTORY(HistoryRoute, R.string.nav_history, R.drawable.ic_nav_history, R.drawable.ic_nav_history_filled),
-    REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_nav_reports, R.drawable.ic_nav_reports_filled),
     ACCOUNT(AccountRoute, R.string.nav_account, R.drawable.ic_nav_account, R.drawable.ic_nav_account_filled),
 }

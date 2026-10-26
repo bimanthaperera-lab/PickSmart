@@ -57,6 +57,7 @@ fun AccountScreen(
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
     onOpenFuelPrice: () -> Unit,
+    onOpenReports: () -> Unit,
     viewModel: AccountViewModel = viewModel(factory = AccountViewModel.Factory),
 ) {
     val account by viewModel.account.collectAsStateWithLifecycle()
@@ -70,6 +71,7 @@ fun AccountScreen(
             onOpenFuelLog = onOpenFuelLog,
             onOpenExpenses = onOpenExpenses,
             onOpenFuelPrice = onOpenFuelPrice,
+            onOpenReports = onOpenReports,
         )
     }
 }

@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import lk.picksmart.R
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
@@ -72,23 +74,36 @@ fun VehicleRates(vehicle: Vehicle, modifier: Modifier = Modifier) {
     ) {
         RateItem(R.drawable.ic_fuel, stringResource(R.string.check_rate_fuel_price, money.format(vehicle.fuelPricePerLitreCents)))
         RateItem(R.drawable.ic_gauge, stringResource(R.string.check_rate_efficiency, decimalToInput(vehicle.fuelEfficiencyKmPerLitre)))
-        RateItem(R.drawable.ic_wrench, stringResource(R.string.check_rate_reserve, money.format(vehicle.maintenanceReservePerKmCents)))
+        val reserve = money.format(vehicle.maintenanceReservePerKmCents)
+        RateItem(
+            R.drawable.ic_wrench,
+            stringResource(R.string.check_rate_reserve, reserve),
+            description = stringResource(R.string.check_rate_reserve_description, reserve),
+        )
     }
 }
 
-/** One rate, e.g. a fuel pump and "Rs. 300.00/L". The icon grows with the text. */
+/**
+ * One rate, e.g. a fuel pump and "Rs. 300.00/L". The icon grows with the text, and the text stays
+ * on one line so an item moves to the next row whole rather than breaking. [description] replaces
+ * what a screen reader says when the icon carries meaning the text leaves out.
+ */
 @Composable
-private fun RateItem(@DrawableRes icon: Int, text: String) {
+private fun RateItem(@DrawableRes icon: Int, text: String, description: String? = null) {
     val style = MaterialTheme.typography.bodyMedium
     val iconSize = with(LocalDensity.current) { style.fontSize.toDp() } * 1.1f
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-        // Decorative: the text carries the unit.
+    Row(
+        modifier = if (description != null) Modifier.clearAndSetSemantics { contentDescription = description } else Modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        // Decorative: the text (or the description) carries the meaning.
         Icon(
             painterResource(icon),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(iconSize),
         )
-        Text(text, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, softWrap = false)
     }
 }

@@ -47,7 +47,7 @@ import lk.picksmart.ui.vehicle.SwitchVehicleDialog
 import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
- * The settings list: vehicles, fuel price, records, theme and version. Shown under the profile card
+ * The settings list: vehicles, fuel price, reports, records, theme and version. Shown under the profile card
  * on the Account tab, and works the same whether or not the rider is signed in. Adding a vehicle
  * past the limit opens [onVehicleLimit] instead of the form.
  */
@@ -59,6 +59,7 @@ fun SettingsSections(
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
     onOpenFuelPrice: () -> Unit,
+    onOpenReports: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -68,6 +69,16 @@ fun SettingsSections(
 
     Column {
         VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, viewModel::setActiveVehicle, onOpenFuelPrice)
+        SectionLabel(stringResource(R.string.settings_section_reports))
+        ListGroup(
+            rows = listOf {
+                ListRow(
+                    title = stringResource(R.string.settings_reports),
+                    subtitle = stringResource(R.string.settings_reports_body),
+                    onClick = onOpenReports,
+                )
+            },
+        )
         SectionLabel(stringResource(R.string.settings_section_records))
         RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
         SectionLabel(stringResource(R.string.settings_section_app))

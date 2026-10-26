@@ -8,7 +8,6 @@
     <string name="nav_home">Home</string>
     <string name="nav_check_ride">Check Ride</string>
     <string name="nav_history">History</string>
-    <string name="nav_reports">Reports</string>
     <string name="nav_account">Account</string>
 
     <!-- Result bands. Always shown with an icon; never rely on colour alone. -->
@@ -69,7 +68,7 @@
     <string name="home_net_basis">After fees, fuel and maintenance reserve</string>
     <string name="home_net_empty">Nothing recorded today yet. Check an offer, then tap \"I took it\" to count it.</string>
     <string name="home_stat_earned">Earned after fees</string>
-    <string name="home_stat_expenses">Recorded expenses</string>
+    <string name="home_stat_expenses">Expenses</string>
     <string name="home_stat_trips">Completed trips</string>
     <string name="home_stat_distance">Distance</string>
     <string name="home_recent">Recent trips</string>
@@ -99,7 +98,9 @@
     <!-- Rates beside their icons on the Check a Ride vehicle card and the Vehicles list. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
-    <string name="check_rate_reserve">%1$s/km reserve</string>
+    <string name="check_rate_reserve">%1$s/km</string>
+    <!-- Read aloud for the wrench rate: "Maintenance reserve, Rs. 2.00/km" -->
+    <string name="check_rate_reserve_description">Maintenance reserve, %1$s/km</string>
     <string name="check_sample_label">Sample</string>
     <string name="check_change_rates">Change</string>
     <string name="check_change_rates_description">Change rates for this check</string>
@@ -296,7 +297,7 @@
     <string name="expense_add_title">Add expense</string>
     <string name="expense_edit_title">Edit expense</string>
     <string name="expense_category">Category</string>
-    <string name="expense_category_maintenance">Maintenance &amp; repair</string>
+    <string name="expense_category_maintenance">Maintenance</string>
     <string name="expense_category_parking">Parking</string>
     <string name="expense_category_mobile_data">Mobile data</string>
     <string name="expense_category_tolls">Tolls</string>
@@ -500,6 +501,9 @@
     <string name="settings_add_vehicle">Add your vehicle</string>
     <string name="settings_add_vehicle_body">Needed to estimate fuel and maintenance for each ride.</string>
     <string name="settings_sample_body">Your estimates use example numbers. Enter your own fuel price, km per litre and maintenance so they match your real costs.</string>
+    <string name="settings_section_reports">Reports</string>
+    <string name="settings_reports">Profit reports</string>
+    <string name="settings_reports_body">Day, week or month, estimated and cash, with CSV export</string>
     <string name="settings_section_records">Records</string>
     <string name="settings_other_income">Other income</string>
     <string name="settings_other_income_body">Bonuses, tips and incentives</string>
@@ -511,7 +515,7 @@
     <string name="settings_section_about">About</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_version">Version</string>
-    <string name="theme_system">System default</string>
+    <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <!-- Fuel price (published CPC prices, CLAUDE.md section 8a) -->

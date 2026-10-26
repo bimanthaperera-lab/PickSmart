@@ -51,7 +51,7 @@ import lk.picksmart.ui.vehicle.EditVehicleScreen
 import lk.picksmart.ui.vehicle.VehicleLimitScreen
 import kotlin.reflect.KClass
 
-/** The app shell: bottom navigation around the five tabs. */
+/** The app shell: bottom navigation around the four tabs. */
 @Composable
 fun PicksmartApp() {
     val navController = rememberNavController()
@@ -61,7 +61,7 @@ fun PicksmartApp() {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // Only the five tabs show the bar; detail screens such as Edit vehicle take the full height.
+            // Only the four tabs show the bar; detail screens such as Edit vehicle take the full height.
             val onTopLevel = TopLevelDestination.entries.any { d -> currentDestination?.hasRoute(d.route::class) == true }
             if (onTopLevel) NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
                 TopLevelDestination.entries.forEach { destination ->
@@ -163,7 +163,13 @@ fun PicksmartApp() {
                     onAddVehicle = { navController.navigate(EditVehicleRoute(EditVehicleRoute.NEW)) },
                 )
             }
-            composable<ReportsRoute> { ReportsScreen(onCheckRide = openCheckRide, onOpenFuelLog = openFuelLog) }
+            composable<ReportsRoute> {
+                ReportsScreen(
+                    onBack = { navController.popIfOn(ReportsRoute::class) },
+                    onCheckRide = openCheckRide,
+                    onOpenFuelLog = openFuelLog,
+                )
+            }
             composable<AccountRoute> {
                 AccountScreen(
                     onSignUp = { navController.navigate(RegisterRoute) },
@@ -175,6 +181,7 @@ fun PicksmartApp() {
                     onOpenFuelLog = openFuelLog,
                     onOpenExpenses = openExpenses,
                     onOpenFuelPrice = openFuelPrice,
+                    onOpenReports = { navController.navigate(ReportsRoute) },
                 )
             }
             // Login and Register swap places rather than stack, so back always returns to the tab.

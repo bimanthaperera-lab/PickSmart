@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
@@ -42,7 +43,7 @@ import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.InfoNote
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.PicksmartCard
-import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.DetailHeader
 import lk.picksmart.ui.components.SegmentedControl
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
@@ -58,6 +59,7 @@ import java.time.format.DateTimeFormatter
  */
 @Composable
 fun ReportsScreen(
+    onBack: () -> Unit,
     onCheckRide: () -> Unit,
     onOpenFuelLog: () -> Unit,
     viewModel: ReportsViewModel = viewModel(factory = ReportsViewModel.Factory),
@@ -70,9 +72,8 @@ fun ReportsScreen(
     LaunchedEffect(viewModel) {
         viewModel.exportedFiles.collect { files -> context.shareFiles(files, subject, chooserTitle) }
     }
-    TabScreen {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ScreenTitle(stringResource(R.string.reports_title), Modifier.weight(1f))
+    Column(Modifier.fillMaxSize()) {
+        DetailHeader(stringResource(R.string.reports_title), R.drawable.ic_arrow_back, stringResource(R.string.action_back), onBack) {
             // Exports every record, so it is offered whenever there is anything to export.
             if (state is ReportsUiState.Loaded) {
                 IconButton(onClick = viewModel::export, enabled = exportStatus != ExportStatus.WORKING) {
@@ -80,51 +81,53 @@ fun ReportsScreen(
                 }
             }
         }
-        if (exportStatus == ExportStatus.FAILED) {
-            InfoNote(stringResource(R.string.reports_export_failed), iconRes = R.drawable.ic_error)
-        }
-        when (val s = state) {
-            ReportsUiState.Loading -> LoadingState()
-            ReportsUiState.Empty -> EmptyState(
-                iconRes = R.drawable.ic_nav_reports,
-                title = stringResource(R.string.reports_empty_title),
-                body = stringResource(R.string.reports_empty_body),
-                actionLabel = stringResource(R.string.action_check_ride),
-                onAction = onCheckRide,
-            )
-            is ReportsUiState.Loaded -> {
-                SegmentedControl(
-                    options = ReportPeriod.entries,
-                    selected = s.period,
-                    optionLabel = { stringResource(it.label) },
-                    onSelect = viewModel::setPeriod,
-                    modifier = Modifier.fillMaxWidth(),
+        TabScreen(Modifier.weight(1f)) {
+            if (exportStatus == ExportStatus.FAILED) {
+                InfoNote(stringResource(R.string.reports_export_failed), iconRes = R.drawable.ic_error)
+            }
+            when (val s = state) {
+                ReportsUiState.Loading -> LoadingState()
+                ReportsUiState.Empty -> EmptyState(
+                    iconRes = R.drawable.ic_nav_reports,
+                    title = stringResource(R.string.reports_empty_title),
+                    body = stringResource(R.string.reports_empty_body),
+                    actionLabel = stringResource(R.string.action_check_ride),
+                    onAction = onCheckRide,
                 )
-                // The period and the view share a row; at large font sizes the view drops below.
-                FlowRow(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    PeriodNavigator(s, onPrevious = viewModel::previous, onNext = viewModel::next)
+                is ReportsUiState.Loaded -> {
                     SegmentedControl(
-                        options = ReportView.entries,
-                        selected = s.view,
+                        options = ReportPeriod.entries,
+                        selected = s.period,
                         optionLabel = { stringResource(it.label) },
-                        onSelect = viewModel::setView,
-                        accent = true,
-                        fill = false,
+                        onSelect = viewModel::setPeriod,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                }
-                if (s.summary.hasNoRecords) {
-                    EmptyState(
-                        iconRes = R.drawable.ic_nav_reports,
-                        title = stringResource(R.string.reports_period_empty_title),
-                        body = stringResource(R.string.reports_period_empty_body),
-                    )
-                } else {
-                    Report(s, onOpenFuelLog)
+                    // The period and the view share a row; at large font sizes the view drops below.
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                        itemVerticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PeriodNavigator(s, onPrevious = viewModel::previous, onNext = viewModel::next)
+                        SegmentedControl(
+                            options = ReportView.entries,
+                            selected = s.view,
+                            optionLabel = { stringResource(it.label) },
+                            onSelect = viewModel::setView,
+                            accent = true,
+                            fill = false,
+                        )
+                    }
+                    if (s.summary.hasNoRecords) {
+                        EmptyState(
+                            iconRes = R.drawable.ic_nav_reports,
+                            title = stringResource(R.string.reports_period_empty_title),
+                            body = stringResource(R.string.reports_period_empty_body),
+                        )
+                    } else {
+                        Report(s, onOpenFuelLog)
+                    }
                 }
             }
         }

@@ -38,7 +38,7 @@ import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import lk.picksmart.util.dateFormatter
 
 /** Back or close icon, a title, and optional actions on the right. Used by record screens. */
 @Composable
@@ -187,5 +187,5 @@ fun SwitchRow(title: String, body: String, checked: Boolean, onCheckedChange: (B
 fun rememberRecordDate(date: LocalDate, today: LocalDate): String {
     val locale = LocalConfiguration.current.locales[0]
     val pattern = stringResource(if (date.year == today.year) R.string.pattern_short_date else R.string.pattern_date_field)
-    return remember(date, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(date) }
+    return remember(date, pattern, locale) { dateFormatter(pattern, locale).format(date) }
 }

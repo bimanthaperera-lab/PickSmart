@@ -58,9 +58,9 @@ import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.trip.initials
 import lk.picksmart.ui.trip.label
 import lk.picksmart.util.ColomboZone
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatDecimal
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * The active vehicle's saved trips (every trip with a single vehicle), newest first, grouped by day. Offers are listed (dashed, marked "Offer") but
@@ -182,7 +182,7 @@ private fun DayHeader(day: HistoryDay, today: LocalDate) {
 private fun formatDay(date: LocalDate, today: LocalDate): String {
     val locale = LocalConfiguration.current.locales[0]
     val pattern = stringResource(if (date.year == today.year) R.string.pattern_day else R.string.pattern_day_with_year)
-    val text = remember(date, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(date) }
+    val text = remember(date, pattern, locale) { dateFormatter(pattern, locale).format(date) }
     return when (date) {
         today -> stringResource(R.string.history_today, text)
         today.minusDays(1) -> stringResource(R.string.history_yesterday, text)
@@ -202,7 +202,7 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     val timePattern = stringResource(R.string.pattern_time)
     val time = remember(trip.tripDateTime, timePattern, locale) {
-        DateTimeFormatter.ofPattern(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
+        dateFormatter(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
     }
     val km = formatDecimal(trip.pickupKm + trip.tripKm + trip.returnKm, 1)
     val detail = when (trip.status) {

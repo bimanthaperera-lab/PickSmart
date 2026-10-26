@@ -51,9 +51,9 @@ import lk.picksmart.ui.history.TripRow
 import lk.picksmart.ui.settings.OfferReaderSwitch
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatDecimal
 import lk.picksmart.util.todayInColombo
-import java.time.format.DateTimeFormatter
 
 /**
  * Today at a glance: estimated net profit, the figures behind it, the way into Check a Ride, the
@@ -141,7 +141,7 @@ private fun HomeHeader() {
     val pattern = stringResource(R.string.home_date_pattern)
     val locale = LocalConfiguration.current.locales[0]
     val date = remember(pattern, locale) {
-        todayInColombo().format(DateTimeFormatter.ofPattern(pattern, locale))
+        todayInColombo().format(dateFormatter(pattern, locale))
     }
     // The offer reader's switch sits on the right; at large font sizes it moves under the title.
     FlowRow(

@@ -584,6 +584,8 @@
     <string name="profile_check_verified">நான் சரிபார்த்தேன்</string>
     <string name="profile_verification_sent">சரிபார்ப்பு மின்னஞ்சல் அனுப்பப்பட்டது.</string>
     <string name="profile_mobile">மொபைல் எண்</string>
+    <string name="profile_gender">பாலினம்</string>
+    <string name="profile_birth_date">பிறந்த தேதி</string>
     <string name="profile_mobile_optional">விருப்பப்படி</string>
     <string name="profile_mobile_not_verified">சரிபார்க்கப்படவில்லை</string>
     <string name="profile_edit_name">பெயரைத் திருத்து</string>

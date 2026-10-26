@@ -49,8 +49,8 @@ import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatDecimal
-import java.time.format.DateTimeFormatter
 
 /**
  * Profit for a day, a Monday–Sunday week or a calendar month, in the estimated or the cash view
@@ -242,7 +242,7 @@ private fun periodLabel(s: ReportsUiState.Loaded): String {
     return when (s.period) {
         ReportPeriod.DAY -> {
             val pattern = stringResource(if (range.start.year == thisYear) R.string.pattern_day else R.string.pattern_day_with_year)
-            remember(range, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(range.start) }
+            remember(range, pattern, locale) { dateFormatter(pattern, locale).format(range.start) }
         }
         ReportPeriod.WEEK -> {
             val end = range.endInclusive
@@ -254,13 +254,13 @@ private fun periodLabel(s: ReportsUiState.Loaded): String {
                     else -> R.string.pattern_date_field
                 },
             )
-            val startText = remember(range, startPattern, locale) { DateTimeFormatter.ofPattern(startPattern, locale).format(range.start) }
-            val endText = remember(range, endPattern, locale) { DateTimeFormatter.ofPattern(endPattern, locale).format(end) }
+            val startText = remember(range, startPattern, locale) { dateFormatter(startPattern, locale).format(range.start) }
+            val endText = remember(range, endPattern, locale) { dateFormatter(endPattern, locale).format(end) }
             stringResource(R.string.reports_range, startText, endText)
         }
         ReportPeriod.MONTH -> {
             val pattern = stringResource(R.string.pattern_month)
-            remember(range, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(range.start) }
+            remember(range, pattern, locale) { dateFormatter(pattern, locale).format(range.start) }
         }
     }
 }

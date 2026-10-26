@@ -38,8 +38,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAccessor
+import lk.picksmart.util.dateFormatter
 
 /** A date shown like an input; tapping it opens the date picker. Dates after [maxDate] can't be picked. */
 @Composable
@@ -184,7 +184,7 @@ private fun PickerField(label: String, value: String, onClick: () -> Unit, modif
 @Composable
 fun formatPattern(value: TemporalAccessor, pattern: String): String {
     val locale = LocalConfiguration.current.locales[0]
-    return remember(value, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(value) }
+    return remember(value, pattern, locale) { dateFormatter(pattern, locale).format(value) }
 }
 
 private fun utcDate(utcMillis: Long): LocalDate = Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()

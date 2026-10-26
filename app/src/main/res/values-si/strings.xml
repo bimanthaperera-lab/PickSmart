@@ -591,6 +591,8 @@
     <string name="profile_check_verified">මම තහවුරු කළා</string>
     <string name="profile_verification_sent">තහවුරු කිරීමේ ඊමේල් පණිවිඩය යවන ලදී.</string>
     <string name="profile_mobile">ජංගම දුරකථන අංකය</string>
+    <string name="profile_gender">ස්ත්‍රී පුරුෂ භාවය</string>
+    <string name="profile_birth_date">උපන් දිනය</string>
     <string name="profile_mobile_optional">විකල්ප</string>
     <string name="profile_mobile_not_verified">තහවුරු කර නැත</string>
     <string name="profile_edit_name">නම වෙනස් කරන්න</string>

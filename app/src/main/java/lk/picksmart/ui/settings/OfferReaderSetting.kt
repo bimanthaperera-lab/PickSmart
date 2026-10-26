@@ -86,7 +86,7 @@ class OfferReaderViewModel(private val preferences: UserPreferencesRepository) :
  * plus a way to read it again at once after turning it off from here.
  */
 @Composable
-private fun rememberReaderEnabled(): Pair<Boolean, () -> Unit> {
+internal fun rememberReaderEnabled(): Pair<Boolean, () -> Unit> {
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(OfferReaderService.isEnabled(context)) }
     LifecycleResumeEffect(Unit) {
@@ -102,7 +102,7 @@ private fun rememberReaderEnabled(): Pair<Boolean, () -> Unit> {
  * settings, where only the rider can turn the reader on.
  */
 @Composable
-private fun rememberTurnOn(viewModel: OfferReaderViewModel): () -> Unit {
+internal fun rememberTurnOn(viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)): () -> Unit {
     val context = LocalContext.current
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         context.openAccessibilitySettings()
@@ -225,7 +225,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
 
 /** The prominent disclosure (Play's AccessibilityService policy), shown before Android's settings. */
 @Composable
-private fun DisclosureDialog(onAccept: () -> Unit, onDismiss: () -> Unit) {
+internal fun DisclosureDialog(onAccept: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.offer_reader_disclosure_title)) },

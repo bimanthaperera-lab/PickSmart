@@ -29,7 +29,7 @@ import lk.picksmart.ui.vehicle.VehicleFormResult
 import lk.picksmart.ui.vehicle.VehicleFormState
 import lk.picksmart.ui.vehicle.validate
 
-enum class OnboardingStep { WELCOME, INTRO, VEHICLE, SAFETY }
+enum class OnboardingStep { WELCOME, INTRO, VEHICLE, PERMISSIONS, SAFETY }
 
 /** How many "how it works" pages the intro has. */
 const val INTRO_PAGE_COUNT = 3
@@ -47,8 +47,8 @@ data class OnboardingUiState(
 )
 
 /**
- * First-launch setup: welcome, the "how it works" intro, the rider's own vehicle numbers, then the
- * safety notice. A rider who signs in from the welcome screen goes straight to the vehicle. Nothing
+ * First-launch setup: welcome, the "how it works" intro, the rider's own vehicle numbers, the
+ * optional permissions (notifications, Read ride offers), then the safety notice. A rider who signs in from the welcome screen goes straight to the vehicle. Nothing
  * is saved until the rider accepts the notice; finishing flips the onboarding flag, which takes
  * the app to Home.
  */
@@ -94,10 +94,13 @@ class OnboardingViewModel(
         when (val result = _state.value.form.validate(defaultName)) {
             is VehicleFormResult.Invalid -> _state.update { it.copy(errors = result.errors) }
             is VehicleFormResult.Valid -> _state.update {
-                it.copy(errors = emptyMap(), pending = result.input, step = OnboardingStep.SAFETY)
+                it.copy(errors = emptyMap(), pending = result.input, step = OnboardingStep.PERMISSIONS)
             }
         }
     }
+
+    /** Permissions allowed or skipped: on to the safety notice. */
+    fun finishPermissions() = _state.update { it.copy(step = OnboardingStep.SAFETY) }
 
     /**
      * Back one step. The screen only routes system Back here after the welcome step, and handles
@@ -111,7 +114,8 @@ class OnboardingViewModel(
                 OnboardingStep.WELCOME -> it
                 OnboardingStep.INTRO -> it.copy(step = OnboardingStep.WELCOME)
                 OnboardingStep.VEHICLE -> it.copy(step = OnboardingStep.INTRO, introPage = INTRO_PAGE_COUNT - 1)
-                OnboardingStep.SAFETY -> it.copy(step = OnboardingStep.VEHICLE, saveFailed = false)
+                OnboardingStep.PERMISSIONS -> it.copy(step = OnboardingStep.VEHICLE)
+                OnboardingStep.SAFETY -> it.copy(step = OnboardingStep.PERMISSIONS, saveFailed = false)
             }
         }
     }

@@ -359,7 +359,7 @@ Bottom navigation: Home, Check Ride, History, Account. The Account tab replaces 
 
 ### Onboarding
 
-On first launch, the splash settles into a welcome screen (the logo stays where the splash left it) with **Get started** and **I already have an account**. Get started shows three short "how it works" pages (Next, or Skip to the vehicle), then a short setup asks for vehicle type, fuel type, fuel price, fuel efficiency and maintenance reserve, then shows the one-line safety notice. I already have an account opens Login / Register, and signing in goes straight to the vehicle setup. There is no "use sample values" or skip option for the vehicle: the rider uses the app after entering their own numbers.
+On first launch, the splash settles into a welcome screen (the logo stays where the splash left it) with **Get started** and **I already have an account**. Get started shows three short "how it works" pages (Next, or Skip to the vehicle), then a short setup asks for vehicle type, fuel type, fuel price, fuel efficiency and maintenance reserve, then a **Permissions** step offers notifications (Allow, the system dialog) and Read ride offers (Turn on, the disclosure, then Android's Accessibility settings), both optional with Continue, then shows the one-line safety notice. I already have an account opens Login / Register, and signing in goes straight to the vehicle setup. There is no "use sample values" or skip option for the vehicle: the rider uses the app after entering their own numbers.
 
 - Fields start empty, with no suggested values. The one exception is the fuel price: if a published CPC list is already saved on the device (section 8a), it is pre-filled for the chosen fuel type with its source shown ("CPC price from 1 Oct"), and the rider can change it.
 - Fuel efficiency must be above 0. Maintenance reserve may be 0, with a short hint explaining what it is for. The profit target stays optional.
@@ -405,7 +405,7 @@ A draggable overlay that expands into the same small calculator. The rider types
 
 - Fuel price changed (links to section 8a), daily summary at a rider-set time, and an optional reminder to mark offers the rider took as completed trips.
 - One `NotificationChannel` per type, so the rider can control each from Android settings.
-- On Android 13+, ask for the notification permission in context (when starting the first shift or enabling a summary), never on first launch.
+- On Android 13+, the notification permission is offered on the onboarding Permissions step, with what it is for, never as a bare dialog on launch (owner decision 2026-10-26). A rider who skipped it is asked again in context: when turning on Read ride offers, starting the first shift or enabling a summary.
 - Scheduled items run through WorkManager.
 
 ### In-app alerts inbox
@@ -440,7 +440,7 @@ Until 2026-10-26 auto-reading was excluded. The owner decided to allow **reading
 - Request only the permissions an implemented feature needs. No precise location in the MVP.
 - `INTERNET` is used for the fuel price download (section 8a), the optional account and sync (section 14), and, in the final phase, ads. The Data safety form declares the price download sends no personal data, and that the optional account stores an identifier, email, name, optional mobile number and backed-up app data for backup only.
 - The offer reader's `BIND_ACCESSIBILITY_SERVICE` service is enabled only by the rider, after the disclosure in section 9b. The Data safety form and privacy policy say that offer text is read on the device only and never collected or shared.
-- `POST_NOTIFICATIONS` (Android 13+) is requested in context, not on first launch. `SYSTEM_ALERT_WINDOW` (draw over other apps) is requested only if the rider turns on the floating bubble, and the app works fully without it.
+- `POST_NOTIFICATIONS` (Android 13+) is offered on the onboarding Permissions step with its purpose, and again in context, never as a bare dialog on launch. `SYSTEM_ALERT_WINDOW` (draw over other apps) is requested only if the rider turns on the floating bubble, and the app works fully without it.
 - Screenshot import must be started by the user through the Photo Picker or the share sheet.
 - Never claim an official Uber or PickMe integration, and never promise the app can stop a driver account from being blocked, nor that the offer reader is safe for a driver account.
 - **Backup:** Android Auto Backup is enabled with explicit rules that include the Room database and DataStore and exclude caches. This is disclosed in the privacy policy. CSV export is the user's manual backup.

@@ -73,7 +73,7 @@ import lk.picksmart.ui.vehicle.VehicleFormFields
 import lk.picksmart.ui.vehicle.VehicleFormState
 import lk.picksmart.ui.vehicle.label
 
-/** The setup steps (welcome, intro, vehicle, safety); the sign-in screens open on top of it. */
+/** The setup steps (welcome, intro, vehicle, permissions, safety); the sign-in screens open on top of it. */
 @Serializable private data object SetupRoute
 
 /**
@@ -164,6 +164,7 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
                 onContinue = { viewModel.continueWithForm(defaultName) },
             )
         }
+        OnboardingStep.PERMISSIONS -> StepScaffold(stepNumber = 2) { PermissionsStep(onContinue = viewModel::finishPermissions) }
         OnboardingStep.SAFETY -> SafetyStep(state = state, onFinish = viewModel::finish)
     }
 }
@@ -374,7 +375,7 @@ private fun StepScaffold(
             .padding(horizontal = Spacing.screen, vertical = Spacing.l),
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
     ) {
-        StepHeader(stepNumber, totalSteps = 2)
+        StepHeader(stepNumber, totalSteps = 3)
         content()
     }
 }
@@ -441,7 +442,7 @@ private fun VehicleStep(
 
 @Composable
 private fun SafetyStep(state: OnboardingUiState, onFinish: () -> Unit) {
-    StepScaffold(stepNumber = 2) {
+    StepScaffold(stepNumber = 3) {
         ScreenTitle(stringResource(R.string.onboarding_safety_title))
         CheckPoint(R.string.onboarding_safety_estimates)
         CheckPoint(R.string.onboarding_safety_stopped)

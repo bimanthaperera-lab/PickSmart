@@ -373,3 +373,12 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **No inbox row.** The Alerts inbox (Phase 8b) doesn't exist yet; a save prompt is short-lived and holds offer numbers, so it isn't stored there. *Default.*
 - **`Platform` has `@Keep`** because it is now a type-safe navigation argument, which R8 could otherwise break in release builds (lint `MissingKeepAnnotation`). *Default.*
 - **Badge text** is 11 sp (lint's minimum), in the badge's secondary colour, under "Read from screen". *Default.*
+
+## 2026-10-26 — Permissions during setup
+
+- **Owner asked** for the notification permission and the other permissions to be asked during Get started. CLAUDE.md said notifications are asked in context, "never on first launch"; that rule now allows an onboarding step that explains each one. *Owner.*
+- **Permissions step** between the vehicle and the safety notice (setup is now 3 steps). Two optional cards: Notifications (Allow → Android's dialog; "Allowed" when granted; after a refusal the button opens the app's notification settings, since Android may not ask twice) and Read ride offers (Turn on → the disclosure → Android's Accessibility settings, the only place it can be turned on; "On" when it is). Continue moves on whatever the rider chose, and each card re-reads its state when the rider comes back from Android's settings. *Default.*
+- **No other permissions to ask.** The app's only runtime permission is notifications. Read ride offers isn't a permission dialog, the fuel price download needs none (INTERNET), screenshot import uses the Photo Picker, and "draw over other apps" is for the floating bubble, which isn't built. *Default.*
+- **Asked again in context** for a rider who skipped it: turning on Read ride offers still asks for notifications. *Default.*
+- **New `ic_bell` icon** (24-unit, 2-unit round stroke), also usable for the alerts inbox later. *Default.*
+- **Testing note.** Clearing the app's data also turns its accessibility service off in Android, and resets runtime permissions. Back up with `adb exec-out run-as lk.picksmart tar -cf - databases files shared_prefs` first, and restore through `/data/local/tmp`. *Default.*

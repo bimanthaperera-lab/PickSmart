@@ -19,6 +19,7 @@
     <string name="state_loading">ஏற்றப்படுகிறது…</string>
     <string name="action_view">காண்பி</string>
     <string name="action_ok">சரி</string>
+    <string name="action_remove">அகற்று</string>
     <string name="action_back">பின்செல்</string>
     <string name="action_delete">நீக்கு</string>
     <string name="action_save">சேமி</string>
@@ -281,6 +282,8 @@
     <string name="reports_previous">முந்தைய</string>
     <string name="reports_next">அடுத்த</string>
     <string name="reports_range">%1$s – %2$s</string>
+    <string name="pattern_day_of_month">d</string>
+    <string name="pattern_month">MMM yyyy</string>
     <string name="reports_estimated_title">மதிப்பிடப்பட்ட நிகர இலாபம்</string>
     <string name="reports_cash_title">ரொக்க இலாபம்</string>
     <string name="reports_title_so_far">%1$s · %2$s</string>
@@ -313,8 +316,8 @@
     <string name="reports_period_empty_title">எதுவும் பதிவு செய்யப்படவில்லை</string>
     <string name="reports_period_empty_body">இந்தக் காலகட்டத்தில் சவாரிகள், வருமானம், செலவுகள் அல்லது நிரப்புதல்கள் இல்லை.</string>
     <plurals name="reports_incomplete_distance">
-        <item quantity="one">இந்தக் காலகட்டத்தில் %1$d சவாரியில் தூரம் இல்லை.</item>
-        <item quantity="other">இந்தக் காலகட்டத்தில் %1$d சவாரிகளில் தூரம் இல்லை.</item>
+        <item quantity="one">இந்தக் காலகட்டத்தில் %1$d சவாரியில் தூரம் இல்லை, எனவே அதற்கு எரிபொருள் அல்லது பராமரிப்பு ஒதுக்கீடு இல்லை. கி.மீ-க்கான இலாபம் பதிவுசெய்யப்பட்ட %2$s கி.மீ-ஐக் கொண்டு கணக்கிடப்படுகிறது.</item>
+        <item quantity="other">இந்தக் காலகட்டத்தில் %1$d சவாரிகளில் தூரம் இல்லை, எனவே அவற்றுக்கு எரிபொருள் அல்லது பராமரிப்பு ஒதுக்கீடு இல்லை. கி.மீ-க்கான இலாபம் பதிவுசெய்யப்பட்ட %2$s கி.மீ-ஐக் கொண்டு கணக்கிடப்படுகிறது.</item>
     </plurals>
     <string name="reports_incomplete_fuel">இந்தக் காலகட்டத்தில் நிரப்புதல்கள் எதுவும் பதிவு செய்யப்படவில்லை.</string>
     <string name="reports_open_fuel_log">எரிபொருள் பதிவைத் திற</string>
@@ -327,6 +330,10 @@
     <string name="reports_export_chooser">உங்கள் பதிவுகளைப் பகிரவும்</string>
     <string name="reports_export_failed">ஏற்றுமதி கோப்புகளை உருவாக்க முடியவில்லை. மீண்டும் முயல்க.</string>
     <string name="reports_chart_description">%2$s முதல் %3$s வரை நாள் வாரியாக %1$s. அதிகபட்ச %4$s %5$s இல். குறைந்தபட்ச %6$s %7$s இல்.</string>
+    <string name="unit_per_litre">லிட்டருக்கு</string>
+    <string name="unit_km_per_litre">km/L</string>
+    <string name="unit_litre_short">L</string>
+    <string name="unit_per_km">/km</string>
 
     <string name="vehicle_type_motorcycle">மோட்டார் சைக்கிள்</string>
     <string name="vehicle_type_three_wheeler">முச்சக்கர வண்டி (Three-wheeler)</string>
@@ -385,6 +392,16 @@
     <string name="onboarding_step">படி %1$d / %2$d</string>
     <string name="onboarding_vehicle_title">உங்கள் வாகனத்தை அமைக்கவும்</string>
     <string name="onboarding_vehicle_body">இந்த எண்கள் ஒவ்வொரு சவாரிக்கும் எரிபொருள் மற்றும் பராமரிப்பை மதிப்பிடுகின்றன. நீங்கள் அவற்றை எந்த நேரத்திலும் மாற்றலாம்.</string>
+    <string name="onboarding_permissions_title">அனுமதிகள்</string>
+    <string name="onboarding_permissions_body">இரண்டும் கட்டாயமில்லை. அவை இல்லாமலும் Picksmart வேலை செய்யும். பின்னர் Android settings அல்லது கணக்கு தாவலில் அவற்றை மாற்றலாம்.</string>
+    <string name="permission_notifications_title">அறிவிப்புகள்</string>
+    <string name="permission_notifications_body">சவாரி சலுகையைச் சவாரியாகச் சேமிக்கவா என்று கேட்கவும், நீங்கள் ஆன் செய்யும் நினைவூட்டல்களை அனுப்பவும் Picksmart-க்கு அனுமதி அளிக்கிறது.</string>
+    <string name="permission_reader_body">Uber Driver சலுகைகளில் மதிப்பிடப்பட்ட இலாபம் அல்லது நட்டத்தைக் காட்டுகிறது. நீங்கள் ஆன் செய்யும் வரை Off ஆக இருக்கும்.</string>
+    <string name="permission_allow">அனுமதி</string>
+    <string name="permission_allowed">அனுமதிக்கப்பட்டது</string>
+    <string name="permission_turn_on">ஆன் செய்</string>
+    <string name="permission_on">On</string>
+    <string name="permission_open_settings">Settings-ஐத் திற</string>
     <string name="onboarding_safety_title">நீங்கள் சவாரி செய்வதற்கு முன்</string>
     <string name="onboarding_safety_estimates">முடிவுகள் நீங்கள் உள்ளிடும் எண்களின் அடிப்படையிலான மதிப்பீடுகள்.</string>
     <string name="onboarding_safety_stopped">நீங்கள் பாதுகாப்பாக நிறுத்தியிருக்கும் போது மட்டுமே சவாரி சலுகைகளைச் சரிபார்க்கவும்.</string>
@@ -464,6 +481,14 @@
     <string name="offer_badge_amounts">%1$s · %2$s/km</string>
     <string name="offer_badge_source">திரையிலிருந்து படிக்கப்பட்டது · %1$s</string>
     <string name="offer_badge_hide_hint">மறைக்க அழுத்திப் பிடிக்கவும்</string>
+    <string name="offer_badge_powered">Picksmart மூலம்</string>
+    <string name="offer_save_channel_name">சலுகைகளைச் சவாரிகளாகச் சேமித்தல்</string>
+    <string name="offer_save_channel_description">சலுகை வாசிப்பான் ஒரு சவாரி சலுகையைக் காட்டிய பிறகு, அதைச் சவாரியாகச் சேமிக்கவா என்று கேட்கிறது.</string>
+    <string name="offer_save_title">இந்தச் சவாரியை எடுத்தீர்களா? அதைச் சவாரியாகச் சேமிக்கவும்</string>
+    <string name="offer_save_body">%1$s · %2$s கி.மீ · சரிபார்த்துச் சேமிக்கத் தட்டவும்</string>
+    <string name="offer_save_public_title">உங்கள் கடைசி சவாரி சலுகையைச் சவாரியாகச் சேமிக்கவும்</string>
+    <string name="trip_from_offer_title">சவாரி சலுகையிலிருந்து நிரப்பப்பட்டது</string>
+    <string name="trip_from_offer_notice">இந்த எண்கள் திரையிலிருந்து படிக்கப்பட்டவை. சேமிப்பதற்கு முன் கட்டணம் மற்றும் தூரங்களைச் சரிபார்த்து, திரும்பும் பயணம் அல்லது பிற செலவுகள் இருந்தால் சேர்க்கவும்.</string>
     <string name="settings_language">மொழி</string>
     <string name="language_system">ஃபோனின் மொழி</string>
     <string name="settings_theme">தீம் (Theme)</string>
@@ -586,8 +611,19 @@
     <string name="profile_mobile">மொபைல் எண்</string>
     <string name="profile_gender">பாலினம்</string>
     <string name="profile_birth_date">பிறந்த தேதி</string>
+    <string name="profile_photo_note">உங்கள் புகைப்படம், பாலினம் மற்றும் பிறந்த தேதி இந்தத் தொலைபேசியில் மட்டுமே இருக்கும். அவை பதிவேற்றப்படுவதோ பகிரப்படுவதோ இல்லை.</string>
+    <string name="gender_male">ஆண்</string>
+    <string name="gender_female">பெண்</string>
+    <string name="gender_other">மற்றவை</string>
+    <string name="gender_prefer_not_to_say">சொல்ல விரும்பவில்லை</string>
     <string name="profile_mobile_optional">விருப்பப்படி</string>
     <string name="profile_mobile_not_verified">சரிபார்க்கப்படவில்லை</string>
+    <string name="profile_change_photo">புகைப்படத்தை மாற்று</string>
+    <string name="profile_change_photo_description">சுயவிவரப் புகைப்படத்தை மாற்று</string>
+    <string name="profile_remove_photo">புகைப்படத்தை அகற்று</string>
+    <string name="profile_photo_failed">அந்தப் புகைப்படத்தைப் பயன்படுத்த முடியவில்லை. வேறொன்றை முயற்சிக்கவும்.</string>
+    <string name="profile_photo_unsupported">JPG, PNG, WebP அல்லது HEIC புகைப்படத்தைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="profile_photo_too_large">அந்தப் புகைப்படம் 20 MB-ஐ விட பெரியது. சிறியதைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="profile_edit_name">பெயரைத் திருத்து</string>
     <string name="profile_edit_mobile">மொபைல் எண்ணைத் திருத்து</string>
     <string name="profile_sign_out">வெளியேறு (Sign out)</string>

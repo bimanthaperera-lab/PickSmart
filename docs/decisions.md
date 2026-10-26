@@ -447,3 +447,9 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Order:** confirm → cloud backup → account → phone. A failure stops the steps after it: offline or a wrong password deletes nothing; if the account can't be deleted after the backup was, the phone keeps its records and the rider tries again. Once started it finishes even if the screen closes (`NonCancellable`). Tested in `DeleteAccountTest` (order and every stop point) and `PhoneDataEraserTest` (device test). *Default.*
 - **Translations:** the Sinhala and Tamil `profile_delete_body` and `profile_records_stay` said records stay on the phone, so they were removed (English shows until translated). The new delete strings need Sinhala and Tamil too. *Open for the owner.*
 - **Not verified:** the dialog on a real signed-in account, Firebase re-authentication and deletion. Claude can't sign in to the project. *Open: owner to try with an email and a Google account.*
+
+## 2026-10-26 — Drafted translations added
+
+- **Claude's Sinhala and Tamil drafts are in the app** (owner asked): 30 Sinhala and 36 Tamil strings (permissions step, offer save notification, "Powered by Picksmart", profile photo, gender, Remove; Tamil units and two date patterns), and the full `reports_incomplete_distance` sentence in both languages. Placeholders were checked against English. Claude is not a native speaker; the owner corrects anything that reads wrong. *Owner.*
+- **Not changed:** the optional shorter Tamil Check a Ride title (owner's choice), and the cloud backup and Delete account strings, which have no drafts yet. They show in English (31 `MissingTranslation` warnings) and are listed in `docs/translations-draft.md`. *Open for the owner.*
+- **Checked:** build, unit tests, lint 0 errors; on the emulator the welcome screen, vehicle setup, Home and Check a Ride show in Tamil with the new units. The Permissions step was not looked at. *Default.*

@@ -102,7 +102,7 @@ class TripFormStateTest {
         val trip = newTrip(valid(g1.copy(notes = "Airport run")), vehicleId = 1, nowMillis = 1)
         val form = trip.toFormState()
         assertEquals(g1.copy(notes = "Airport run"), form)
-        assertEquals(trip.copy(id = 0), newTrip(valid(form), 1, 1))
+        assertEquals(trip, newTrip(valid(form), 1, 1).copy(syncId = trip.syncId))
     }
 
     @Test

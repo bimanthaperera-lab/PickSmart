@@ -21,7 +21,11 @@ fun newFuelLog(input: FuelLogInput, vehicleId: Long, nowMillis: Long) = FuelLog(
 
 /** The id, vehicle and creation time never change. */
 fun applyFuelLogEdit(current: FuelLog, input: FuelLogInput, nowMillis: Long): FuelLog =
-    newFuelLog(input, current.vehicleId, nowMillis).copy(id = current.id, createdAtMillis = current.createdAtMillis)
+    newFuelLog(input, current.vehicleId, nowMillis).copy(
+        id = current.id,
+        createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
+    )
 
 /**
  * A new expense. Blank notes are stored as null. The odometer is only kept for maintenance and
@@ -41,4 +45,8 @@ fun newExpense(input: ExpenseInput, vehicleId: Long?, nowMillis: Long) = Expense
 
 /** The id, vehicle and creation time never change. */
 fun applyExpenseEdit(current: Expense, input: ExpenseInput, nowMillis: Long): Expense =
-    newExpense(input, current.vehicleId, nowMillis).copy(id = current.id, createdAtMillis = current.createdAtMillis)
+    newExpense(input, current.vehicleId, nowMillis).copy(
+        id = current.id,
+        createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
+    )

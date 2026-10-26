@@ -10,6 +10,7 @@ import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
 import lk.picksmart.data.local.migrations.MIGRATION_1_2
 import lk.picksmart.data.local.migrations.MIGRATION_2_3
 import lk.picksmart.data.local.migrations.MIGRATION_3_4
+import lk.picksmart.data.local.migrations.MIGRATION_4_5
 import lk.picksmart.domain.model.IncomeType
 import lk.picksmart.domain.model.TripStatus
 import org.junit.Assert.assertEquals
@@ -167,6 +168,81 @@ class MigrationTest {
             assertEquals(3_000L, vehicle.updatedAtMillis)
             assertNull(vehicle.plateNumber)
             assertEquals(176_400L, db.fuelLogDao().get(5)!!.totalCents)
+        } finally {
+            db.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun migrate4To5KeepsEveryRowAndGivesEachADistinctSyncIdToBackUp() = runTest {
+        helper.createDatabase(dbName, 4).apply {
+            execSQL(
+                """
+                INSERT INTO vehicles (id, name, type, fuel_type, fuel_price_per_litre_cents, fuel_price_source,
+                    fuel_price_effective_date, auto_update_fuel_price, fuel_efficiency_km_per_litre,
+                    maintenance_reserve_per_km_cents, target_profit_per_km_cents, is_sample, archived,
+                    created_at, updated_at, plate_number)
+                VALUES (1, 'Honda Dio', 'MOTORCYCLE', 'PETROL_92', 41400, 'MANUAL', NULL, 0, 40.0, 200, NULL, 0, 0,
+                    1000, 1000, 'WP BCD-1234'),
+                    (2, 'Bajaj RE', 'THREE_WHEELER', 'AUTO_DIESEL', 39200, 'PUBLISHED', '2026-10-01', 1, 30.0, 150,
+                    5000, 0, 1, 1000, 3000, NULL)
+                """.trimIndent(),
+            )
+            execSQL(
+                """
+                INSERT INTO trips (id, vehicle_id, created_at, updated_at, trip_date_time, platform, status,
+                    fare_cents, fare_mode, commission_type, commission_hundredths, pickup_km, trip_km, return_km,
+                    other_costs_cents, cancellation_fee_cents, notes, fuel_price_per_litre_cents_snapshot,
+                    fuel_efficiency_snapshot, maintenance_reserve_per_km_cents_snapshot,
+                    target_profit_per_km_cents_snapshot)
+                VALUES (3, 1, 5000, 6000, 1761000000000, 'UBER', 'COMPLETED', 100000, 'GROSS_BEFORE_COMMISSION',
+                    'PERCENT', 2000, 2.0, 8.0, 0.0, 0, NULL, 'Sample note', 30000, 40.0, 200, NULL)
+                """.trimIndent(),
+            )
+            execSQL(
+                "INSERT INTO other_income (id, date, type, platform, amount_cents, note, created_at, updated_at) " +
+                    "VALUES (4, '2026-10-20', 'BONUS', 'PICKME', 150000, NULL, 1, 1)",
+            )
+            execSQL(
+                "INSERT INTO fuel_logs (id, vehicle_id, date, litres, price_per_litre_cents, total_cents, odometer_km, " +
+                    "full_tank, created_at, updated_at) VALUES (5, 2, '2026-10-21', 4.5, 39200, 176400, NULL, 1, 1, 1)",
+            )
+            execSQL(
+                "INSERT INTO expenses (id, vehicle_id, date, category, amount_cents, note, odometer_km, created_at, " +
+                    "updated_at) VALUES (6, NULL, '2026-10-22', 'PARKING', 10000, NULL, NULL, 1, 1)",
+            )
+            close()
+        }
+
+        // Validates the migrated schema against 5.json, including the unique sync_id indices.
+        helper.runMigrationsAndValidate(dbName, 5, true, MIGRATION_4_5).close()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.databaseBuilder(context, PicksmartDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
+        try {
+            val vehicles = listOf(db.vehicleDao().get(1)!!, db.vehicleDao().get(2)!!)
+            assertEquals("WP BCD-1234", vehicles[0].plateNumber)
+            assertEquals(5_000L, vehicles[1].targetProfitPerKmCents)
+            assertEquals(3_000L, vehicles[1].updatedAtMillis)
+            val trip = db.tripDao().get(3)!!
+            assertEquals(100_000L, trip.fareCents)
+            assertEquals(6_000L, trip.updatedAtMillis)
+            assertEquals("Sample note", trip.notes)
+            val income = db.otherIncomeDao().get(4)!!
+            val fuel = db.fuelLogDao().get(5)!!
+            val expense = db.expenseDao().get(6)!!
+            assertEquals(176_400L, fuel.totalCents)
+            assertEquals(10_000L, expense.amountCents)
+
+            val syncIds = vehicles.map { it.syncId } + listOf(trip.syncId, income.syncId, fuel.syncId, expense.syncId)
+            assertTrue(syncIds.all { it.matches(Regex("[0-9a-f]{32}")) })
+            assertEquals(syncIds.size, syncIds.toSet().size)
+            // Everything the rider had is waiting to be backed up when they sign in.
+            assertEquals(6, db.syncDao().observePendingCount().first())
+            assertTrue(db.syncDao().pendingTombstones().isEmpty())
         } finally {
             db.close()
             context.deleteDatabase(dbName)

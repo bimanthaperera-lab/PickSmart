@@ -31,8 +31,8 @@ class TripRepository(
         return true
     }
 
-    /** Only called after the rider confirms (CLAUDE.md N7). */
+    /** Only called after the rider confirms (CLAUDE.md N7). Cloud backup removes it everywhere. */
     suspend fun delete(id: Long) {
-        dao.delete(id)
+        dao.deleteAndRemember(id, clock.millis())
     }
 }

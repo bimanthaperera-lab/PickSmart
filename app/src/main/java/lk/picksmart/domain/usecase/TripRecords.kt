@@ -70,6 +70,7 @@ fun applyTripEdit(current: Trip, input: TripInput, nowMillis: Long): Trip =
     newTrip(input, current.vehicleId, nowMillis).copy(
         id = current.id,
         createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
     )
 
 /**
@@ -96,4 +97,8 @@ fun newOtherIncome(input: OtherIncomeInput, nowMillis: Long) = OtherIncome(
 )
 
 fun applyOtherIncomeEdit(current: OtherIncome, input: OtherIncomeInput, nowMillis: Long): OtherIncome =
-    newOtherIncome(input, nowMillis).copy(id = current.id, createdAtMillis = current.createdAtMillis)
+    newOtherIncome(input, nowMillis).copy(
+        id = current.id,
+        createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
+    )

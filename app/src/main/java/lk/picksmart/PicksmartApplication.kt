@@ -9,5 +9,7 @@ class PicksmartApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // Starts cloud backup for a signed-in rider; it waits for nothing and blocks nothing.
+        container.sync
     }
 }

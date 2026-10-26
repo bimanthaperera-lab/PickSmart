@@ -4,8 +4,13 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.room.withTransaction
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.PersistentCacheSettings
+import java.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,11 +33,16 @@ import lk.picksmart.data.repository.FuelLogRepository
 import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
+import lk.picksmart.data.sync.CloudSync
+import lk.picksmart.data.sync.CloudSyncProvider
+import lk.picksmart.data.sync.DataStoreSyncedSettings
+import lk.picksmart.data.sync.FirestoreCloudStore
+import lk.picksmart.data.sync.NoOpSyncProvider
+import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.CompleteOnboarding
 import lk.picksmart.domain.usecase.FuelPriceUpdates
-import java.time.Clock
 
 // One DataStore per process. The file lives under files/datastore/, which Auto Backup includes.
 private val Context.userPreferencesStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -106,6 +116,28 @@ class AppContainer(context: Context) {
         }
     }
 
+    /**
+     * Optional cloud backup (CLAUDE.md section 14): only with an account, and it starts with the
+     * app ([PicksmartApplication]). It runs in the background and never blocks a screen (N9).
+     */
+    val sync: SyncProvider by lazy {
+        if (!account.isAvailable) return@lazy NoOpSyncProvider
+        val firestore = FirebaseFirestore.getInstance().apply {
+            // Firestore's own cache only holds writes waiting for the network; the records live in Room.
+            firestoreSettings = FirebaseFirestoreSettings.Builder()
+                .setLocalCacheSettings(PersistentCacheSettings.newBuilder().setSizeBytes(FIRESTORE_CACHE_BYTES).build())
+                .build()
+        }
+        val dao = database.syncDao()
+        val cloudSync = CloudSync(
+            dao = dao,
+            cloud = FirestoreCloudStore(firestore),
+            settings = DataStoreSyncedSettings(userPreferences, dao),
+            transaction = { block -> database.withTransaction { block() } },
+        )
+        CloudSyncProvider(account, cloudSync, dao.observePendingCount(), clock, applicationScope, appContext)
+    }
+
     val profilePhotos: ProfilePhotoCache by lazy { ProfilePhotoCache(appContext.filesDir.resolve("profile_photo")) }
 
     /**
@@ -120,6 +152,9 @@ class AppContainer(context: Context) {
         }
     }
 }
+
+/** Firestore's minimum cache size; it only holds queued writes. */
+private const val FIRESTORE_CACHE_BYTES = 1L * 1024 * 1024
 
 /** What the first screen depends on: the rider's theme and whether setup is done. */
 data class StartupSettings(val themeMode: ThemeMode, val onboardingComplete: Boolean)

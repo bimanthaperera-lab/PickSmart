@@ -3,7 +3,6 @@ package lk.picksmart.data.account
 import android.content.Context
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
@@ -22,11 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.suspendCancellableCoroutine
 import lk.picksmart.domain.model.SignInMethod
 import lk.picksmart.domain.model.UserProfile
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /** Firebase Authentication with email/password and Google (CLAUDE.md section 14). */
 class FirebaseAccountProvider(
@@ -126,16 +122,4 @@ private fun Exception.toAuthError(): AuthError = when (this) {
     is FirebaseAuthInvalidUserException ->
         if (errorCode == "ERROR_USER_DISABLED") AuthError.ACCOUNT_DISABLED else AuthError.WRONG_CREDENTIALS
     else -> AuthError.UNKNOWN
-}
-
-/** Waits for a Play services [Task] without pulling in another library for it. */
-private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
-    addOnCompleteListener { task ->
-        val error = task.exception
-        when {
-            error != null -> cont.resumeWithException(error)
-            task.isCanceled -> cont.cancel()
-            else -> cont.resume(task.result)
-        }
-    }
 }

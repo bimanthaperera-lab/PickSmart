@@ -3,6 +3,8 @@
 
     <!-- Only for the read-only fuel price download (CLAUDE.md section 8a). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cloud backup retries when the phone comes back online. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Android 13+: asked for when the rider turns on the offer reader, for "Save this trip?" (section 9b). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

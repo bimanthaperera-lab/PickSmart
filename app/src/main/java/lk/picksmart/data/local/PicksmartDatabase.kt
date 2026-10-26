@@ -10,7 +10,10 @@ import lk.picksmart.data.local.dao.FuelLogDao
 import lk.picksmart.data.local.dao.OtherIncomeDao
 import lk.picksmart.data.local.dao.TripDao
 import lk.picksmart.data.local.dao.VehicleDao
+import lk.picksmart.data.local.dao.SyncDao
 import lk.picksmart.data.local.entity.ExpenseEntity
+import lk.picksmart.data.local.entity.SyncStateEntity
+import lk.picksmart.data.local.entity.SyncTombstoneEntity
 import lk.picksmart.data.local.entity.FuelLogEntity
 import lk.picksmart.data.local.entity.OtherIncomeEntity
 import lk.picksmart.data.local.entity.TripEntity
@@ -24,8 +27,10 @@ import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
         OtherIncomeEntity::class,
         FuelLogEntity::class,
         ExpenseEntity::class,
+        SyncTombstoneEntity::class,
+        SyncStateEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -40,6 +45,8 @@ abstract class PicksmartDatabase : RoomDatabase() {
     abstract fun fuelLogDao(): FuelLogDao
 
     abstract fun expenseDao(): ExpenseDao
+
+    abstract fun syncDao(): SyncDao
 
     companion object {
         /** The file Auto Backup includes (`database` domain). Never rename it. */

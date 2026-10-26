@@ -3,6 +3,7 @@ package lk.picksmart.data.local
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import lk.picksmart.data.local.entity.toDomain
@@ -10,13 +11,13 @@ import lk.picksmart.data.local.entity.toEntity
 import lk.picksmart.domain.model.Expense
 import lk.picksmart.domain.model.ExpenseCategory
 import lk.picksmart.domain.model.FuelLog
+import lk.picksmart.domain.model.newSyncId
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.time.LocalDate
 
 /** Fuel logs and expenses read back exactly, including their optional fields. */
 @RunWith(AndroidJUnit4::class)
@@ -62,7 +63,7 @@ class CostDaoTest {
     fun fuelLogReadsBackAndListsNewestFirst() = runTest {
         val dao = db.fuelLogDao()
         val first = dao.insert(fill.toEntity())
-        val second = dao.insert(fill.copy(date = LocalDate.of(2026, 10, 22), odometerKm = null, fullTank = false).toEntity())
+        val second = dao.insert(fill.copy(date = LocalDate.of(2026, 10, 22), odometerKm = null, fullTank = false, syncId = newSyncId()).toEntity())
         assertEquals(fill.copy(id = first), dao.get(first)!!.toDomain())
         assertNull(dao.get(second)!!.odometerKm)
         assertEquals(listOf(second, first), dao.observeAll().first().map { it.id })
@@ -75,7 +76,7 @@ class CostDaoTest {
         val dao = db.expenseDao()
         val first = dao.insert(expense.toEntity())
         val second = dao.insert(
-            expense.copy(vehicleId = 1, date = LocalDate.of(2026, 10, 21), category = ExpenseCategory.PARKING, note = null, odometerKm = null)
+            expense.copy(vehicleId = 1, date = LocalDate.of(2026, 10, 21), category = ExpenseCategory.PARKING, note = null, odometerKm = null, syncId = newSyncId())
                 .toEntity(),
         )
         assertEquals(expense.copy(id = first), dao.get(first)!!.toDomain())

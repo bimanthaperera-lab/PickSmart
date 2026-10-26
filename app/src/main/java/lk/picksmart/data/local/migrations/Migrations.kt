@@ -62,7 +62,31 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
 }
 
 /**
+ * Version 5 prepares cloud backup (CLAUDE.md section 14). Every record gets a `sync_id` that is the
+ * same on all the rider's devices (existing rows get a random one) and a `sync_pending` flag, set
+ * so existing rows are backed up the first time the rider signs in. `sync_tombstones` remembers
+ * deletes, and `sync_state` holds the backup's own bookkeeping. No existing value changes.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        for (table in listOf("vehicles", "trips", "other_income", "fuel_logs", "expenses")) {
+            db.execSQL("ALTER TABLE `$table` ADD COLUMN `sync_id` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("UPDATE `$table` SET `sync_id` = lower(hex(randomblob(16)))")
+            db.execSQL("ALTER TABLE `$table` ADD COLUMN `sync_pending` INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_${table}_sync_id` ON `$table` (`sync_id`)")
+        }
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `sync_tombstones` (`kind` TEXT NOT NULL, `sync_id` TEXT NOT NULL, " +
+                "`deleted_at` INTEGER NOT NULL, `sync_pending` INTEGER NOT NULL DEFAULT 1, PRIMARY KEY(`kind`, `sync_id`))",
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `sync_state` (`key` TEXT NOT NULL, `value` TEXT NOT NULL, PRIMARY KEY(`key`))",
+        )
+    }
+}
+
+/**
  * Every schema change after version 1 adds an explicit [Migration] here, plus a
  * `MigrationTestHelper` test. Destructive fallback is never used (CLAUDE.md N7).
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)

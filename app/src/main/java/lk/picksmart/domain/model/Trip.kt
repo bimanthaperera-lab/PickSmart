@@ -58,6 +58,8 @@ data class Trip(
     val cancellationFeeCents: Long?,
     val notes: String?,
     val rates: TripRates,
+    /** The same on every device the rider backs up to; see [newSyncId]. Never changes. */
+    val syncId: String = newSyncId(),
 )
 
 /** What the rider sets when saving or editing a trip, already parsed and validated. */

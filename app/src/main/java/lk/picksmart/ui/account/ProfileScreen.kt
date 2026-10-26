@@ -70,6 +70,7 @@ import lk.picksmart.data.account.IdentityProof
 import lk.picksmart.data.account.PhotoSaveResult
 import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.sync.SyncProblem
 import lk.picksmart.domain.model.Gender
 import lk.picksmart.domain.model.SignInMethod
 import lk.picksmart.domain.usecase.DeleteAccount
@@ -532,6 +533,15 @@ private fun DeleteAccountDialog(
     )
 }
 
+/** Why the cloud backup wasn't deleted, in words the rider can act on. Nothing else was deleted. */
+@StringRes
+private fun cloudDeleteMessage(problem: SyncProblem): Int = when (problem) {
+    SyncProblem.OFFLINE -> R.string.profile_delete_cloud_failed
+    SyncProblem.REFUSED -> R.string.profile_delete_cloud_refused
+    SyncProblem.UNVERIFIED -> R.string.profile_delete_cloud_unverified
+    SyncProblem.FAILED -> R.string.profile_delete_cloud_error
+}
+
 /** A running request, and the last thing to tell the rider (an error, or e.g. "email sent"). */
 data class ProfileStatus(val busy: Boolean = false, @StringRes val message: Int? = null, val isError: Boolean = false)
 
@@ -619,7 +629,7 @@ class ProfileViewModel(
             mutableStatus.value = when (val result = deleter(proof)) {
                 DeleteAccountResult.Deleted -> ProfileStatus()
                 is DeleteAccountResult.NotConfirmed -> ProfileStatus(message = result.error.message(), isError = true)
-                DeleteAccountResult.CloudNotDeleted -> ProfileStatus(message = R.string.profile_delete_cloud_failed, isError = true)
+                is DeleteAccountResult.CloudNotDeleted -> ProfileStatus(message = cloudDeleteMessage(result.problem), isError = true)
                 is DeleteAccountResult.AccountNotDeleted ->
                     ProfileStatus(message = R.string.profile_delete_account_failed, isError = true)
             }

@@ -9,6 +9,7 @@ import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.AuthError
 import lk.picksmart.data.account.AuthResult
 import lk.picksmart.data.account.IdentityProof
+import lk.picksmart.data.sync.SyncProblem
 import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.data.sync.SyncStatus
 import lk.picksmart.domain.model.SignInMethod
@@ -22,11 +23,11 @@ class DeleteAccountTest {
 
     private fun deleteAccount(
         confirm: AuthResult = AuthResult.Success,
-        cloudDeleted: Boolean = true,
+        cloudProblem: SyncProblem? = null,
         accountDeleted: AuthResult = AuthResult.Success,
     ) = DeleteAccount(
         FakeAccount(confirm, accountDeleted, steps),
-        FakeSync(cloudDeleted, steps),
+        FakeSync(cloudProblem, steps),
         erasePhoneData = { steps += "erase phone" },
     )
 
@@ -56,9 +57,17 @@ class DeleteAccountTest {
 
     @Test
     fun `offline, the backup can't be deleted and nothing else is`() = runTest {
-        val result = deleteAccount(cloudDeleted = false)(IdentityProof.Password("secret"))
+        val result = deleteAccount(cloudProblem = SyncProblem.OFFLINE)(IdentityProof.Password("secret"))
 
-        assertEquals(DeleteAccountResult.CloudNotDeleted, result)
+        assertEquals(DeleteAccountResult.CloudNotDeleted(SyncProblem.OFFLINE), result)
+        assertEquals(listOf("confirm", "delete cloud"), steps)
+    }
+
+    @Test
+    fun `a refusal from the server is reported as a refusal, not as offline`() = runTest {
+        val result = deleteAccount(cloudProblem = SyncProblem.REFUSED)(IdentityProof.Password("secret"))
+
+        assertEquals(DeleteAccountResult.CloudNotDeleted(SyncProblem.REFUSED), result)
         assertEquals(listOf("confirm", "delete cloud"), steps)
     }
 
@@ -100,13 +109,13 @@ private class FakeAccount(
     override suspend fun signOut() = Unit
 }
 
-private class FakeSync(private val deleted: Boolean, private val steps: MutableList<String>) : SyncProvider {
+private class FakeSync(private val problem: SyncProblem?, private val steps: MutableList<String>) : SyncProvider {
     override val status: StateFlow<SyncStatus> = MutableStateFlow(SyncStatus.Idle(null))
     override val pendingCount: Flow<Int> = flowOf(0)
     override suspend fun syncNow(): SyncStatus = status.value
 
-    override suspend fun deleteCloudData(): Boolean {
+    override suspend fun deleteCloudData(): SyncProblem? {
         steps += "delete cloud"
-        return deleted
+        return problem
     }
 }

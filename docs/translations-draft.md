@@ -89,9 +89,9 @@ Your Sinhala file keeps `km/L`, `L` and `/km` as they are, so the Tamil drafts d
 | `onboarding_restore_failed` | Couldn't restore your backup. Try again, or set up a vehicle now and your backup joins this phone later. |
 | `onboarding_restore_skip` | Set up a vehicle now |
 
-## New for Delete account (2026-10-26) — English only, to translate
+## Delete account (2026-10-26) — translated by Claude, in the app
 
-Delete account now erases the cloud backup and everything on the phone. The old Sinhala and Tamil `profile_delete_body` and `profile_records_stay` said records stay on the phone, so they were removed and English shows until these are translated.
+The owner asked for these to be translated (from screenshots of the delete warning and the Account tab note), so Claude's Sinhala and Tamil are in the app, together with `profile_delete_confirm` (සියල්ල මකන්න / அனைத்தையும் நீக்கு), `profile_delete_cloud_failed` and three new messages for why the cloud backup couldn't be deleted (`profile_delete_cloud_refused`, `profile_delete_cloud_unverified`, `profile_delete_cloud_error`). `profile_delete_item` ("• %1$s") is not translatable. Correct any line that reads wrong. The English was:
 
 | Key | English |
 | --- | --- |
@@ -109,7 +109,6 @@ Delete account now erases the cloud backup and everything on the phone. The old 
 | `profile_records_stay` | Signing out keeps your trips and records on this phone. Deleting your account removes them from this phone and from the cloud. |
 | `auth_error_different_account` | That's a different Google account. Choose the account you're signed in with. |
 
-`profile_delete_confirm` is now "Delete everything"; the Sinhala and Tamil still say "Delete account", which is close enough until it is retranslated.
 
 **English changed, so this Sinhala and Tamil is out of date:**
 

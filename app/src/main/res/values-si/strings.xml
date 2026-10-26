@@ -595,6 +595,7 @@
     <string name="auth_error_too_many">උත්සාහ කිරීම් වැඩි වී ඇත. මිනිත්තු කිහිපයක් රැඳී සිට නැවත උත්සාහ කරන්න.</string>
     <string name="auth_error_disabled">මෙම ගිණුම අක්‍රිය කර ඇත.</string>
     <string name="auth_error_recent_sign_in">ඔබගේ ආරක්ෂාව සඳහා, Sign out වී නැවත Sign in වන්න.</string>
+    <string name="auth_error_different_account">එය වෙනත් Google ගිණුමකි. ඔබ Sign in වී ඇති ගිණුම තෝරන්න.</string>
     <string name="auth_error_unknown">යම් ගැටළුවක් ඇති විය. නැවත උත්සාහ කරන්න.</string>
     <string name="auth_error_google_no_account">මෙම දුරකථනයේ Google ගිණුමක් නොමැත.</string>
     <string name="auth_error_google_failed">Google sign-in අසාර්ථක විය. නැවත උත්සාහ කරන්න, නැතහොත් විද්‍යුත් තැපෑල භාවිතා කරන්න.</string>
@@ -632,5 +633,20 @@
     <string name="profile_sign_out_body">ඔබගේ ගමන් සහ වාර්තා මෙම දුරකථනයේම පවතී. ඕනෑම වේලාවක නැවත Sign in විය හැක.</string>
     <string name="profile_delete_account">ගිණුම මකන්න (Delete account)</string>
     <string name="profile_delete_title">ඔබගේ ගිණුම මකන්නද?</string>
-    <string name="profile_delete_confirm">ගිණුම මකන්න</string>
+    <string name="profile_delete_body">මෙය ආපසු හැරවිය නොහැක. මෙයින් ස්ථිරවම මැකෙන්නේ:</string>
+    <string name="profile_delete_item_account">ඔබගේ Picksmart ගිණුම</string>
+    <string name="profile_delete_item_backup">ඔබගේ Cloud backup එක</string>
+    <string name="profile_delete_item_phone">මෙම දුරකථනයේ ඇති සියල්ල: වාහන, ගමන්, ඉන්ධන සටහන්, වියදම්, ආදායම්, පැතිකඩ විස්තර සහ Settings</string>
+    <string name="profile_delete_export_hint">පිටපතක් අවශ්‍යද? අවලංගු කර ඔබගේ වාර්තා CSV ලෙස ලබාගන්න (Export). ඉන්පසු Picksmart නැවත ආරම්භක තිරයෙන් පටන් ගනී. මේ සඳහා අන්තර්ජාලය අවශ්‍යයි.</string>
+    <string name="profile_delete_password_label">ඔබගේ මුරපදය</string>
+    <string name="profile_delete_password_hint">මෙය ඔබමද කියා තහවුරු කිරීමට ඔබගේ මුරපදය ඇතුළත් කරන්න.</string>
+    <string name="profile_delete_google_hint">මෙය ඔබමද කියා තහවුරු කිරීමට ඔබගේ Google ගිණුම තෝරන්න.</string>
+    <string name="profile_deleting">මකමින්…</string>
+    <string name="profile_delete_account_failed">ඔබගේ Cloud backup එක මැකුණත්, ගිණුම මැකුණේ නැත. ඔබගේ වාර්තා තවමත් මෙම දුරකථනයේ ඇත. අන්තර්ජාල සම්බන්ධතාව පරීක්ෂා කර නැවත උත්සාහ කරන්න.</string>
+    <string name="profile_delete_cloud_failed">ඔබගේ Cloud backup එක මැකීමට නොහැකි විය. අන්තර්ජාල සම්බන්ධතාව පරීක්ෂා කර නැවත උත්සාහ කරන්න.</string>
+    <string name="profile_delete_cloud_refused">Backup සේවාදායකය ඔබගේ Cloud backup එක මැකීම ප්‍රතික්ෂේප කළ නිසා කිසිවක් මැකුණේ නැත. පසුව නැවත උත්සාහ කරන්න.</string>
+    <string name="profile_delete_cloud_unverified">මෙම Picksmart පිටපත තහවුරු කළ නොහැකි වූ නිසා ඔබගේ Cloud backup එක මැකුණේ නැත, කිසිවක් මැකුණේ නැත. Google Play වෙතින් Picksmart ස්ථාපනය කර නැවත උත්සාහ කරන්න.</string>
+    <string name="profile_delete_cloud_error">ඔබගේ Cloud backup එක මැකීමට නොහැකි වූ නිසා කිසිවක් මැකුණේ නැත. නැවත උත්සාහ කරන්න.</string>
+    <string name="profile_delete_confirm">සියල්ල මකන්න</string>
+    <string name="profile_records_stay">Sign out වූ විට ඔබගේ ගමන් සහ වාර්තා මෙම දුරකථනයේම පවතී. ගිණුම මැකූ විට ඒවා මෙම දුරකථනයෙන් සහ Cloud එකෙන් ඉවත් වේ.</string>
 </resources>

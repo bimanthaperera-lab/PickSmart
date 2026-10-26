@@ -47,15 +47,18 @@ interface SyncProvider {
     /** Backs up now, downloading other devices' changes too. Returns the status it ended in. */
     suspend fun syncNow(): SyncStatus
 
-    /** Removes the signed-in rider's cloud data. False when it couldn't (for example, offline). */
-    suspend fun deleteCloudData(): Boolean
+    /**
+     * Removes the signed-in rider's cloud data. Null when it is gone (or there was none), else why
+     * it couldn't be removed, so the rider is told the real reason rather than always "offline".
+     */
+    suspend fun deleteCloudData(): SyncProblem?
 }
 
 object NoOpSyncProvider : SyncProvider {
     override val status: StateFlow<SyncStatus> = MutableStateFlow(SyncStatus.Off).asStateFlow()
     override val pendingCount: Flow<Int> = flowOf(0)
     override suspend fun syncNow(): SyncStatus = SyncStatus.Off
-    override suspend fun deleteCloudData() = false
+    override suspend fun deleteCloudData(): SyncProblem? = SyncProblem.FAILED
 }
 
 /**
@@ -116,15 +119,15 @@ class CloudSyncProvider(
 
     override suspend fun syncNow(): SyncStatus = run(download = true, force = true)
 
-    override suspend fun deleteCloudData(): Boolean {
-        val uid = account.profile.first()?.uid ?: return false
+    override suspend fun deleteCloudData(): SyncProblem? {
+        val uid = account.profile.first()?.uid ?: return SyncProblem.REFUSED
         scheduledUpload?.cancel()
         return running.withLock {
             try {
                 sync.deleteCloudData(uid)
-                true
+                null
             } catch (e: CloudException) {
-                false
+                e.problem
             }
         }
     }

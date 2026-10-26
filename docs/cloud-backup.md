@@ -17,7 +17,7 @@ Optional backup for signed-in riders (CLAUDE.md section 14). Built on branch `v2
 ## Owner setup (before testing on a phone)
 
 1. Firebase console → Build → **Firestore Database** → Create database. Pick a location close to Sri Lanka (for example `asia-south1`, Mumbai); it can't be changed later. Start in **production mode**.
-2. Firestore → **Rules**: paste the contents of `firestore.rules` from the repository root and Publish. Without them, production mode refuses every request (the app shows "The backup server didn't accept your sign-in").
+2. Firestore → **Rules**: paste the contents of `firestore.rules` from the repository root and Publish. Without them, production mode refuses every request: backup shows "The backup server didn't accept your sign-in", and Delete account shows "The backup server refused to delete your cloud backup" and deletes nothing. (Seen on the emulator on 2026-10-26: `PERMISSION_DENIED` for the rider's own `users/{uid}/vehicles`, which the repository's rules allow, so the console still had the closed default.)
 3. Nothing else is needed on the Spark (free) plan. The app already has the `firebase-firestore` library and uses the existing `google-services.json`.
 4. Test on a real phone: sign in, add a trip, wait about 20 seconds (or tap Back up now), then check Firestore → Data → `users/<uid>/trips`. Then sign in on a second phone or the emulator with "I already have an account" and check that the vehicle and trips come back.
 

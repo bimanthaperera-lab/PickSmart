@@ -750,7 +750,7 @@
     <string name="profile_delete_account">Delete account</string>
     <string name="profile_delete_title">Delete your account?</string>
     <string name="profile_delete_body">This can\'t be undone. It permanently deletes:</string>
-    <string name="profile_delete_item">• %1$s</string>
+    <string name="profile_delete_item" translatable="false">• %1$s</string>
     <string name="profile_delete_item_account">Your Picksmart account</string>
     <string name="profile_delete_item_backup">Your cloud backup</string>
     <string name="profile_delete_item_phone">Everything on this phone: vehicles, trips, fuel logs, expenses, income, profile details and settings</string>
@@ -761,6 +761,9 @@
     <string name="profile_deleting">Deleting…</string>
     <string name="profile_delete_account_failed">Your cloud backup was deleted, but your account wasn\'t. Your records are still on this phone. Check your internet connection and try again.</string>
     <string name="profile_delete_cloud_failed">Couldn\'t delete your cloud backup. Check your internet connection and try again.</string>
+    <string name="profile_delete_cloud_refused">The backup server refused to delete your cloud backup, so nothing was deleted. Try again later.</string>
+    <string name="profile_delete_cloud_unverified">Your cloud backup couldn\'t be deleted because this copy of Picksmart couldn\'t be verified, so nothing was deleted. Install Picksmart from Google Play and try again.</string>
+    <string name="profile_delete_cloud_error">Couldn\'t delete your cloud backup, so nothing was deleted. Try again.</string>
     <string name="profile_delete_confirm">Delete everything</string>
     <string name="profile_records_stay">Signing out keeps your trips and records on this phone. Deleting your account removes them from this phone and from the cloud.</string>
 </resources>

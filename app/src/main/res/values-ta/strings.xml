@@ -594,6 +594,7 @@
     <string name="auth_error_too_many">பல முயற்சிகள். சில நிமிடங்கள் காத்திருந்து மீண்டும் முயல்க.</string>
     <string name="auth_error_disabled">இந்தக் கணக்கு முடக்கப்பட்டுள்ளது.</string>
     <string name="auth_error_recent_sign_in">உங்கள் பாதுகாப்பிற்காக, வெளியேறி (Sign out) மீண்டும் உள்நுழையவும்.</string>
+    <string name="auth_error_different_account">அது வேறு Google கணக்கு. நீங்கள் உள்நுழைந்துள்ள கணக்கைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="auth_error_unknown">ஏதோ தவறு நடந்துவிட்டது. மீண்டும் முயல்க.</string>
     <string name="auth_error_google_no_account">இந்த ஃபோனில் Google கணக்கு இல்லை.</string>
     <string name="auth_error_google_failed">Google உள்நுழைவு செயல்படவில்லை. மீண்டும் முயல்க, அல்லது மின்னஞ்சலைப் பயன்படுத்தவும்.</string>
@@ -631,5 +632,20 @@
     <string name="profile_sign_out_body">உங்கள் சவாரிகள் மற்றும் பதிவுகள் இந்த ஃபோனில் இருக்கும். எந்த நேரத்திலும் மீண்டும் உள்நுழையலாம்.</string>
     <string name="profile_delete_account">கணக்கை நீக்கு (Delete account)</string>
     <string name="profile_delete_title">உங்கள் கணக்கை நீக்கவா?</string>
-    <string name="profile_delete_confirm">கணக்கை நீக்கு</string>
+    <string name="profile_delete_body">இதைச் செயல்தவிர்க்க முடியாது. இது நிரந்தரமாக நீக்குபவை:</string>
+    <string name="profile_delete_item_account">உங்கள் Picksmart கணக்கு</string>
+    <string name="profile_delete_item_backup">உங்கள் கிளவுட் காப்புப் பிரதி (Cloud backup)</string>
+    <string name="profile_delete_item_phone">இந்த ஃபோனில் உள்ள அனைத்தும்: வாகனங்கள், சவாரிகள், எரிபொருள் பதிவுகள், செலவுகள், வருமானம், சுயவிவர விவரங்கள் மற்றும் Settings</string>
+    <string name="profile_delete_export_hint">முதலில் ஒரு நகல் வேண்டுமா? ரத்துசெய்து உங்கள் பதிவுகளை CSV ஆக ஏற்றுமதி செய்யவும். பின்னர் Picksmart வரவேற்புத் திரையிலிருந்து மீண்டும் தொடங்கும். இதற்கு இணையம் தேவை.</string>
+    <string name="profile_delete_password_label">உங்கள் கடவுச்சொல்</string>
+    <string name="profile_delete_password_hint">இது நீங்கள்தான் என்பதை உறுதிப்படுத்த உங்கள் கடவுச்சொல்லை உள்ளிடவும்.</string>
+    <string name="profile_delete_google_hint">இது நீங்கள்தான் என்பதை உறுதிப்படுத்த உங்கள் Google கணக்கைத் தேர்ந்தெடுப்பீர்கள்.</string>
+    <string name="profile_deleting">நீக்கப்படுகிறது…</string>
+    <string name="profile_delete_account_failed">உங்கள் கிளவுட் காப்புப் பிரதி நீக்கப்பட்டது, ஆனால் உங்கள் கணக்கு நீக்கப்படவில்லை. உங்கள் பதிவுகள் இன்னும் இந்த ஃபோனில் உள்ளன. இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயல்க.</string>
+    <string name="profile_delete_cloud_failed">உங்கள் கிளவுட் காப்புப் பிரதியை நீக்க முடியவில்லை. இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயல்க.</string>
+    <string name="profile_delete_cloud_refused">காப்புப் பிரதி சேவையகம் உங்கள் கிளவுட் காப்புப் பிரதியை நீக்க மறுத்ததால், எதுவும் நீக்கப்படவில்லை. பின்னர் மீண்டும் முயல்க.</string>
+    <string name="profile_delete_cloud_unverified">இந்த Picksmart நகலைச் சரிபார்க்க முடியாததால் உங்கள் கிளவுட் காப்புப் பிரதி நீக்கப்படவில்லை, எதுவும் நீக்கப்படவில்லை. Google Play-இலிருந்து Picksmart-ஐ நிறுவி மீண்டும் முயல்க.</string>
+    <string name="profile_delete_cloud_error">உங்கள் கிளவுட் காப்புப் பிரதியை நீக்க முடியாததால், எதுவும் நீக்கப்படவில்லை. மீண்டும் முயல்க.</string>
+    <string name="profile_delete_confirm">அனைத்தையும் நீக்கு</string>
+    <string name="profile_records_stay">வெளியேறினால் உங்கள் சவாரிகளும் பதிவுகளும் இந்த ஃபோனில் இருக்கும். கணக்கை நீக்கினால் அவை இந்த ஃபோனிலிருந்தும் கிளவுடிலிருந்தும் அகற்றப்படும்.</string>
 </resources>

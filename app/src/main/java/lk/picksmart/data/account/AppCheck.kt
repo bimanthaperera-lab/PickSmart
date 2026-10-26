@@ -21,7 +21,11 @@ object AppCheck {
         FirebaseAppCheck.getInstance(app).installAppCheckProviderFactory(appCheckProviderFactory(), false)
     }
 
-    /** True when this copy of the app can get an App Check token, so the server could verify it. */
+    /**
+     * True when this copy of the app can get an App Check token, so the server could verify it,
+     * or when App Check isn't turned on in the Firebase project yet: then it can't be enforced, so
+     * it isn't what refused a request.
+     */
     suspend fun passes(): Boolean = try {
         withTimeout(TOKEN_TIMEOUT_MILLIS) { FirebaseAppCheck.getInstance().getAppCheckToken(false).await() }
         true
@@ -30,8 +34,12 @@ object AppCheck {
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        false
+        isNotSetUp(e.message)
     }
+
+    /** Google's answer when the App Check API is off for the project ("has not been used ... or it is disabled"). */
+    internal fun isNotSetUp(message: String?): Boolean =
+        message != null && "App Check API has not been used" in message
 
     private const val TOKEN_TIMEOUT_MILLIS = 10_000L
 }

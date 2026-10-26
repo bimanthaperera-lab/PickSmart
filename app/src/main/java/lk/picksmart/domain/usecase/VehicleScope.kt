@@ -15,12 +15,18 @@ sealed interface VehicleScope {
 }
 
 /**
- * Reports and Home follow the active vehicle, so switching vehicles switches the figures. A rider
+ * Reports, Home and History follow the active vehicle, so switching vehicles switches the figures. A rider
  * with a single vehicle (archived ones included in [vehicles]) sees every record, other income
  * too, as before vehicles could be switched; so does one with no active vehicle yet.
  */
 fun activeVehicleScope(active: Vehicle?, vehicles: List<Vehicle>): VehicleScope =
     if (active != null && vehicles.size > 1) VehicleScope.One(active.id) else VehicleScope.All
+
+/** The trips that belong to [scope]: one vehicle's, or all of them. */
+fun List<Trip>.forVehicle(scope: VehicleScope): List<Trip> = when (scope) {
+    VehicleScope.All -> this
+    is VehicleScope.One -> filter { it.vehicleId == scope.vehicleId }
+}
 
 /** The records [summarizePeriod] works from, before or after [forVehicle]. */
 data class AccountingRecords(
@@ -40,7 +46,7 @@ data class AccountingRecords(
     fun forVehicle(scope: VehicleScope): AccountingRecords = when (scope) {
         VehicleScope.All -> this
         is VehicleScope.One -> AccountingRecords(
-            trips = trips.filter { it.vehicleId == scope.vehicleId },
+            trips = trips.forVehicle(scope),
             otherIncome = emptyList(),
             expenses = expenses.filter { it.vehicleId == scope.vehicleId },
             fuelLogs = fuelLogs.filter { it.vehicleId == scope.vehicleId },

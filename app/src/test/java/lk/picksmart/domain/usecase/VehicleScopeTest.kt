@@ -143,6 +143,14 @@ class VehicleScopeTest {
         assertEquals(16_000L, profitWith(TUK))
     }
 
+    @Test
+    fun aTripListShowsOnlyTheActiveVehiclesTripsOffersIncluded() {
+        val both = listOf(vehicle(BIKE), vehicle(TUK))
+        assertEquals(listOf(1L, 3L), records.trips.forVehicle(activeVehicleScope(vehicle(BIKE), both)).map { it.id })
+        assertEquals(listOf(2L), records.trips.forVehicle(activeVehicleScope(vehicle(TUK), both)).map { it.id })
+        assertEquals(records.trips, records.trips.forVehicle(activeVehicleScope(vehicle(BIKE), listOf(vehicle(BIKE)))))
+    }
+
     private fun vehicle(id: Long) = Vehicle(
         id, "Sample $id", VehicleType.MOTORCYCLE, FuelType.PETROL_92, 30_000, FuelPriceSource.MANUAL, null, false,
         40.0, 200, null, isSample = false, archived = false, createdAtMillis = 0, updatedAtMillis = 0,

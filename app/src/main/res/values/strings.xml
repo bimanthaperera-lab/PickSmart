@@ -162,6 +162,7 @@
     <string name="history_filter_cancelled">Cancelled</string>
     <string name="history_filter_empty_title">Nothing here</string>
     <string name="history_filter_empty_body">No trips match this filter.</string>
+    <string name="history_vehicle_empty_body">No trips on %1$s yet. Switch the vehicle on Check a Ride to see trips on another vehicle.</string>
     <!-- Day headers: "Today · Wed 21 Oct" -->
     <string name="history_today">Today · %1$s</string>
     <string name="history_yesterday">Yesterday · %1$s</string>
@@ -175,7 +176,6 @@
     <string name="history_row_cancelled_no_fee">%1$s km · no fee</string>
     <string name="history_row_offer_note">Not counted as income</string>
     <!-- %1$s: the vehicle's name; %2$s: the rest of the row, e.g. "5.0 km · fare Rs. 60.00" -->
-    <string name="history_row_with_vehicle">%1$s · %2$s</string>
     <!-- An offer's estimate, which is never income: "-Rs. 50.00 est." -->
     <string name="history_offer_estimate">%1$s est.</string>
     <string name="history_row_unavailable">Can\'t calculate</string>

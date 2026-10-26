@@ -63,7 +63,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
- * Every saved trip, newest first, grouped by day. Offers are listed (dashed, marked "Offer") but
+ * The active vehicle's saved trips (every trip with a single vehicle), newest first, grouped by day. Offers are listed (dashed, marked "Offer") but
  * never counted in a day's total (CLAUDE.md N1).
  */
 @Composable
@@ -105,12 +105,25 @@ fun HistoryScreen(
                     modifier = Modifier.padding(vertical = Spacing.s),
                 )
             }
+            s.vehicleName?.let { name ->
+                item {
+                    Text(
+                        stringResource(R.string.vehicle_scope_for, name),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             if (s.days.isEmpty()) {
                 item {
                     EmptyState(
                         iconRes = R.drawable.ic_nav_history,
                         title = stringResource(R.string.history_filter_empty_title),
-                        body = stringResource(R.string.history_filter_empty_body),
+                        body = if (s.filter == HistoryFilter.ALL && s.vehicleName != null) {
+                            stringResource(R.string.history_vehicle_empty_body, s.vehicleName)
+                        } else {
+                            stringResource(R.string.history_filter_empty_body)
+                        },
                     )
                 }
             }
@@ -192,14 +205,12 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
         DateTimeFormatter.ofPattern(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
     }
     val km = formatDecimal(trip.pickupKm + trip.tripKm + trip.returnKm, 1)
-    val statusDetail = when (trip.status) {
+    val detail = when (trip.status) {
         TripStatus.CANCELLED -> trip.cancellationFeeCents?.let { stringResource(R.string.history_row_cancelled_fee, km, money.format(it)) }
             ?: stringResource(R.string.history_row_cancelled_no_fee, km)
         TripStatus.OFFER_CHECK -> stringResource(R.string.history_row_offer_note)
         TripStatus.COMPLETED -> stringResource(R.string.history_row_trip, km, money.format(trip.fareCents))
     }
-    // With more than one vehicle, the row says which one: "Honda · 5.0 km · fare Rs. 60.00".
-    val detail = row.vehicleName?.let { stringResource(R.string.history_row_with_vehicle, it, statusDetail) } ?: statusDetail
     val net = row.estimate?.netProfitCents
     val amount = when {
         net == null -> stringResource(R.string.history_row_unavailable)

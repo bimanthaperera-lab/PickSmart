@@ -26,7 +26,6 @@ import lk.picksmart.domain.usecase.activeVehicleScope
 import lk.picksmart.domain.usecase.estimate
 import lk.picksmart.domain.usecase.summarizePeriod
 import lk.picksmart.ui.history.HistoryRow
-import lk.picksmart.ui.history.vehicleNamesForRows
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
 
@@ -37,8 +36,8 @@ sealed interface HomeUiState {
      * @property vehicleName The active vehicle, named on the profit card; null before one exists.
      * @property sharedLeftOut True when [summary] is one of several vehicles' and today has other
      *   income or expenses with no vehicle, which belong to no single vehicle and so aren't in it.
-     * @property recent The newest few trips of any day and vehicle, offers included (they are
-     *   marked as such).
+     * @property recent The active vehicle's newest few trips of any day, offers included (they
+     *   are marked as such).
      */
     data class Loaded(
         val summary: PeriodSummary,
@@ -66,14 +65,14 @@ class HomeViewModel(
     private val records = combine(trips.all, otherIncome.all, expenses.all) { t, i, e -> AccountingRecords(t, i, e, emptyList()) }
 
     val state: StateFlow<HomeUiState> = combine(records, vehicles.defaultVehicle, vehicles.allVehicles) { all, active, vehicleList ->
-        val names = vehicleNamesForRows(vehicleList)
         val today = DateRange.day(clock.instant().atZone(ColomboZone).toLocalDate())
         val scope = activeVehicleScope(active, vehicleList)
+        val shown = all.forVehicle(scope)
         HomeUiState.Loaded(
-            summary = calculator.summarizePeriod(today, all.forVehicle(scope)),
+            summary = calculator.summarizePeriod(today, shown),
             vehicleName = active?.name,
             sharedLeftOut = scope != VehicleScope.All && all.hasSharedRecordsIn(today),
-            recent = all.trips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it), names[it.vehicleId]) },
+            recent = shown.trips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it)) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
 

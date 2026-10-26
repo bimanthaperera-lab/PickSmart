@@ -15,6 +15,9 @@ import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.usecase.VehicleScope
+import lk.picksmart.domain.usecase.activeVehicleScope
+import lk.picksmart.domain.usecase.forVehicle
 import lk.picksmart.util.ColomboZone
 import java.time.Clock
 import java.time.LocalDate
@@ -25,10 +28,21 @@ sealed interface HistoryUiState {
     /** No trips saved at all yet. */
     data object Empty : HistoryUiState
 
-    /** [days] is empty when the filter matches nothing. */
-    data class Loaded(val filter: HistoryFilter, val days: List<HistoryDay>, val today: LocalDate) : HistoryUiState
+    /**
+     * [days] is empty when the filter, or the active vehicle, has no trips.
+     *
+     * @property vehicleName The active vehicle the list is for, when the rider has several; null
+     *   with a single vehicle, whose list is every trip.
+     */
+    data class Loaded(
+        val filter: HistoryFilter,
+        val days: List<HistoryDay>,
+        val today: LocalDate,
+        val vehicleName: String?,
+    ) : HistoryUiState
 }
 
+/** The active vehicle's trips (so switching the vehicle switches the list), newest first. */
 class HistoryViewModel(
     private val savedStateHandle: SavedStateHandle,
     trips: TripRepository,
@@ -39,12 +53,14 @@ class HistoryViewModel(
 
     private val filter = savedStateHandle.getStateFlow(FILTER_KEY, HistoryFilter.ALL)
 
-    val state: StateFlow<HistoryUiState> = combine(trips.all, filter, vehicles.allVehicles) { all, filter, vehicleList ->
+    val state: StateFlow<HistoryUiState> = combine(trips.all, filter, vehicles.defaultVehicle, vehicles.allVehicles) { all, filter, active, vehicleList ->
         if (all.isEmpty()) {
             HistoryUiState.Empty
         } else {
-            val days = groupTripsByDay(all, filter, calculator, vehicleNamesForRows(vehicleList))
-            HistoryUiState.Loaded(filter, days, clock.instant().atZone(ColomboZone).toLocalDate())
+            val scope = activeVehicleScope(active, vehicleList)
+            val days = groupTripsByDay(all.forVehicle(scope), filter, calculator)
+            val vehicleName = active?.name?.takeIf { scope != VehicleScope.All }
+            HistoryUiState.Loaded(filter, days, clock.instant().atZone(ColomboZone).toLocalDate(), vehicleName)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState.Loading)
 

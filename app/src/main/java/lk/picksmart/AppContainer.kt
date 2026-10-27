@@ -313,7 +313,9 @@ class AppContainer(context: Context) {
 
         val expenses: ExpenseRepository by lazy { ExpenseRepository(database.expenseDao(), clock) }
 
-        val completeOnboarding: CompleteOnboarding by lazy { CompleteOnboarding(vehicles, userPreferences) }
+        val completeOnboarding: CompleteOnboarding by lazy {
+            CompleteOnboarding(vehicles, userPreferences) { database.syncDao().recordCount() }
+        }
 
         val csvExporter: CsvExporter by lazy {
             CsvExporter(appContext, trips, otherIncome, fuelLogs, expenses, vehicles, profitCalculator)

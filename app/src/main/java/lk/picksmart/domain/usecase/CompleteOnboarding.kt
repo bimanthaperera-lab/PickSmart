@@ -9,15 +9,21 @@ import lk.picksmart.domain.model.VehicleInput
  * Finishes first-launch setup: saves the vehicle, then makes it the default and marks setup done
  * in one DataStore write. If the app dies before that write, setup simply runs again; an
  * existing rider's flag is never cleared.
+ *
+ * @param recordCount How many records the space holds (vehicles, trips, income, fuel, expenses).
  */
 class CompleteOnboarding(
     private val vehicles: VehicleRepository,
     private val preferences: UserPreferencesRepository,
+    private val recordCount: suspend () -> Int,
 ) {
     suspend operator fun invoke(input: VehicleInput, isSample: Boolean) {
         val id = vehicles.create(input, isSample)
         preferences.completeOnboarding(defaultVehicleId = id)
     }
+
+    /** True when the space holds any record, for example one restored from the rider's backup. */
+    suspend fun hasRecords(): Boolean = recordCount() > 0
 
     /** True when the phone has a vehicle in use, for example one restored from the rider's backup. */
     suspend fun hasVehicle(): Boolean = vehicles.activeVehicles.first().isNotEmpty()

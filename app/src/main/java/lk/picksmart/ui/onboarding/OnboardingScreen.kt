@@ -157,7 +157,13 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
             onDone = viewModel::finishIntro,
         )
         OnboardingStep.RESTORE ->
-            RestoreStep(state.restore, skipping = state.skipping, onRetry = viewModel::restore, onSkip = viewModel::skipRestore)
+            RestoreStep(
+                state.restore,
+                skipping = state.skipping,
+                onRetry = viewModel::restore,
+                onSkip = viewModel::skipRestore,
+                onNext = viewModel::continueWithoutBackup,
+            )
         OnboardingStep.VEHICLE -> {
             val defaultName = stringResource(state.form.type.label)
             VehicleStep(
@@ -446,10 +452,11 @@ private fun VehicleStep(
 /**
  * After signing in: the rider's backup comes back before setup asks for anything, so nothing they
  * enter is merged with it later. Problems are retried on their own; Skip starts fresh in the
- * account with backup off on this phone.
+ * account with backup off on this phone. An account with nothing backed up is told so, and Next
+ * goes to the vehicle.
  */
 @Composable
-private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> Unit, onSkip: () -> Unit) {
+private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> Unit, onSkip: () -> Unit, onNext: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -459,6 +466,16 @@ private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> U
             .padding(horizontal = Spacing.screen, vertical = Spacing.l),
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
     ) {
+        if (state == RestoreState.NO_BACKUP) {
+            ScreenTitle(stringResource(R.string.onboarding_restore_none_title))
+            Text(
+                stringResource(R.string.onboarding_restore_none_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            PrimaryButton(stringResource(R.string.intro_next), onNext, Modifier.fillMaxWidth())
+            return@Column
+        }
         ScreenTitle(stringResource(R.string.onboarding_restore_title))
         when (state) {
             RestoreState.RUNNING -> {
@@ -481,6 +498,7 @@ private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> U
                 )
                 PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth(), enabled = !skipping)
             }
+            RestoreState.NO_BACKUP -> Unit
         }
         // Always there, so a rider who can't wait is never stuck here.
         Text(

@@ -674,6 +674,8 @@
     <string name="onboarding_restore_failed">ඔබගේ backup එක තවම නැවත ලබා ගැනීමට නොහැකි විය. Picksmart දිගටම උත්සාහ කරයි.</string>
     <string name="onboarding_restore_skip">මඟ හැර අලුතින් පටන් ගන්න</string>
     <string name="onboarding_restore_skip_body">මඟ හැරියොත් මෙම දුරකථනයේ ඔබගේ ගිණුම අලුතින් පටන් ගනී: කිසිවක් නැවත ලබා නොගන්නා අතර මෙහි backup Off වේ. ඔබගේ backup එක ආරක්ෂිතව පවතී; එය නැවත ලබා ගැනීමට ගිණුම ටැබයෙන් backup On කරන්න.</string>
+    <string name="onboarding_restore_none_title">Backup එකක් හමු නොවීය</string>
+    <string name="onboarding_restore_none_body">මෙම ගිණුමට තවම backup එකක් නැත, එබැවින් නැවත ලබා ගැනීමට කිසිවක් නැත. ආරම්භ කිරීමට ඔබේ වාහනය සකසන්න. මෙතැන් සිට ඔබගේ දත්ත මෙම ගිණුමට backup වේ.</string>
     <string name="offer_badge_tip">%1$s tip එක ඇතුළත්</string>
     <string name="trip_offer_tip_title">%1$s tip එක අනෙකුත් ආදායම් ලෙස සුරකින්න</string>
     <string name="trip_offer_tip_body">දීමනාවේ tip එකක් පෙන්වා ඇත. එය මෙම ගමනේ දිනය සහ ride app එක සමඟම අනෙකුත් ආදායම් යටතේ Tip එකක් ලෙස සුරැකේ, එබැවින් එය එක් වරක් පමණක් ගණන් වේ.</string>

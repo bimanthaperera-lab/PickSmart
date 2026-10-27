@@ -33,13 +33,18 @@ import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.vehicle.FieldError
 import lk.picksmart.ui.vehicle.VehicleField
 import lk.picksmart.ui.vehicle.VehicleFormResult
+import lk.picksmart.domain.usecase.RestoreOutcome
+import lk.picksmart.domain.usecase.restoreOutcome
 import lk.picksmart.ui.vehicle.VehicleFormState
 import lk.picksmart.ui.vehicle.validate
 
 enum class OnboardingStep { WELCOME, INTRO, RESTORE, VEHICLE, PERMISSIONS, SAFETY }
 
-/** Bringing back a signed-in rider's backup: still running, or why it stopped. */
-enum class RestoreState { RUNNING, OFFLINE, UNVERIFIED, FAILED }
+/**
+ * Bringing back a signed-in rider's backup: still running, why it stopped, or [NO_BACKUP] when it
+ * finished and the account had nothing backed up (the rider taps Next to set up a vehicle).
+ */
+enum class RestoreState { RUNNING, OFFLINE, UNVERIFIED, FAILED, NO_BACKUP }
 
 /** How many "how it works" pages the intro has. */
 const val INTRO_PAGE_COUNT = 3
@@ -160,14 +165,24 @@ class OnboardingViewModel(
                     SyncStatus.Off, SyncStatus.Running -> delay(RESTORE_WAIT_MILLIS)
                 }
             }
-            val restored = completeOnboarding.hasVehicle()
-            if (restored && quickSetup) {
-                _state.update { it.copy(restored = true) }
-                finish()
-                return@launch
+            when (restoreOutcome(newAccount, completeOnboarding.hasRecords(), completeOnboarding.hasVehicle())) {
+                RestoreOutcome.RESTORED -> if (quickSetup) {
+                    _state.update { it.copy(restored = true) }
+                    finish()
+                } else {
+                    _state.update { it.copy(step = OnboardingStep.PERMISSIONS, restored = true) }
+                }
+                // Said plainly, so the rider knows nothing is missing, then Next goes to the vehicle.
+                RestoreOutcome.NO_BACKUP -> _state.update { it.copy(restore = RestoreState.NO_BACKUP) }
+                RestoreOutcome.SET_UP_VEHICLE -> _state.update { it.copy(step = OnboardingStep.VEHICLE, restored = false) }
             }
-            _state.update { it.copy(step = if (restored) OnboardingStep.PERMISSIONS else OnboardingStep.VEHICLE, restored = restored) }
         }
+    }
+
+    /** "No backup found" seen: on to the vehicle. Backup stays on, so what the rider enters is backed up. */
+    fun continueWithoutBackup() {
+        if (_state.value.restore != RestoreState.NO_BACKUP) return
+        _state.update { it.copy(step = OnboardingStep.VEHICLE) }
     }
 
     /**
@@ -222,8 +237,9 @@ class OnboardingViewModel(
         if (current.saving) return
         if (current.step == OnboardingStep.RESTORE) {
             // Going back to the welcome screen signed in would let setup go on with the backup
-            // still coming, so back skips: a fresh start in the account.
-            skipRestore()
+            // still coming, so back skips: a fresh start in the account. With no backup there is
+            // nothing to skip, and back does the same as Next.
+            if (current.restore == RestoreState.NO_BACKUP) continueWithoutBackup() else skipRestore()
             return
         }
         _state.update {

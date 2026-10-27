@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -123,27 +124,34 @@ class OnboardingViewModel(
         restore()
     }
 
-    /** Downloads the rider's backup (CLAUDE.md section 14); a new account simply has none. */
+    /**
+     * Downloads the rider's backup (CLAUDE.md section 14). Setup waits here until it has finished
+     * (owner decision 2026-10-27), so nothing the rider enters is merged with the backup later; on
+     * a problem it keeps trying, and [skipRestore] is the way out. A new account simply has none.
+     */
     fun restore() {
         restoring?.cancel()
         _state.update { it.copy(restore = RestoreState.RUNNING) }
         restoring = viewModelScope.launch {
-            val status = sync.syncNow()
-            if (status is SyncStatus.Stopped) {
-                // A new account has no backup to bring back, so a problem here (for example an app
-                // installed outside Play, which can't back up) isn't worth stopping for. Backup
-                // tries again later, and the Account tab shows how it stands.
-                if (account.profile.first()?.isNewAccount == true) {
-                    _state.update { it.copy(step = OnboardingStep.VEHICLE) }
-                    return@launch
+            val newAccount = account.profile.first()?.isNewAccount == true
+            while (true) {
+                when (val status = sync.syncNow()) {
+                    is SyncStatus.Idle -> break
+                    is SyncStatus.Stopped -> {
+                        // A new account has no backup to bring back, so a problem here (for example
+                        // an app installed outside Play, which can't back up) isn't worth stopping
+                        // for. Backup tries again later, and the Account tab shows how it stands.
+                        if (newAccount) {
+                            _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+                            return@launch
+                        }
+                        _state.update { it.copy(restore = status.problem.restoreState()) }
+                        delay(RESTORE_RETRY_MILLIS)
+                    }
+                    // Backup isn't running for this account's records yet: the sign-in is still
+                    // being set up. Wait for it rather than going on with nothing restored.
+                    SyncStatus.Off, SyncStatus.Running -> delay(RESTORE_WAIT_MILLIS)
                 }
-                val problem = when (status.problem) {
-                    SyncProblem.OFFLINE -> RestoreState.OFFLINE
-                    SyncProblem.UNVERIFIED -> RestoreState.UNVERIFIED
-                    else -> RestoreState.FAILED
-                }
-                _state.update { it.copy(restore = problem) }
-                return@launch
             }
             val restored = completeOnboarding.hasVehicle()
             if (restored && quickSetup) {
@@ -155,8 +163,22 @@ class OnboardingViewModel(
         }
     }
 
-    /** Restoring failed and the rider goes on: the backup joins this phone once it's online. */
-    fun skipRestore() = _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+    /**
+     * The rider won't wait for the restore: a fresh start without an account (owner decision
+     * 2026-10-27). Signing out stops the restore and backup for this phone, so nothing new is
+     * merged with the backup; the app then shows the records made without an account (setup again
+     * when there are none). The account's backup stays in the cloud for the next sign-in.
+     */
+    fun skipRestore() {
+        restoring?.cancel()
+        viewModelScope.launch { account.signOut() }
+    }
+
+    private fun SyncProblem.restoreState() = when (this) {
+        SyncProblem.OFFLINE -> RestoreState.OFFLINE
+        SyncProblem.UNVERIFIED -> RestoreState.UNVERIFIED
+        else -> RestoreState.FAILED
+    }
 
     fun updateForm(form: VehicleFormState) = _state.update {
         // Clear an error as soon as the rider edits; it's re-checked on Continue.
@@ -186,15 +208,16 @@ class OnboardingViewModel(
     fun back() {
         val current = _state.value
         if (current.saving) return
+        if (current.step == OnboardingStep.RESTORE) {
+            // Leaving while signed in would let setup go on without the backup, so back skips.
+            skipRestore()
+            quickSetup = false
+        }
         _state.update {
             when (current.step) {
                 OnboardingStep.WELCOME -> it
                 OnboardingStep.INTRO -> it.copy(step = OnboardingStep.WELCOME)
-                OnboardingStep.RESTORE -> {
-                    restoring?.cancel()
-                    quickSetup = false
-                    it.copy(step = OnboardingStep.WELCOME)
-                }
+                OnboardingStep.RESTORE -> it.copy(step = OnboardingStep.WELCOME)
                 OnboardingStep.VEHICLE -> it.copy(step = OnboardingStep.INTRO, introPage = INTRO_PAGE_COUNT - 1)
                 OnboardingStep.PERMISSIONS ->
                     if (it.restored) it.copy(step = OnboardingStep.WELCOME, restored = false) else it.copy(step = OnboardingStep.VEHICLE)
@@ -228,6 +251,12 @@ class OnboardingViewModel(
     }
 
     companion object {
+        /** How long a stopped restore waits before trying again on its own. */
+        private const val RESTORE_RETRY_MILLIS = 15_000L
+
+        /** How often a restore checks whether backup has started for the signed-in account. */
+        private const val RESTORE_WAIT_MILLIS = 1_000L
+
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as PicksmartApplication

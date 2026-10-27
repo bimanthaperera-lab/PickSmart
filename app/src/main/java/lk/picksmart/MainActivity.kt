@@ -167,10 +167,10 @@ class MainActivity : ComponentActivity() {
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
             if (onboardingComplete) PicksmartApp(offerToSave, onOfferOpened = { offerToSave = null }) else OnboardingScreen()
 
-            // A new account was just created on a phone with records made without one.
+            // An account signed in for the first time on a phone with records made without one.
             val container = (application as PicksmartApplication).container
-            val askingToMoveRecords by container.askingToMoveRecords.collectAsStateWithLifecycle()
-            if (askingToMoveRecords) MoveRecordsDialog(onAnswer = container::answerMoveRecords)
+            val moveRecordsQuestion by container.moveRecordsQuestion.collectAsStateWithLifecycle()
+            moveRecordsQuestion?.let { MoveRecordsDialog(it, onAnswer = container::answerMoveRecords) }
         }
     }
 

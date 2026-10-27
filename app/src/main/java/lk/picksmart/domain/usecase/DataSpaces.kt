@@ -6,8 +6,8 @@ package lk.picksmart.domain.usecase
  * settings that go with it (active vehicle, last Check a Ride inputs, setup). Two accounts on one
  * phone never see, mix or back up each other's records.
  * Records made without an account are a space of their own too, owned by nobody, shown whenever
- * nobody is signed in. They go into an account only when a rider creates one and chooses to move
- * them ([asksToMoveRecords]).
+ * nobody is signed in. They go into an account only when its rider chooses to move them there
+ * ([asksToMoveRecords]).
  *
  * Space `""` is the phone's first one, the original `picksmart.db`, so an existing rider's data
  * stays exactly where it was.
@@ -32,19 +32,22 @@ data class SpaceRegistry(
 const val FIRST_SPACE = ""
 
 /**
- * Whether to ask [uid] if the records made without an account should move to their account
- * (owner decision 2026-10-27): only for an account created just now ([newAccount]), with no space
- * of its own here, while the space on screen belongs to nobody and has records. The answer goes to
- * [signInSpace] as `moveNoAccountRecords`; every other sign-in needs no question.
+ * Whether to ask [uid] if the records made without an account should move to their account (owner
+ * decisions 2026-10-27): when the account has no space of its own on this phone yet, while the
+ * space on screen belongs to nobody and has records. A new account starts with them; an existing
+ * one merges them with its backup. The answer goes to [signInSpace] as `moveNoAccountRecords`;
+ * every other sign-in needs no question.
  */
 fun asksToMoveRecords(
     registry: SpaceRegistry,
     uid: String,
-    newAccount: Boolean,
     activeHasRecords: Boolean,
     activeBackupOwner: String?,
-): Boolean = newAccount && activeHasRecords && registry.spaceOf(uid) == null &&
+): Boolean = activeHasRecords && registry.spaceOf(uid) == null &&
     (registry.owners[registry.active] ?: activeBackupOwner) == null
+
+/** The question [asksToMoveRecords] puts: a new account takes the records, an existing one adds them to its backup. */
+enum class MoveRecordsQuestion { NEW_ACCOUNT, EXISTING_ACCOUNT }
 
 /**
  * The registry once [uid] has signed in:
@@ -52,8 +55,9 @@ fun asksToMoveRecords(
  * - An account that already has a space here goes back to it, with everything it had.
  * - Otherwise the space on screen becomes theirs if its backup already belongs to [uid]
  *   ([activeBackupOwner], for phones from before spaces existed), or if nobody owns it and either
- *   [moveNoAccountRecords] (a new account whose rider chose to move the records made without an
- *   account to it, [asksToMoveRecords]) or it has no records yet ([activeHasRecords]).
+ *   [moveNoAccountRecords] (the rider chose to move the records made without an account to it,
+ *   [asksToMoveRecords]; an existing account's backup then merges into them) or it has no records
+ *   yet ([activeHasRecords]).
  * - Otherwise [uid] gets the new, empty space [newSpaceId], which their backup then fills. The
  *   space on screen keeps its owner, or stays the no-account space, so records made without an
  *   account never go into an account unless its rider chose that.

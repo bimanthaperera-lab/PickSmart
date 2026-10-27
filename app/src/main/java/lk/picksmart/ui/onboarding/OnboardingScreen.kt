@@ -442,7 +442,10 @@ private fun VehicleStep(
     }
 }
 
-/** After signing in: the rider's backup comes back before setup asks for a vehicle. */
+/**
+ * After signing in: the rider's backup comes back before setup asks for anything, so nothing they
+ * enter is merged with it later. Problems are retried on their own; Skip starts fresh, signed out.
+ */
 @Composable
 private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> Unit) {
     Column(
@@ -475,9 +478,15 @@ private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> 
                     ),
                 )
                 PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth())
-                SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth())
             }
         }
+        // Always there, so a rider who can't wait is never stuck here.
+        Text(
+            stringResource(R.string.onboarding_restore_skip_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth())
     }
 }
 

@@ -62,6 +62,7 @@ import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.CompleteOnboarding
 import lk.picksmart.domain.usecase.DeleteAccount
 import lk.picksmart.domain.usecase.FuelPriceUpdates
+import lk.picksmart.domain.usecase.MoveRecordsQuestion
 import lk.picksmart.domain.usecase.SpaceRegistry
 import lk.picksmart.domain.usecase.afterAccountDeleted
 import lk.picksmart.domain.usecase.asksToMoveRecords
@@ -114,13 +115,13 @@ class AppContainer(context: Context) {
     val space: StateFlow<DataSpace> = mutableSpace.asStateFlow()
 
     @Volatile private var moveRecordsAnswer: CompletableDeferred<Boolean>? = null
-    private val mutableAskingToMoveRecords = MutableStateFlow(false)
+    private val mutableMoveRecordsQuestion = MutableStateFlow<MoveRecordsQuestion?>(null)
 
     /**
-     * True while a new account waits for the rider to say whether the records made without an
-     * account move to it ([asksToMoveRecords]); answered with [answerMoveRecords].
+     * Set while an account that just signed in waits for the rider to say whether the records made
+     * without an account move to it ([asksToMoveRecords]); answered with [answerMoveRecords].
      */
-    val askingToMoveRecords: StateFlow<Boolean> = mutableAskingToMoveRecords.asStateFlow()
+    val moveRecordsQuestion: StateFlow<MoveRecordsQuestion?> = mutableMoveRecordsQuestion.asStateFlow()
 
     val userPreferences: UserPreferencesRepository get() = space.value.userPreferences
     val vehicles: VehicleRepository get() = space.value.vehicles
@@ -227,8 +228,8 @@ class AppContainer(context: Context) {
         val registry = spaceRegistry.load()
         val activeHasRecords = dao.recordCount() > 0
         val activeBackupOwner = dao.state(SyncDao.OWNER_KEY)
-        val move = asksToMoveRecords(registry, profile.uid, profile.isNewAccount, activeHasRecords, activeBackupOwner) &&
-            askToMoveRecords()
+        val move = asksToMoveRecords(registry, profile.uid, activeHasRecords, activeBackupOwner) &&
+            askToMoveRecords(if (profile.isNewAccount) MoveRecordsQuestion.NEW_ACCOUNT else MoveRecordsQuestion.EXISTING_ACCOUNT)
         val next = signInSpace(
             registry,
             profile.uid,
@@ -244,23 +245,23 @@ class AppContainer(context: Context) {
     }
 
     /**
-     * Shows the question ([askingToMoveRecords], drawn by MainActivity) and waits for the rider's
-     * answer. Nothing changes until they answer; if the app closes first, the account counts as
-     * existing on the next start once a minute has passed, so the records stay without an account.
+     * Shows [question] ([moveRecordsQuestion], drawn by MainActivity) and waits for the rider's
+     * answer. Nothing changes until they answer; if the app closes first, it asks again on the
+     * next start.
      */
-    private suspend fun askToMoveRecords(): Boolean {
+    private suspend fun askToMoveRecords(question: MoveRecordsQuestion): Boolean {
         val answer = CompletableDeferred<Boolean>()
         moveRecordsAnswer = answer
-        mutableAskingToMoveRecords.value = true
+        mutableMoveRecordsQuestion.value = question
         return try {
             answer.await()
         } finally {
-            mutableAskingToMoveRecords.value = false
+            mutableMoveRecordsQuestion.value = null
             moveRecordsAnswer = null
         }
     }
 
-    /** The rider's answer: true moves the records made without an account to the new account. */
+    /** The rider's answer: true moves the records made without an account to the account. */
     fun answerMoveRecords(move: Boolean) {
         moveRecordsAnswer?.complete(move)
     }

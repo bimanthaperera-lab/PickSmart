@@ -34,20 +34,27 @@ class DataSpacesTest {
     }
 
     @Test
-    fun `only a new account facing records nobody owns is asked`() {
+    fun `only an account new to this phone facing records nobody owns is asked`() {
         val empty = SpaceRegistry()
-        assertTrue(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
-        // An account that existed before never takes them.
-        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = false, activeHasRecords = true, activeBackupOwner = null))
+        assertTrue(asksToMoveRecords(empty, "rider-a", activeHasRecords = true, activeBackupOwner = null))
         // Nothing to move.
-        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = false, activeBackupOwner = null))
+        assertFalse(asksToMoveRecords(empty, "rider-a", activeHasRecords = false, activeBackupOwner = null))
         // The records on screen already belong to an account.
         val owned = SpaceRegistry(owners = mapOf(FIRST_SPACE to "rider-b"))
-        assertFalse(asksToMoveRecords(owned, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
-        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = "rider-b"))
-        // The account already has its own space here.
+        assertFalse(asksToMoveRecords(owned, "rider-a", activeHasRecords = true, activeBackupOwner = null))
+        assertFalse(asksToMoveRecords(empty, "rider-a", activeHasRecords = true, activeBackupOwner = "rider-b"))
+        // The account already has its own space here, so it goes back to it without a question.
         val hasSpace = SpaceRegistry(owners = mapOf("x1" to "rider-a"))
-        assertFalse(asksToMoveRecords(hasSpace, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
+        assertFalse(asksToMoveRecords(hasSpace, "rider-a", activeHasRecords = true, activeBackupOwner = null))
+    }
+
+    @Test
+    fun `an existing account that adds the records takes them, and its backup merges in`() {
+        // Same registry change as a new account: the backup then downloads into this space.
+        val after = signIn(SpaceRegistry(), "rider-a", move = true)
+        assertEquals(SpaceRegistry(active = FIRST_SPACE, owners = mapOf(FIRST_SPACE to "rider-a")), after)
+        // Signing out leaves them with the account and opens an empty no-account space.
+        assertEquals("x2", signOutSpace(after, newSpaceId = "x2").active)
     }
 
     @Test

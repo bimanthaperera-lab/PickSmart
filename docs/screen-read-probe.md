@@ -28,4 +28,4 @@ Text that isn't money, a distance or a time is printed only as its length, so pa
 
 ## PickMe
 
-Open PickMe Driver and run `adb shell dumpsys window | grep mCurrentFocus` to find its package name. Add it to `TARGET_PACKAGES` in `app/src/debug/java/lk/picksmart/probe/ScreenReadProbeService.kt` and to `android:packageNames` in `app/src/debug/res/xml/screen_read_probe.xml`.
+PickMe Driver (Sri Lanka) is `com.pickme.driver.byod` on Google Play (publisher Digital Mobility Solutions Lanka), and the probe already lists it. PickMe shows a trip as a popup, so the probe dumps every window of the app, each headed `---- window type=… layer=… active=… focused=… ----`. Note which window holds the fare and distances: if it is `active=false` or `system/overlay`, only the window list (`flagRetrieveInteractiveWindows`) can reach it, which is what the offer reader now uses. If `dumpsys window | grep mCurrentFocus` shows a different package on a real phone, change it in both config files and in `OfferReaderService`.

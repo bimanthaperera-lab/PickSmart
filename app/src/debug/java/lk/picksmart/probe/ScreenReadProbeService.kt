@@ -5,6 +5,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 
 /**
  * Debug-only feasibility probe (docs/decisions.md, 2026-10-24). It answers one question: does the
@@ -16,6 +17,9 @@ import android.view.accessibility.AccessibilityNodeInfo
  * Output goes to logcat under [TAG]. To keep passenger names and addresses out of the log, a
  * node's text is printed only when it looks like a money, distance or time value; any other text
  * is shown as its length alone.
+ *
+ * It dumps every window of a listed app, not only the active one, and names each window's type
+ * and layer, so a popup offer card (PickMe shows trips in one) shows up as its own window.
  */
 class ScreenReadProbeService : AccessibilityService() {
 
@@ -28,19 +32,37 @@ class ScreenReadProbeService : AccessibilityService() {
         if (now - lastDumpAt < MIN_DUMP_INTERVAL_MS) return
         lastDumpAt = now
 
-        val root = rootInActiveWindow ?: run {
-            Log.i(TAG, "$pkg: no active window root (window may be secure or not ready)")
+        val roots = windows.sortedByDescending { it.layer }
+            .mapNotNull { window -> window.root?.takeIf { it.packageName == pkg }?.let { window to it } }
+        if (roots.isEmpty()) {
+            Log.i(TAG, "$pkg: no window root (window may be secure or not ready)")
             return
         }
-        val started = SystemClock.elapsedRealtime()
-        val stats = DumpStats()
-        Log.i(TAG, "==== $pkg  event=${AccessibilityEvent.eventTypeToString(event.eventType)} ====")
-        dump(root, depth = 0, stats = stats)
-        Log.i(
-            TAG,
-            "==== end: ${stats.nodes} nodes, ${stats.withText} with text, " +
-                "${stats.matches} money/km/min matches, ${SystemClock.elapsedRealtime() - started} ms ====",
-        )
+        Log.i(TAG, "==== $pkg  event=${AccessibilityEvent.eventTypeToString(event.eventType)}, ${roots.size} window(s) ====")
+        for ((window, root) in roots) {
+            val started = SystemClock.elapsedRealtime()
+            val stats = DumpStats()
+            Log.i(
+                TAG,
+                "---- window type=${windowType(window.type)} layer=${window.layer} " +
+                    "active=${window.isActive} focused=${window.isFocused} ----",
+            )
+            dump(root, depth = 0, stats = stats)
+            Log.i(
+                TAG,
+                "---- end: ${stats.nodes} nodes, ${stats.withText} with text, " +
+                    "${stats.matches} money/km/min matches, ${SystemClock.elapsedRealtime() - started} ms ----",
+            )
+        }
+        Log.i(TAG, "==== end ====")
+    }
+
+    private fun windowType(type: Int): String = when (type) {
+        AccessibilityWindowInfo.TYPE_APPLICATION -> "application"
+        AccessibilityWindowInfo.TYPE_SYSTEM -> "system/overlay"
+        AccessibilityWindowInfo.TYPE_INPUT_METHOD -> "keyboard"
+        AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY -> "accessibility overlay"
+        else -> "other($type)"
     }
 
     private fun dump(node: AccessibilityNodeInfo, depth: Int, stats: DumpStats) {
@@ -77,12 +99,12 @@ class ScreenReadProbeService : AccessibilityService() {
         const val TAG = "PicksmartProbe"
 
         /**
-         * Apps the probe dumps. `com.ubercab.driver` is the Uber Driver app. Add PickMe Driver's
-         * package after finding it with `adb shell dumpsys window | grep mCurrentFocus` while it is open,
-         * both here and in `android:packageNames` in `res/xml/screen_read_probe.xml`.
+         * Apps the probe dumps: Uber Driver and PickMe Driver (Sri Lanka). Another app goes both here
+         * and in `android:packageNames` in `res/xml/screen_read_probe.xml`.
          */
         val TARGET_PACKAGES = setOf(
             "com.ubercab.driver",
+            "com.pickme.driver.byod",
         )
 
         private const val MIN_DUMP_INTERVAL_MS = 1_000L

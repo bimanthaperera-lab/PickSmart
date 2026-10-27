@@ -82,10 +82,10 @@ fun StatGrid(stats: List<Stat>, modifier: Modifier = Modifier) {
     }
 }
 
-/** Screen title at the top of each tab. */
+/** Screen title at the top of each tab; shrinks a little to stay on one line in longer languages. */
 @Composable
 fun ScreenTitle(text: String, modifier: Modifier = Modifier) {
-    Text(
+    FitText(
         text = text,
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,

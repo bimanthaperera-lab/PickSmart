@@ -93,6 +93,7 @@ import lk.picksmart.util.centsToInput
 import lk.picksmart.util.parseRupeesToCents
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
+import lk.picksmart.ui.components.FitText
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.components.TabScreen
@@ -406,7 +407,8 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
                     .fillMaxHeight()
                     .defaultMinSize(minHeight = Spacing.touchTarget),
                 label = {
-                    Text(
+                    // Two lines at most, without splitting a word ("கட்டணங்களுக்குப்" in Tamil).
+                    FitText(
                         stringResource(
                             when (mode) {
                                 FareMode.GROSS_BEFORE_COMMISSION -> R.string.check_fare_mode_gross
@@ -414,6 +416,8 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
                             },
                         ),
                         textAlign = TextAlign.Center,
+                        lines = 2,
+                        minScale = 0.8f,
                     )
                 },
             )

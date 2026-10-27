@@ -8,6 +8,7 @@ import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,14 +29,20 @@ import java.time.Instant
 
 /**
  * The offer reader (CLAUDE.md N5, section 9b). When a listed ride app's window changes, it reads
- * the visible text, finds an offer's fare and distances with [parseOfferText], and shows the
- * estimated profit or loss in an [OfferBadge], using the active vehicle's rates. When the offer
+ * the visible text of that app's windows, finds an offer's fare and distances with
+ * [parseOfferText], and shows the estimated profit or loss in an [OfferBadge], using the active
+ * vehicle's rates. When the offer
  * leaves the screen it asks, in a notification, whether to save it as a trip
  * ([OfferSaveNotification]); only the numbers go into it, and the rider saves them in the app.
  *
  * It only reads. It never performs an action, gesture or global action, and the text it reads is
  * kept in memory for one calculation and never logged, saved or sent. Which apps it reads is set
  * by `packageNames` in `res/xml/offer_reader.xml`; Android delivers no other app's events.
+ *
+ * An offer can arrive as a popup in its own window (PickMe shows trips that way), which is often
+ * not the active window, so the reader looks at every window on screen
+ * (`flagRetrieveInteractiveWindows`). Of another app's window it checks only the package name of
+ * its root, and walks the text only of the listed apps' windows.
  */
 class OfferReaderService : AccessibilityService() {
 
@@ -58,8 +65,14 @@ class OfferReaderService : AccessibilityService() {
     /** The offer last offered for saving, so the same offer isn't offered again. */
     private var lastAsked: OfferReading? = null
 
-    private val read = Runnable { readActiveWindow() }
+    private val read = Runnable { readOfferWindows() }
     private val clear = Runnable { clearBadge() }
+
+    /** An offer left up too long is cleared and not shown again until it changes. */
+    private val expire = Runnable {
+        hiddenByRider = shown
+        clearBadge()
+    }
 
     // The badge's words follow the rider's language below Android 13 too.
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
@@ -88,36 +101,55 @@ class OfferReaderService : AccessibilityService() {
         handler.postDelayed(read, SETTLE_MS)
     }
 
-    private fun readActiveWindow() {
+    private fun readOfferWindows() {
         if (paused) return
-        val root = rootInActiveWindow
         val targets = serviceInfo?.packageNames?.toSet().orEmpty()
-        if (root == null || root.packageName?.toString() !in targets) {
-            scheduleClear()
-            return
+        var offer: Pair<OfferReading, String>? = null
+        for (root in targetRoots(targets)) {
+            val lines = visibleText(root)
+            // Picksmart's own screens are listed only in the debug build, for its sample offer.
+            if (root.packageName == packageName && SAMPLE_OFFER_MARKER !in lines) continue
+            val reading = parseOfferText(lines) ?: continue
+            offer = reading to root.packageName.toString()
+            break
         }
-        val lines = visibleText(root)
-        // Picksmart's own screens are listed only in the debug build, for its sample offer.
-        if (root.packageName == packageName && SAMPLE_OFFER_MARKER !in lines) {
-            scheduleClear()
-            return
-        }
-        val reading = parseOfferText(lines)
-        if (reading == null) {
+        if (offer == null) {
             // The card may be redrawing; clear only if no offer comes back shortly.
             scheduleClear()
             return
         }
+        val (reading, fromPackage) = offer
         handler.removeCallbacks(clear)
+        // A popup can close without any event from its app, so look again while an offer is shown.
+        if (shown != null || reading != hiddenByRider) {
+            handler.removeCallbacks(read)
+            handler.postDelayed(read, RECHECK_MS)
+        }
         if (reading == hiddenByRider) return
         hiddenByRider = null
         if (reading != shown) {
-            shownPackage = root.packageName?.toString()
+            shownPackage = fromPackage
             shownAt = (application as PicksmartApplication).container.clock.instant()
+            handler.removeCallbacks(expire)
+            handler.postDelayed(expire, SHOW_AT_MOST_MS)
         }
         shown = reading
         refresh()
-        handler.postDelayed(clear, SHOW_AT_MOST_MS)
+    }
+
+    /**
+     * The root of each window of a listed app, top window first, so a popup offer is read before
+     * the screen under it. Windows of other apps, the keyboard and Picksmart's own badge are
+     * skipped without reading their text. Falls back to the active window when Android gives no
+     * window list.
+     */
+    private fun targetRoots(targets: Set<String>): List<AccessibilityNodeInfo> {
+        val fromWindows = runCatching { windows }.getOrDefault(emptyList())
+            .filter { it.type != AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY && it.type != AccessibilityWindowInfo.TYPE_INPUT_METHOD }
+            .sortedByDescending { it.layer }
+            .mapNotNull { window -> window.root?.takeIf { it.packageName?.toString() in targets } }
+        if (fromWindows.isNotEmpty()) return fromWindows
+        return listOfNotNull(rootInActiveWindow?.takeIf { it.packageName?.toString() in targets })
     }
 
     /** Draws [shown] with the current vehicle and fee settings, or hides the badge without them. */
@@ -144,6 +176,7 @@ class OfferReaderService : AccessibilityService() {
         val readAt = shownAt
         shown = null
         handler.removeCallbacks(clear)
+        handler.removeCallbacks(expire)
         if (::badge.isInitialized) badge.hide()
         if (askToSave && offer != null && readAt != null && offer != lastAsked && vehicle != null) {
             lastAsked = offer
@@ -154,6 +187,7 @@ class OfferReaderService : AccessibilityService() {
     /** The ride app an offer came from; Picksmart's own sample and unknown apps use the last-used platform. */
     private fun platformOf(packageName: String?): Platform = when (packageName) {
         UBER_DRIVER -> Platform.UBER
+        PICKME_DRIVER -> Platform.PICKME
         else -> lastInputs.platform
     }
 
@@ -187,8 +221,10 @@ class OfferReaderService : AccessibilityService() {
         private const val SETTLE_MS = 120L
         private const val CLEAR_AFTER_MS = 1_500L
         private const val SHOW_AT_MOST_MS = 45_000L
+        private const val RECHECK_MS = 1_000L
         private const val MAX_NODES = 400
         private const val UBER_DRIVER = "com.ubercab.driver"
+        private const val PICKME_DRIVER = "com.pickme.driver.byod"
 
         /** The connected service, so the app can turn it off completely ([turnOff]). */
         @Volatile private var running: WeakReference<OfferReaderService>? = null

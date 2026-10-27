@@ -3,11 +3,11 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagDefault"
+    android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows"
     android:canPerformGestures="false"
     android:canRetrieveWindowContent="true"
     android:description="@string/offer_reader_service_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="150"
-    android:packageNames="com.ubercab.driver,lk.picksmart"
+    android:packageNames="com.ubercab.driver,com.pickme.driver.byod,lk.picksmart"
     android:summary="@string/offer_reader_service_summary" />

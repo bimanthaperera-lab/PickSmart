@@ -6,7 +6,7 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 - **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
 - **Next step:** V2 started with cloud backup (Phase 8c, branch `v2`). Owner: create the Firestore database, publish `firestore.rules` and test backup and restore on two phones (`docs/cloud-backup.md`). Then register App Check (Play Integrity, debug tokens) and enforce it for Firestore once the metrics look right (`docs/cloud-backup.md`, "App Check"); the app side is done. Still open from V1: run the offer reader probe with Uber Driver, read Uber's driver terms, and decide whether the offer reader ships in V1 (`docs/decisions.md`, 2026-10-26).
-- **Last updated:** 2026-10-26 (Delete account erases the cloud backup and the phone's data; Firebase App Check on `v2`; before that, cloud backup with Firestore: database v5, merge and restore, Account tab backup card)
+- **Last updated:** 2026-10-27 (type one step smaller with `FitText` for long Sinhala/Tamil labels; offer reader reads popup windows and PickMe Driver). Before that, 2026-10-26 (Delete account erases the cloud backup and the phone's data; Firebase App Check on `v2`; before that, cloud backup with Firestore: database v5, merge and restore, Account tab backup card)
 
 ## Open questions for the owner
 
@@ -203,7 +203,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [x] Debug-only sample offer screen to check it on the emulator
 - [x] Badge source line is "Estimate · <vehicle>" instead of "Read from screen · <vehicle>" (owner, 2026-10-26). Checked on the emulator: the Rs. 850 sample shows GOOD +Rs. 750.54 · Rs. 86.27/km, "Estimate · Dio", "Powered by Picksmart".
 - [x] "Powered by Picksmart" line on the badge, and a "Took this ride? Save it as a trip" notification when a shown offer leaves the screen; tapping it opens Add trip filled with the offer's fare, distances, ride app and time, with a "Filled from the ride offer" notice, and nothing is saved until the rider taps Save. Notifications are asked for when the rider accepts the disclosure (Android 13+), and on the onboarding Permissions step (Step 2 of 3: notifications Allow, Read ride offers Turn on, Continue). Onboarding checked on the emulator after clearing data (backed up and restored): Allow showed Android's dialog and then "Allowed"; Turn on showed the disclosure and opened Accessibility settings; Back returned to the step; Continue went to Step 3 and Home. Checked on the emulator (2026-10-26): the badge shows the line; Decline on the Rs. 300 sample posted "Rs. 300.00 · 18 km", silent; tapping it opened Add trip with Rs. 300, pickup 3, trip 15, the offer's time (11:27) and the notice.
-- [ ] Run the probe on a phone with Uber Driver and adjust the parser to the real offer card; add PickMe Driver's package
+- [x] PickMe Driver's package (`com.pickme.driver.byod`) in the reader and the probe; popup offers read through the window list (`flagRetrieveInteractiveWindows`), checked on the emulator with the popup sample (2026-10-27)
+- [ ] Run the probe on a phone with Uber Driver and PickMe Driver and adjust the parser to the real offer cards
 - [ ] Play Console AccessibilityService declaration, disclosure video, Data safety and privacy policy
 
 **Done when:** with the reader on, an offer in a listed ride app shows PROFIT or LOSS in the badge within a second, nothing is tapped or stored, and the app works the same with it off.

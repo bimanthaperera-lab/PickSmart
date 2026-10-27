@@ -22,8 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import lk.picksmart.glance.OfferReaderService
 import lk.picksmart.ui.theme.PicksmartTheme
 
@@ -32,13 +36,16 @@ import lk.picksmart.ui.theme.PicksmartTheme
  * app. The values are sample data. Accept shows the next sample and Decline clears the offer, so
  * taps on the bottom buttons can be checked with the badge on screen.
  *
- * Start it with `adb shell am start -n lk.picksmart/lk.picksmart.sample.SampleOfferActivity`.
+ * Start it with `adb shell am start -n lk.picksmart/lk.picksmart.sample.SampleOfferActivity`. Add
+ * `--ez popup true` to show the offer in a popup window that doesn't take focus, the way PickMe
+ * shows trips, so it isn't the active window.
  */
 class SampleOfferActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        val asPopup = intent.getBooleanExtra(EXTRA_POPUP, false)
         setContent {
             PicksmartTheme(darkTheme = isSystemInDarkTheme()) {
                 var index by rememberSaveable { mutableIntStateOf(0) }
@@ -51,10 +58,24 @@ class SampleOfferActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Text(OfferReaderService.SAMPLE_OFFER_MARKER, style = MaterialTheme.typography.labelLarge)
-                        if (offer == null) {
+                        if (offer == null || asPopup) {
                             Text("You're online", style = MaterialTheme.typography.headlineSmall)
                         } else {
                             offer.forEach { Text(it, style = MaterialTheme.typography.headlineSmall) }
+                        }
+                        if (offer != null && asPopup) {
+                            Popup(
+                                alignment = Alignment.Center,
+                                offset = IntOffset(0, -200),
+                                properties = PopupProperties(focusable = false),
+                            ) {
+                                Surface(tonalElevation = 6.dp, shadowElevation = 6.dp, shape = MaterialTheme.shapes.large) {
+                                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(OfferReaderService.SAMPLE_OFFER_MARKER, style = MaterialTheme.typography.labelLarge)
+                                        offer.forEach { Text(it, style = MaterialTheme.typography.headlineSmall) }
+                                    }
+                                }
+                            }
                         }
                         Spacer(Modifier.weight(1f))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -68,6 +89,8 @@ class SampleOfferActivity : ComponentActivity() {
     }
 
     private companion object {
+        const val EXTRA_POPUP = "popup"
+
         /** Sample offers only; the index past the end is "no offer". */
         val SAMPLES = listOf(
             listOf("UberX", "LKR 850.00", "4 min (1.2 km) away", "18 min (7.5 km) trip"),

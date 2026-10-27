@@ -223,11 +223,6 @@ fun ProfileScreen(
                     },
                 ),
             )
-            Text(
-                stringResource(R.string.profile_photo_note),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             status.message?.let { message ->
                 Text(

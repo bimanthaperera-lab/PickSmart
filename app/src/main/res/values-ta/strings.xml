@@ -631,7 +631,6 @@
     <string name="profile_mobile">மொபைல் எண்</string>
     <string name="profile_gender">பாலினம்</string>
     <string name="profile_birth_date">பிறந்த தேதி</string>
-    <string name="profile_photo_note">உங்கள் புகைப்படம், பாலினம் மற்றும் பிறந்த தேதி உங்கள் கணக்கில் backup செய்யப்படுவதால், புதிய ஃபோனிலும் திரும்ப வரும். அவை ஒருபோதும் பகிரப்படுவதில்லை.</string>
     <string name="gender_male">ஆண்</string>
     <string name="gender_female">பெண்</string>
     <string name="gender_other">மற்றவை</string>

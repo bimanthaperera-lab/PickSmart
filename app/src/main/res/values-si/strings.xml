@@ -632,7 +632,6 @@
     <string name="profile_mobile">ජංගම දුරකථන අංකය</string>
     <string name="profile_gender">ස්ත්‍රී පුරුෂ භාවය</string>
     <string name="profile_birth_date">උපන් දිනය</string>
-    <string name="profile_photo_note">ඔබගේ ඡායාරූපය, ස්ත්‍රී පුරුෂ භාවය සහ උපන් දිනය ඔබගේ ගිණුමට backup වන නිසා නව දුරකථනයක ද ඒවා ආපසු ලැබේ. ඒවා කිසිවිටෙක බෙදා නොගනී.</string>
     <string name="gender_male">පුරුෂ</string>
     <string name="gender_female">ස්ත්‍රී</string>
     <string name="gender_other">වෙනත්</string>

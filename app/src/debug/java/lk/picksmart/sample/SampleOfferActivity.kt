@@ -93,6 +93,8 @@ class SampleOfferActivity : ComponentActivity() {
 
         /** Sample offers only; the index past the end is "no offer". */
         val SAMPLES = listOf(
+            // Laid out like PickMe's card: the amount and "LKR" as two texts, and a "+ LKR" chip.
+            listOf("450.75", "LKR", "TUK", "12 min away (5.0 km)", "Sample Road", "9 min  (3.4 km)", "Example Mawatha", "+ LKR 150"),
             listOf("UberX", "LKR 850.00", "4 min (1.2 km) away", "18 min (7.5 km) trip"),
             listOf("UberX", "LKR 300.00", "9 min (3.0 km) away", "35 min (15.0 km) trip"),
             listOf("Tuk", "LKR 1,450.00", "6 min (2.1 km) away", "24 min (9.8 km) trip"),

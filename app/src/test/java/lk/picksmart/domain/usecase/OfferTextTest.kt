@@ -83,7 +83,57 @@ class OfferTextTest {
     }
 
     @Test
+    fun `a bonus with a space after the plus is not the fare`() {
+        assertEquals(OfferReading(70_000, null, 8.0), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km")))
+        assertNull(parseOfferText(listOf("+ LKR 200", "8 km")))
+        assertNull(parseOfferText(listOf("+", "LKR", "200", "8 km")))
+    }
+
+    // A card laid out like PickMe's: the fare in a large font with "LKR" after it, the pickup line
+    // ("… min away (… km)") and the trip line ("… min (… km)") each over an address, and a "+ LKR"
+    // chip. The values and places are made up.
+    private val pickMeStyleCard = listOf(
+        "TUK",
+        "12 min away (5.0 km)",
+        "Sample Road, Sampletown",
+        "9 min  (3.4 km)",
+        "Example Mawatha, Exampleville",
+        "+ LKR 150",
+        "Accept trip",
+    )
+    private val pickMeStyleReading = OfferReading(45_075, 5.0, 3.4)
+
+    @Test
+    fun `PickMe style card with the fare in one text`() {
+        assertEquals(pickMeStyleReading, parseOfferText(listOf("450.75 LKR") + pickMeStyleCard))
+        assertEquals(pickMeStyleReading, parseOfferText(listOf("450.75LKR") + pickMeStyleCard))
+    }
+
+    @Test
+    fun `PickMe style card with the amount and LKR as two texts`() {
+        assertEquals(pickMeStyleReading, parseOfferText(listOf("450.75", "LKR") + pickMeStyleCard))
+        assertEquals(pickMeStyleReading, parseOfferText(listOf("LKR", "450.75") + pickMeStyleCard))
+    }
+
+    @Test
+    fun `PickMe style card read as one text`() {
+        val merged = (listOf("450.75 LKR") + pickMeStyleCard).joinToString(" ")
+        assertEquals(pickMeStyleReading, parseOfferText(listOf(merged)))
+    }
+
+    @Test
+    fun `an Uber style card read as one text keeps pickup and trip apart`() {
+        assertEquals(OfferReading(85_000, 1.2, 7.5), parseOfferText(listOf("UberX LKR 850.00 4 min (1.2 km) away 18 min (7.5 km) trip Accept")))
+    }
+
+    @Test
+    fun `a bare number next to LKR is the fare only when they touch`() {
+        assertNull(parseOfferText(listOf("450", "TUK", "LKR", "5 km")))
+    }
+
+    @Test
     fun `long numbers such as phone numbers are ignored`() {
+        assertEquals(OfferReading(50_000, null, 4.0), parseOfferText(listOf("Call 077 123 4567 Rs 9", "Rs 500", "4 km")))
         assertEquals(OfferReading(50_000, null, 4.0), parseOfferText(listOf("Call 0771234567 Rs 9", "Rs 500", "4 km")))
     }
 

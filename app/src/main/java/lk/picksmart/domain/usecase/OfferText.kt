@@ -37,6 +37,13 @@ private val DISTANCE = Regex("""(?i)(?<![\w.,])([0-9]+(?:[.,][0-9]{1,2})?)\s*(?:
 private val PICKUP_WORDS = Regex("""(?i)\b(away|pick ?-?up|to pick|to customer|to rider)\b""")
 private val TRIP_WORDS = Regex("""(?i)\b(trip|ride|drop ?-?off|journey|destination)\b""")
 
+/** A fare drawn as two texts, the amount in a large font and the currency beside it ("299.50", "LKR"). */
+private val BARE_AMOUNT = Regex("""[0-9][0-9,]*(?:\.[0-9]{1,2})?""")
+private val CURRENCY_ONLY = Regex("""(?i)lkr|rs\.?|රු\.?""")
+
+/** Nine or more digits in a row, with single spaces or dashes allowed between them: a phone number or an id. */
+private val LONG_NUMBER = Regex("""[0-9](?:[ -]?[0-9]){8,}""")
+
 /** Fares above this (Rs. 1,000,000) are not a ride; distances above [MAX_KM] are not either. */
 private const val MAX_FARE_CENTS = 100_000_000L
 private const val MAX_KM = 500.0
@@ -47,27 +54,34 @@ private const val MAX_KM = 500.0
  * never shows a result built on a guess.
  *
  * - **Fare:** the first amount marked "Rs", "Rs.", "LKR" or "රු", before or after the number,
- *   with thousands separators allowed ("LKR 1,250.00", "850 LKR"). An amount with a leading "+"
- *   (a bonus line such as "+LKR 50") is skipped.
- * - **Distances:** numbers followed by "km". A line that says "away" or "pickup" is the pickup; one
- *   that says "trip", "ride" or "drop-off" is the trip. Unlabelled distances fill the pickup, then
- *   the trip, in reading order; a single unlabelled distance is the trip. "4,2 km" reads as 4.2.
- * - Lines with more than 10 digits (phone numbers, ids) are ignored.
+ *   with thousands separators allowed ("LKR 1,250.00", "850 LKR"). The amount and the currency may
+ *   be two texts next to each other ("299.50", "LKR"), as on PickMe's card. An amount after a "+"
+ *   (a bonus such as "+LKR 50" or "+ LKR 200") is never the fare.
+ * - **Distances:** numbers followed by "km". A distance whose words say "away" or "pickup" is the
+ *   pickup; one whose words say "trip", "ride" or "drop-off" is the trip. Its words are its line,
+ *   up to the distances either side of it, so a whole card read as one text still splits up.
+ *   Unlabelled distances fill the pickup, then the trip, in reading order; a single unlabelled
+ *   distance is the trip. "4,2 km" reads as 4.2.
+ * - Lines with nine or more digits in a row (phone numbers, ids) are ignored.
  */
 fun parseOfferText(lines: List<String>): OfferReading? {
-    val usable = lines.map { it.trim() }.filter { line -> line.isNotEmpty() && line.count(Char::isDigit) <= 10 }
-    val fare = usable.firstNotNullOfOrNull(::fareIn) ?: return null
+    val usable = lines.map { it.trim() }.filter { line -> line.isNotEmpty() && !LONG_NUMBER.containsMatchIn(line) }
+    val fare = fareIn(usable) ?: return null
 
     var pickup: Double? = null
     var trip: Double? = null
     val unlabelled = mutableListOf<Double>()
     for (line in usable) {
-        for (match in DISTANCE.findAll(line)) {
-            val km = match.groupValues[1].replace(',', '.').toBigDecimalOrNull()?.toDouble() ?: continue
-            if (km > MAX_KM) continue
+        val matches = DISTANCE.findAll(line).toList()
+        matches.forEachIndexed { i, match ->
+            val km = match.groupValues[1].replace(',', '.').toBigDecimalOrNull()?.toDouble() ?: return@forEachIndexed
+            if (km > MAX_KM) return@forEachIndexed
+            val from = matches.getOrNull(i - 1)?.range?.last?.plus(1) ?: 0
+            val to = matches.getOrNull(i + 1)?.range?.first ?: line.length
+            val words = line.substring(from, to)
             when {
-                PICKUP_WORDS.containsMatchIn(line) && pickup == null -> pickup = km
-                TRIP_WORDS.containsMatchIn(line) && trip == null -> trip = km
+                PICKUP_WORDS.containsMatchIn(words) && pickup == null -> pickup = km
+                TRIP_WORDS.containsMatchIn(words) && trip == null -> trip = km
                 else -> unlabelled += km
             }
         }
@@ -99,11 +113,33 @@ fun offerReadingOrNull(fareCents: Long, pickupKm: Double?, tripKm: Double?): Off
     return OfferReading(fareCents, pickupKm, tripKm)
 }
 
-private fun fareIn(line: String): Long? {
-    val match = MONEY_BEFORE.find(line) ?: MONEY_AFTER.find(line) ?: return null
-    val start = match.range.first
-    if (start > 0 && line[start - 1] == '+') return null
-    val cents = match.groupValues[1].replace(",", "").toBigDecimalOrNull()
+/** The first fare in reading order: within one line, or split over a line and the next. */
+private fun fareIn(lines: List<String>): Long? = lines.indices.firstNotNullOfOrNull { i ->
+    fareInLine(lines[i]) ?: lines.getOrNull(i + 1)?.let { next -> splitFare(lines.getOrNull(i - 1), lines[i], next) }
+}
+
+/** The earliest amount in [line] marked with a currency, skipping bonuses. */
+private fun fareInLine(line: String): Long? =
+    (MONEY_BEFORE.findAll(line) + MONEY_AFTER.findAll(line))
+        .filterNot { isBonus(line.substring(0, it.range.first)) }
+        .minByOrNull { it.range.first }
+        ?.let { centsOf(it.groupValues[1]) }
+
+/** An amount and its currency as two texts, in either order, unless a "+" comes just before them. */
+private fun splitFare(before: String?, first: String, second: String): Long? {
+    if (before != null && isBonus(before)) return null
+    return when {
+        BARE_AMOUNT.matches(first) && CURRENCY_ONLY.matches(second) -> centsOf(first)
+        CURRENCY_ONLY.matches(first) && BARE_AMOUNT.matches(second) -> centsOf(second)
+        else -> null
+    }
+}
+
+/** True when the text before an amount ends with "+", ignoring spaces: "+LKR 50", "+ LKR 200". */
+private fun isBonus(textBefore: String): Boolean = textBefore.trimEnd().endsWith('+')
+
+private fun centsOf(amount: String): Long? {
+    val cents = amount.replace(",", "").toBigDecimalOrNull()
         ?.movePointRight(2)?.setScale(0, RoundingMode.HALF_UP) ?: return null
     if (cents.signum() <= 0 || cents > BigDecimal.valueOf(MAX_FARE_CENTS)) return null
     return cents.longValueExact()

@@ -1,5 +1,7 @@
 package lk.picksmart.ui.trip
 
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,6 +60,7 @@ import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.history.StatusTag
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.vehicle.icon
 import lk.picksmart.util.ColomboZone
 import lk.picksmart.util.MoneyFormatter
 import lk.picksmart.util.dateFormatter
@@ -165,20 +168,39 @@ private fun TripDetails(state: TripDetailsUiState.Loaded) {
     SectionLabel(stringResource(R.string.check_result_distance))
     ListGroup(
         rows = buildList {
-            add { ListRow(stringResource(if (cancelled) R.string.trip_pickup_driven else R.string.check_pickup), value = kmText(trip.pickupKm)) }
-            if (!cancelled) add { ListRow(stringResource(R.string.check_trip), value = kmText(trip.tripKm)) }
-            add { ListRow(stringResource(R.string.check_return), value = kmText(trip.returnKm)) }
+            add {
+                ListRow(
+                    stringResource(if (cancelled) R.string.trip_pickup_driven else R.string.check_pickup),
+                    value = kmText(trip.pickupKm),
+                    iconRes = R.drawable.ic_pin,
+                )
+            }
+            if (!cancelled) add { ListRow(stringResource(R.string.check_trip), value = kmText(trip.tripKm), iconRes = R.drawable.ic_route) }
+            add { ListRow(stringResource(R.string.check_return), value = kmText(trip.returnKm), iconRes = R.drawable.ic_return) }
             val total = trip.pickupKm + (if (cancelled) 0.0 else trip.tripKm) + trip.returnKm
-            add { ListRow(stringResource(R.string.trip_details_total_km), value = kmText(total)) }
+            add {
+                ListRow(
+                    stringResource(R.string.trip_details_total_km),
+                    value = kmText(total),
+                    valueColor = MaterialTheme.colorScheme.onSurface,
+                    iconRes = R.drawable.ic_gauge,
+                )
+            }
         },
     )
 
     SectionLabel(stringResource(R.string.trip_details_more))
     ListGroup(
         rows = buildList {
-            add { ListRow(stringResource(R.string.trip_details_vehicle), value = state.vehicleName ?: "—") }
+            add {
+                ListRow(
+                    stringResource(R.string.trip_details_vehicle),
+                    value = state.vehicleName ?: "—",
+                    iconRes = state.vehicleType?.icon ?: R.drawable.ic_vehicle_other,
+                )
+            }
             trip.notes?.takeIf { it.isNotBlank() }?.let { note ->
-                add { ListRow(stringResource(R.string.trip_details_note), subtitle = note) }
+                add { ListRow(stringResource(R.string.trip_details_note), subtitle = note, iconRes = R.drawable.ic_note) }
             }
         },
     )
@@ -234,7 +256,7 @@ private fun SummaryCard(trip: Trip, estimate: ProfitResult?) {
                 val net = estimate.netProfitCents
                 Text(
                     money.formatSigned(net),
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = MaterialTheme.typography.headlineLarge,
                     color = when {
                         isOffer -> colors.onSurface
                         net < 0 -> status.loss
@@ -266,14 +288,36 @@ private fun SummaryCard(trip: Trip, estimate: ProfitResult?) {
     }
 }
 
-/** Income first, then each cost as a negative amount, so the rows add up to the net shown above. */
+/**
+ * Income first, then each cost as a negative amount, so the rows add up to the net shown above.
+ * A cost that took money is in the loss colour; its minus sign carries the same meaning.
+ */
 @Composable
 private fun moneyRows(trip: Trip, estimate: ProfitResult?, money: MoneyFormatter): List<@Composable () -> Unit> {
-    val cost = { cents: Long -> if (cents > 0) money.format(-cents) else money.format(0) }
     val payout = trip.fareMode == FareMode.PAYOUT_AFTER_COMMISSION
+    val incomeColor = MaterialTheme.colorScheme.onSurface
+    val lossColor = PicksmartTheme.status.loss
+    val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    @Composable
+    fun CostRow(@StringRes title: Int, @DrawableRes icon: Int, cents: Long, subtitle: String? = null) = ListRow(
+        stringResource(title),
+        subtitle = subtitle,
+        value = if (cents > 0) money.format(-cents) else money.format(0),
+        valueColor = if (cents > 0) lossColor else mutedColor,
+        iconRes = icon,
+    )
+
     return buildList {
         if (trip.status == TripStatus.CANCELLED) {
-            add { ListRow(stringResource(R.string.trip_cancellation_fee), value = money.format(trip.cancellationFeeCents ?: 0)) }
+            add {
+                ListRow(
+                    stringResource(R.string.trip_cancellation_fee),
+                    value = money.format(trip.cancellationFeeCents ?: 0),
+                    valueColor = incomeColor,
+                    iconRes = R.drawable.ic_wallet,
+                )
+            }
         } else {
             val fareLabel = when {
                 payout -> R.string.check_fare_payout
@@ -285,28 +329,31 @@ private fun moneyRows(trip: Trip, estimate: ProfitResult?, money: MoneyFormatter
                     stringResource(fareLabel),
                     subtitle = if (payout) stringResource(R.string.trip_details_fee_taken) else null,
                     value = money.format(trip.fareCents),
+                    valueColor = incomeColor,
+                    iconRes = R.drawable.ic_wallet,
                 )
             }
             if (!payout && estimate != null) {
                 add {
-                    ListRow(
-                        stringResource(R.string.check_fee),
+                    CostRow(
+                        R.string.check_fee,
+                        R.drawable.ic_percent,
+                        estimate.commissionCents,
                         subtitle = if (trip.commissionType == CommissionType.PERCENT) {
                             stringResource(R.string.trip_details_fee_percent, hundredthsToInput(trip.commissionHundredths))
                         } else {
                             null
                         },
-                        value = cost(estimate.commissionCents),
                     )
                 }
             }
         }
         if (estimate != null) {
-            add { ListRow(stringResource(R.string.trip_details_fuel), value = cost(estimate.fuelCostCents)) }
-            add { ListRow(stringResource(R.string.reports_line_reserve), value = cost(estimate.maintenanceReserveCents)) }
+            add { CostRow(R.string.trip_details_fuel, R.drawable.ic_fuel, estimate.fuelCostCents) }
+            add { CostRow(R.string.reports_line_reserve, R.drawable.ic_wrench, estimate.maintenanceReserveCents) }
         }
         if (trip.status != TripStatus.CANCELLED) {
-            add { ListRow(stringResource(R.string.check_other_costs), value = cost(trip.otherCostsCents)) }
+            add { CostRow(R.string.check_other_costs, R.drawable.ic_coins, trip.otherCostsCents) }
         }
     }
 }

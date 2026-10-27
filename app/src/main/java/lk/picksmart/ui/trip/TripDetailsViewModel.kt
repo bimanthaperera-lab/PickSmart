@@ -21,6 +21,7 @@ import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.domain.model.Trip
+import lk.picksmart.domain.model.VehicleType
 import lk.picksmart.domain.usecase.estimate
 import lk.picksmart.ui.navigation.TripDetailsRoute
 
@@ -40,6 +41,7 @@ sealed interface TripDetailsUiState {
     data class Loaded(
         val trip: Trip,
         val vehicleName: String?,
+        val vehicleType: VehicleType?,
         val estimate: ProfitResult?,
         val deleting: Boolean = false,
         val deleteFailed: Boolean = false,
@@ -64,9 +66,11 @@ class TripDetailsViewModel(
                 trip == null -> if (wasLoaded || delete == DeleteState.RUNNING) TripDetailsUiState.Deleted else TripDetailsUiState.NotFound
                 else -> {
                     wasLoaded = true
+                    val vehicle = vehicleList.firstOrNull { it.id == trip.vehicleId }
                     TripDetailsUiState.Loaded(
                         trip = trip,
-                        vehicleName = vehicleList.firstOrNull { it.id == trip.vehicleId }?.name,
+                        vehicleName = vehicle?.name,
+                        vehicleType = vehicle?.type,
                         estimate = calculator.estimate(trip),
                         deleting = delete == DeleteState.RUNNING,
                         deleteFailed = delete == DeleteState.FAILED,

@@ -1,5 +1,6 @@
 package lk.picksmart.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -43,8 +45,8 @@ fun ListGroup(modifier: Modifier = Modifier, rows: List<@Composable () -> Unit>)
 }
 
 /**
- * One row: a title, an optional subtitle, an optional value on the right, and a chevron when the
- * row opens something. Rows without [onClick] are read-only.
+ * One row: an optional icon, a title, an optional subtitle, an optional value on the right, and a
+ * chevron when the row opens something. Rows without [onClick] are read-only.
  */
 @Composable
 fun ListRow(
@@ -52,6 +54,8 @@ fun ListRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     value: String? = null,
+    valueColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    @DrawableRes iconRes: Int? = null,
     onClick: (() -> Unit)? = null,
 ) {
     Row(
@@ -62,6 +66,16 @@ fun ListRow(
             .padding(horizontal = Spacing.l, vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (iconRes != null) {
+            // The title says what the row is, so the icon is decorative for screen readers.
+            Icon(
+                painterResource(iconRes),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(Spacing.m))
+        }
         // Title gets the larger share; the value fills the rest and hugs the right edge.
         Column(Modifier.weight(1.5f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
@@ -74,7 +88,7 @@ fun ListRow(
             Text(
                 value,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = valueColor,
                 textAlign = TextAlign.End,
                 modifier = Modifier.weight(1f),
             )

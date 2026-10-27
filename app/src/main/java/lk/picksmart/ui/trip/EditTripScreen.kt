@@ -390,7 +390,7 @@ private fun StatusSelector(statuses: List<TripStatus>, selected: TripStatus, onS
 
 /** The rate snapshot this trip is calculated with. It never follows later vehicle edits. */
 @Composable
-private fun RatesLine(rates: TripRates) {
+internal fun RatesLine(rates: TripRates) {
     val money = rememberMoneyFormatter()
     Text(
         stringResource(

@@ -7,10 +7,14 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
@@ -45,7 +49,7 @@ sealed interface HistoryUiState {
 /** The active vehicle's trips (so switching the vehicle switches the list), newest first. */
 class HistoryViewModel(
     private val savedStateHandle: SavedStateHandle,
-    trips: TripRepository,
+    private val trips: TripRepository,
     vehicles: VehicleRepository,
     calculator: ProfitCalculator,
     clock: Clock,
@@ -64,8 +68,27 @@ class HistoryViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState.Loading)
 
+    private val _deleteFailed = MutableStateFlow(false)
+
+    /** The last swipe delete failed; cleared by the next one. */
+    val deleteFailed: StateFlow<Boolean> = _deleteFailed.asStateFlow()
+
     fun setFilter(filter: HistoryFilter) {
         savedStateHandle[FILTER_KEY] = filter
+    }
+
+    /** Called only after the rider confirms in the dialog (CLAUDE.md N7). */
+    fun delete(tripId: Long) {
+        _deleteFailed.value = false
+        viewModelScope.launch {
+            try {
+                trips.delete(tripId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _deleteFailed.value = true
+            }
+        }
     }
 
     companion object {

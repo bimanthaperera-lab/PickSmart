@@ -205,6 +205,19 @@
     <string name="trip_not_found_body">This trip is no longer on this phone.</string>
     <string name="trip_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
     <string name="trip_no_vehicle_body">Add your vehicle first, so the trip has fuel and maintenance rates.</string>
+    <string name="action_edit">Edit</string>
+    <string name="trip_details_title">Trip details</string>
+    <string name="trip_details_when" translatable="false">%1$s · %2$s</string>
+    <string name="trip_details_money">Fare and costs</string>
+    <string name="trip_details_fee_percent">%1$s%% of the fare</string>
+    <string name="trip_details_fee_taken">Platform fee already taken out</string>
+    <string name="trip_details_fuel">Fuel (estimate)</string>
+    <string name="trip_details_total_km">Total distance</string>
+    <string name="trip_details_more">More details</string>
+    <string name="trip_details_vehicle">Vehicle</string>
+    <string name="trip_details_note">Note</string>
+    <string name="trip_details_cancelled_note">The cancellation fee, minus fuel and reserve for the distance you drove.</string>
+    <string name="trip_delete_failed">Couldn\'t delete the trip. Please try again.</string>
 
     <!-- Other income -->
     <string name="income_title">Other income</string>

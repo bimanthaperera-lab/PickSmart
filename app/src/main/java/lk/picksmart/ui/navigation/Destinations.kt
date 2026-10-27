@@ -61,6 +61,9 @@ data class EditTripRoute(
     }
 }
 
+/** A saved trip's details, read-only. Opened by tapping a trip in History or on Home. */
+@Serializable data class TripDetailsRoute(val tripId: Long)
+
 /** Other income list. Opened from Home and Settings. */
 @Serializable data object OtherIncomeRoute
 

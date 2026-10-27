@@ -172,6 +172,18 @@
     <string name="trip_not_found_body">இந்தச் சவாரி இனி இந்த ஃபோனில் இல்லை.</string>
     <string name="trip_save_failed">சேமிக்க முடியவில்லை. மீண்டும் முயல்க.</string>
     <string name="trip_no_vehicle_body">சவாரிக்கு எரிபொருள் மற்றும் பராமரிப்புக் கட்டணங்கள் கிடைக்க முதலில் உங்கள் வாகனத்தைச் சேர்க்கவும்.</string>
+    <string name="action_edit">திருத்து</string>
+    <string name="trip_details_title">சவாரி விவரங்கள்</string>
+    <string name="trip_details_money">கட்டணம் மற்றும் செலவுகள்</string>
+    <string name="trip_details_fee_percent">கட்டணத்தில் %1$s%%</string>
+    <string name="trip_details_fee_taken">பிளாட்ஃபார்ம் கட்டணம் ஏற்கனவே கழிக்கப்பட்டது</string>
+    <string name="trip_details_fuel">எரிபொருள் (மதிப்பீடு)</string>
+    <string name="trip_details_total_km">மொத்த தூரம்</string>
+    <string name="trip_details_more">மேலும் விவரங்கள்</string>
+    <string name="trip_details_vehicle">வாகனம்</string>
+    <string name="trip_details_note">குறிப்பு</string>
+    <string name="trip_details_cancelled_note">ரத்துசெய்தல் கட்டணத்திலிருந்து, நீங்கள் ஓட்டிய தூரத்திற்கான எரிபொருள் மற்றும் பராமரிப்பு இருப்பைக் கழித்தது.</string>
+    <string name="trip_delete_failed">சவாரியை நீக்க முடியவில்லை. மீண்டும் முயல்க.</string>
 
     <string name="income_title">பிற வருமானம்</string>
     <string name="income_month_total">இந்த மாதம் கூடுதல் வருமானம்</string>

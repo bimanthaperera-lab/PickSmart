@@ -56,6 +56,7 @@ import lk.picksmart.ui.income.IncomeListScreen
 import lk.picksmart.ui.home.HomeScreen
 import lk.picksmart.ui.reports.ReportsScreen
 import lk.picksmart.ui.trip.EditTripScreen
+import lk.picksmart.ui.trip.TripDetailsScreen
 import lk.picksmart.ui.vehicle.EditVehicleScreen
 import lk.picksmart.ui.vehicle.VehicleLimitScreen
 import kotlin.reflect.KClass
@@ -180,7 +181,7 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier) {
             HomeScreen(
                 onCheckRide = openCheckRide,
                 onOpenHistory = { navController.navigateToTopLevel(TopLevelDestination.HISTORY) },
-                onOpenTrip = { id -> navController.navigate(EditTripRoute(id)) },
+                onOpenTrip = { id -> navController.navigate(TripDetailsRoute(id)) },
                 onOpenIncome = openIncome,
                 onOpenFuelLog = openFuelLog,
                 onOpenExpenses = openExpenses,
@@ -197,7 +198,14 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier) {
             HistoryScreen(
                 onCheckRide = openCheckRide,
                 onAddTrip = { navController.navigate(EditTripRoute(EditTripRoute.NEW)) },
-                onOpenTrip = { id -> navController.navigate(EditTripRoute(id)) },
+                onOpenTrip = { id -> navController.navigate(TripDetailsRoute(id)) },
+                onEditTrip = { id -> navController.navigate(EditTripRoute(id)) },
+            )
+        }
+        composable<TripDetailsRoute> {
+            TripDetailsScreen(
+                onBack = { navController.popIfOn(TripDetailsRoute::class) },
+                onEdit = { id -> navController.navigate(EditTripRoute(id)) },
             )
         }
         composable<OtherIncomeRoute> {

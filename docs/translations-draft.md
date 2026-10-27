@@ -113,3 +113,5 @@ The owner asked for these to be translated (from screenshots of the delete warni
 **English changed, so this Sinhala and Tamil is out of date:**
 
 - `onboarding_safety_on_device`: now "Your records stay on this phone and work without internet. When you're signed in, they're also backed up to your account."
+
+**Drafted by Claude on 2026-10-27 and added to the app** (Trip details and swipe actions): `action_edit` (වෙනස් කරන්න / திருத்து), `trip_details_title`, `trip_details_money`, `trip_details_fee_percent`, `trip_details_fee_taken`, `trip_details_fuel`, `trip_details_total_km`, `trip_details_more`, `trip_details_vehicle`, `trip_details_note`, `trip_details_cancelled_note`, `trip_delete_failed`. Check them in `values-si/strings.xml` and `values-ta/strings.xml`.

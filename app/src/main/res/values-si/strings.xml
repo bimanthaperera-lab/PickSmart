@@ -172,6 +172,18 @@
     <string name="trip_not_found_body">මෙම ගමන තවදුරටත් මෙම දුරකථනයේ නොමැත.</string>
     <string name="trip_save_failed">සුරැකීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.</string>
     <string name="trip_no_vehicle_body">ගමනට ඉන්ධන සහ නඩත්තු අගයන් ලැබීමට පළමුව ඔබේ වාහනය එකතු කරන්න.</string>
+    <string name="action_edit">වෙනස් කරන්න</string>
+    <string name="trip_details_title">ගමනේ විස්තර</string>
+    <string name="trip_details_money">ගාස්තුව සහ වියදම්</string>
+    <string name="trip_details_fee_percent">ගාස්තුවෙන් %1$s%%</string>
+    <string name="trip_details_fee_taken">Platform ගාස්තුව දැනටමත් අඩු කර ඇත</string>
+    <string name="trip_details_fuel">ඉන්ධන (ඇස්තමේන්තුව)</string>
+    <string name="trip_details_total_km">මුළු දුර</string>
+    <string name="trip_details_more">වෙනත් විස්තර</string>
+    <string name="trip_details_vehicle">වාහනය</string>
+    <string name="trip_details_note">සටහන</string>
+    <string name="trip_details_cancelled_note">අවලංගු කිරීමේ ගාස්තුවෙන්, ඔබ ධාවනය කළ දුරට ඉන්ධන සහ නඩත්තු වියදම් අඩු කළ විට.</string>
+    <string name="trip_delete_failed">ගමන මැකීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.</string>
 
     <string name="income_title">අනෙකුත් ආදායම්</string>
     <string name="income_month_total">මෙම මාසයේ අමතර ආදායම</string>

@@ -20,6 +20,9 @@ class TripRepository(
 
     suspend fun get(id: Long): Trip? = dao.get(id)?.toDomain()
 
+    /** The trip as it changes; null when it doesn't exist (or was deleted). */
+    fun observe(id: Long): Flow<Trip?> = dao.observe(id).map { it?.toDomain() }
+
     /** Saves a new trip for [vehicleId] and returns its id. */
     suspend fun create(vehicleId: Long, input: TripInput): Long =
         dao.insert(newTrip(input, vehicleId, clock.millis()).toEntity())

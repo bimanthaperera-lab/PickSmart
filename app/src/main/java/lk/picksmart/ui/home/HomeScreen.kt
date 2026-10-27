@@ -258,6 +258,6 @@ private fun RecentTrips(rows: List<HistoryRow>, onSeeAll: () -> Unit, onOpenTrip
             Spacer(Modifier.width(Spacing.s))
             TextButton(onClick = onSeeAll) { Text(stringResource(R.string.home_see_all)) }
         }
-        rows.forEach { row -> TripRow(row) { onOpenTrip(row.trip.id) } }
+        rows.forEach { row -> TripRow(row, onClick = { onOpenTrip(row.trip.id) }) }
     }
 }

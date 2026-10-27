@@ -28,6 +28,10 @@ interface TripDao {
     @Query("SELECT * FROM trips WHERE id = :id")
     suspend fun get(id: Long): TripEntity?
 
+    /** Emits null once the trip is deleted. */
+    @Query("SELECT * FROM trips WHERE id = :id")
+    fun observe(id: Long): Flow<TripEntity?>
+
     /** Newest first. */
     @Query("SELECT * FROM trips ORDER BY trip_date_time DESC, id DESC")
     fun observeAll(): Flow<List<TripEntity>>

@@ -23,7 +23,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -36,7 +39,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -48,13 +53,18 @@ import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
+import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.SwipeAction
+import lk.picksmart.ui.components.SwipeRevealRow
+import lk.picksmart.ui.components.SwipeSide
 import lk.picksmart.ui.components.BorderlessButton
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.trip.TripDeleteDialog
 import lk.picksmart.ui.trip.initials
 import lk.picksmart.ui.trip.label
 import lk.picksmart.util.ColomboZone
@@ -71,9 +81,14 @@ fun HistoryScreen(
     onCheckRide: () -> Unit,
     onAddTrip: () -> Unit,
     onOpenTrip: (tripId: Long) -> Unit,
+    onEditTrip: (tripId: Long) -> Unit,
     viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val deleteFailed by viewModel.deleteFailed.collectAsStateWithLifecycle()
+    // One row open at a time; not saved, since a swiped row is only a moment's state.
+    var revealed by remember { mutableStateOf<Pair<Long, SwipeSide>?>(null) }
+    var confirmDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     when (val s = state) {
         HistoryUiState.Loading -> TabScreen {
@@ -96,6 +111,7 @@ fun HistoryScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
             item { Header(onAddTrip) }
+            if (deleteFailed) item { ErrorState(stringResource(R.string.trip_delete_failed)) }
             item {
                 ChoiceChips(
                     options = HistoryFilter.entries,
@@ -129,9 +145,70 @@ fun HistoryScreen(
             }
             s.days.forEach { day ->
                 item(key = "day-${day.date}") { DayHeader(day, s.today) }
-                items(day.rows, key = { it.trip.id }) { row -> TripRow(row) { onOpenTrip(row.trip.id) } }
+                items(day.rows, key = { it.trip.id }) { row ->
+                    val id = row.trip.id
+                    SwipeableTripRow(
+                        row = row,
+                        revealed = revealed?.takeIf { it.first == id }?.second,
+                        onRevealedChange = { side -> revealed = side?.let { id to it } },
+                        onOpen = { if (revealed != null) revealed = null else onOpenTrip(id) },
+                        onEdit = {
+                            revealed = null
+                            onEditTrip(id)
+                        },
+                        onDelete = { confirmDeleteId = id },
+                    )
+                }
             }
         }
+    }
+
+    confirmDeleteId?.let { id ->
+        TripDeleteDialog(
+            onConfirm = {
+                confirmDeleteId = null
+                revealed = null
+                viewModel.delete(id)
+            },
+            onDismiss = { confirmDeleteId = null },
+        )
+    }
+}
+
+/**
+ * A trip row that swipes right to show Edit and left to show Delete. Tapping the row opens its
+ * details, or closes the open buttons first. Screen readers get both as custom actions.
+ */
+@Composable
+private fun SwipeableTripRow(
+    row: HistoryRow,
+    revealed: SwipeSide?,
+    onRevealedChange: (SwipeSide?) -> Unit,
+    onOpen: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    val editLabel = stringResource(R.string.action_edit)
+    val deleteLabel = stringResource(R.string.action_delete)
+    SwipeRevealRow(
+        leftAction = SwipeAction(editLabel, R.drawable.ic_edit, colors.primaryContainer, colors.onPrimaryContainer, onEdit),
+        rightAction = SwipeAction(deleteLabel, R.drawable.ic_delete, colors.errorContainer, colors.onErrorContainer, onDelete),
+        revealed = revealed,
+        onRevealedChange = onRevealedChange,
+    ) {
+        TripRow(
+            row,
+            onClick = onOpen,
+            // The buttons sit behind the row, so an offer's see-through card needs a solid fill.
+            offerBackground = colors.background,
+            modifier = Modifier.semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction(editLabel) { onEdit(); true },
+                    CustomAccessibilityAction(deleteLabel) { onDelete(); true },
+                )
+            },
+        )
     }
 }
 
@@ -191,7 +268,12 @@ private fun formatDay(date: LocalDate, today: LocalDate): String {
 }
 
 @Composable
-internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
+internal fun TripRow(
+    row: HistoryRow,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    offerBackground: Color = Color.Transparent,
+) {
     val trip = row.trip
     val money = rememberMoneyFormatter()
     val status = PicksmartTheme.status
@@ -229,9 +311,9 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
         shape = shape,
         // Offers are outlined with a dashed border instead of filled, so they read as "not income".
         color = if (isOffer) Color.Transparent else colors.surfaceContainer,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .then(if (isOffer) Modifier.dashedBorder(colors.outline) else Modifier)
+            .then(if (isOffer) Modifier.background(offerBackground, shape).dashedBorder(colors.outline) else Modifier)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {},
     ) {
@@ -279,7 +361,7 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
 }
 
 @Composable
-private fun StatusTag(tripStatus: TripStatus) {
+internal fun StatusTag(tripStatus: TripStatus) {
     val status = PicksmartTheme.status
     val (container, content) = when (tripStatus) {
         TripStatus.CANCELLED -> status.belowTargetContainer to status.onBelowTargetContainer

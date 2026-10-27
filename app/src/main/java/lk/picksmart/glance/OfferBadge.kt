@@ -52,9 +52,15 @@ class OfferBadge(private val context: Context, private val onHidden: () -> Unit)
         val net = money.formatSigned(result.netProfitCents)
         val amounts = result.netProfitPerKmCents?.let { context.getString(R.string.offer_badge_amounts, net, money.format(it)) } ?: net
         badge.findViewById<TextView>(R.id.offer_badge_amounts).text = amounts
+        // The tip is already in the profit above; this line says so.
+        val tip = result.tipCents.takeIf { it > 0 }?.let { context.getString(R.string.offer_badge_tip, money.format(it)) }
+        badge.findViewById<TextView>(R.id.offer_badge_tip).apply {
+            text = tip
+            visibility = if (tip == null) View.GONE else View.VISIBLE
+        }
         val source = context.getString(R.string.offer_badge_source, vehicleName)
         badge.findViewById<TextView>(R.id.offer_badge_source).text = source
-        badge.contentDescription = listOf(context.getString(label), amounts, source, context.getString(R.string.offer_badge_hide_hint))
+        badge.contentDescription = listOfNotNull(context.getString(label), amounts, tip, source, context.getString(R.string.offer_badge_hide_hint))
             .joinToString(". ")
     }
 

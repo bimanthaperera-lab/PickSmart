@@ -133,6 +133,7 @@ The calculator is a pure Kotlin class, `domain/calculator/ProfitCalculator`, wit
 | `maintenanceReservePerKm` | Estimated maintenance allocation, Rs. per km |
 | `otherCosts` | Other costs for this trip |
 | `targetProfitPerKm` | Optional rider target, Rs. per km |
+| `tip` | A tip shown on a ride offer, paid on top of the fare (0 when none; only the offer reader sets it) |
 
 ### Formulas
 
@@ -146,7 +147,8 @@ commission =
   else if commissionType == AMOUNT       → commissionValue
   else                                   → fare × commissionValue ÷ 100
 
-netProfit      = fare − commission − fuelCost − maintenanceReserve − otherCosts
+netProfit      = fare − commission − fuelCost − maintenanceReserve − otherCosts + tip
+                 (no commission is taken from the tip)
 netProfitPerKm = netProfit ÷ totalKm, only when totalKm > 0, otherwise null
 ```
 
@@ -430,6 +432,7 @@ Until 2026-10-26 auto-reading was excluded. The owner decided to allow **reading
   - **Play policy.** A non-accessibility use of the AccessibilityService API needs the Play Console declaration, a prominent in-app disclosure and a video of the feature, and can still be rejected or removed. If Play rejects it, the reader is removed from the release build and the manual surfaces in section 9a remain.
   - **It can stop working.** A ride app can mark its views as sensitive to non-accessibility services (`accessibilityDataSensitive`, Android 14+) or change its layout at any time. A screen it can't read shows no badge, never a guess.
   - **Script.** The parser expects Latin digits and "Rs", "LKR" or "km"; an offer shown in other forms is not read.
+- **Tips.** An amount after a "+" on the card (PickMe shows the passenger's tip as "+ LKR 200") is the tip, never the fare. The badge adds it to the profit after the commission and says "Includes Rs. … tip". A trip doesn't hold a tip: when the rider saves the offer as a completed trip, a switch (on by default) also saves the tip as a `TIP` in Other income, so it is counted once (N2).
 - **Saving an offer.** When a shown offer leaves the screen, a silent notification asks "Took this ride? Save it as a trip" (`ui/notifications/OfferSaveNotification`), because the app can't tell whether the rider accepted it. Tapping it opens Add trip filled with the offer's fare, distances, ride app and the time it was read, marked "Filled from the ride offer"; nothing is saved until the rider taps Save (N6). Only the parsed numbers go into the notification, never the screen text, and the lock screen shows no amounts. The badge carries a small "Powered by Picksmart" line.
 - **Debug probe.** `docs/screen-read-probe.md` describes a debug-only service (never in release builds) that logs money, distance and time values from the ride app's tree, and only the length of any other text, so the parser can be fitted to the real offer card. Its logs are never committed or shared.
 - **Testing.** The parser is a pure function with text fixtures (made-up values, never real screenshots or passenger data). A debug-only sample offer screen lets the service be checked on an emulator without a ride app.

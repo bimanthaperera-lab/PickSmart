@@ -41,6 +41,7 @@ object OfferSaveNotification {
     private const val EXTRA_FARE_CENTS = "offer_fare_cents"
     private const val EXTRA_PICKUP_KM = "offer_pickup_km"
     private const val EXTRA_TRIP_KM = "offer_trip_km"
+    private const val EXTRA_TIP_CENTS = "offer_tip_cents"
     private const val EXTRA_PLATFORM = "offer_platform"
     private const val EXTRA_READ_AT = "offer_read_at"
 
@@ -96,6 +97,7 @@ object OfferSaveNotification {
         .putExtra(EXTRA_FARE_CENTS, offer.reading.fareCents)
         .putExtra(EXTRA_PICKUP_KM, offer.reading.pickupKm ?: -1.0)
         .putExtra(EXTRA_TRIP_KM, offer.reading.tripKm ?: -1.0)
+        .putExtra(EXTRA_TIP_CENTS, offer.reading.tipCents)
         .putExtra(EXTRA_PLATFORM, offer.platform.name)
         .putExtra(EXTRA_READ_AT, offer.readAt.toEpochMilli())
 
@@ -111,6 +113,7 @@ object OfferSaveNotification {
             fareCents = intent.getLongExtra(EXTRA_FARE_CENTS, 0),
             pickupKm = intent.getDoubleExtra(EXTRA_PICKUP_KM, -1.0).takeIf { it >= 0 },
             tripKm = intent.getDoubleExtra(EXTRA_TRIP_KM, -1.0).takeIf { it >= 0 },
+            tipCents = intent.getLongExtra(EXTRA_TIP_CENTS, 0),
         ) ?: return null
         val platform = Platform.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_PLATFORM) } ?: Platform.OTHER
         return OfferToSave(reading, platform, Instant.ofEpochMilli(intent.getLongExtra(EXTRA_READ_AT, System.currentTimeMillis())))

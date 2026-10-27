@@ -17,10 +17,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
 import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.InputField
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.model.IncomeType
+import lk.picksmart.domain.model.OtherIncomeInput
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.domain.model.rates
@@ -47,6 +50,8 @@ sealed interface EditTripUiState {
      * @property shownErrors Live errors plus, after a save attempt, the "required" ones.
      * @property vehicle The trip's vehicle; picked while adding, fixed once saved.
      * @property fromOffer A new trip filled from the offer reader's notification, to be checked.
+     * @property offerTipCents The tip the offer showed, 0 for none. It isn't part of the trip: when
+     *   [saveTip] is on, a completed trip's save also adds it to Other income as a Tip.
      */
     data class Editing(
         val form: TripFormState,
@@ -58,6 +63,8 @@ sealed interface EditTripUiState {
         val shownErrors: Map<InputField, CheckRideError>,
         val vehicle: RecordVehicle = RecordVehicle(),
         val fromOffer: Boolean = false,
+        val offerTipCents: Long = 0,
+        val saveTip: Boolean = true,
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
         val done: Boolean = false,
@@ -68,6 +75,7 @@ sealed interface EditTripUiState {
 class EditTripViewModel(
     savedStateHandle: SavedStateHandle,
     private val trips: TripRepository,
+    private val otherIncome: OtherIncomeRepository,
     private val vehicles: VehicleRepository,
     private val preferences: UserPreferencesRepository,
     private val calculator: ProfitCalculator,
@@ -80,6 +88,9 @@ class EditTripViewModel(
     private var vehicleId = 0L
     private var recordVehicle = RecordVehicle()
     private var triedSave = false
+
+    /** Set once the trip itself is saved, so a retry after the tip failed doesn't add the trip twice. */
+    private var tripSaved = false
 
     private val _state = MutableStateFlow<EditTripUiState>(EditTripUiState.Loading)
     val state: StateFlow<EditTripUiState> = _state.asStateFlow()
@@ -113,7 +124,7 @@ class EditTripViewModel(
 
     fun updateForm(form: TripFormState) = _state.update { current ->
         if (current is EditTripUiState.Editing) {
-            editing(form, current.rates, current.isNew, current.statuses, current.today)
+            editing(form, current.rates, current.isNew, current.statuses, current.today).copy(saveTip = current.saveTip)
         } else {
             current
         }
@@ -126,7 +137,11 @@ class EditTripViewModel(
         val vehicle = recordVehicle.choices.firstOrNull { it.id == id } ?: return
         vehicleId = vehicle.id
         recordVehicle = recordVehicle.copy(selectedId = vehicle.id, selectedName = vehicle.name)
-        _state.value = editing(current.form, vehicle.rates(), current.isNew, current.statuses, current.today)
+        _state.value = editing(current.form, vehicle.rates(), current.isNew, current.statuses, current.today).copy(saveTip = current.saveTip)
+    }
+
+    fun setSaveTip(on: Boolean) = _state.update { current ->
+        if (current is EditTripUiState.Editing && !current.saving) current.copy(saveTip = on) else current
     }
 
     fun save() {
@@ -143,7 +158,14 @@ class EditTripViewModel(
         viewModelScope.launch {
             try {
                 val ok = if (current.isNew) {
-                    trips.create(vehicleId, input)
+                    if (!tripSaved) {
+                        trips.create(vehicleId, input)
+                        tripSaved = true
+                    }
+                    if (current.savesTip()) {
+                        val tip = OtherIncomeInput(current.form.date, IncomeType.TIP, current.form.ride.platform, current.offerTipCents, null)
+                        otherIncome.create(tip)
+                    }
                     true
                 } else {
                     trips.update(tripId, input)
@@ -188,8 +210,16 @@ class EditTripViewModel(
         } else {
             live
         }
-        return EditTripUiState.Editing(form, rates, isNew, statuses, today, outcome, shown, recordVehicle, fromOffer = offer != null)
+        return EditTripUiState.Editing(
+            form, rates, isNew, statuses, today, outcome, shown, recordVehicle,
+            fromOffer = offer != null,
+            offerTipCents = offer?.reading?.tipCents ?: 0,
+        )
     }
+
+    /** A tip is income only on a completed trip, and only when the rider left the switch on. */
+    private fun EditTripUiState.Editing.savesTip() =
+        isNew && offerTipCents > 0 && saveTip && form.status == TripStatus.COMPLETED
 
     companion object {
         val Factory = viewModelFactory {
@@ -198,6 +228,7 @@ class EditTripViewModel(
                 EditTripViewModel(
                     createSavedStateHandle(),
                     container.trips,
+                    container.otherIncome,
                     container.vehicles,
                     container.userPreferences,
                     container.profitCalculator,

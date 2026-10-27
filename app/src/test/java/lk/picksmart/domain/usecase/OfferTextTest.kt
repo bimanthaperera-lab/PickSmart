@@ -78,20 +78,33 @@ class OfferTextTest {
     }
 
     @Test
-    fun `a bonus line is not the fare`() {
-        assertEquals(OfferReading(70_000, null, 8.0), parseOfferText(listOf("+LKR 50 Boost", "LKR 700", "8 km")))
+    fun `an amount after a plus is the tip, not the fare`() {
+        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 5_000), parseOfferText(listOf("+LKR 50 Boost", "LKR 700", "8 km")))
     }
 
     @Test
-    fun `a bonus with a space after the plus is not the fare`() {
-        assertEquals(OfferReading(70_000, null, 8.0), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km")))
+    fun `a tip with a space after the plus is not the fare`() {
+        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km")))
+        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("LKR 700", "+", "LKR 200", "8 km")))
         assertNull(parseOfferText(listOf("+ LKR 200", "8 km")))
         assertNull(parseOfferText(listOf("+", "LKR", "200", "8 km")))
     }
 
-    // A card laid out like PickMe's: the fare in a large font with "LKR" after it, the pickup line
-    // ("… min away (… km)") and the trip line ("… min (… km)") each over an address, and a "+ LKR"
-    // chip. The values and places are made up.
+    @Test
+    fun `only the first tip is read`() {
+        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("LKR 700", "+ LKR 200", "+ LKR 50", "8 km")))
+    }
+
+    @Test
+    fun `a tip that can't be shown in the form is refused`() {
+        assertEquals(OfferReading(85_000, 1.0, 5.0, 20_000), offerReadingOrNull(85_000, 1.0, 5.0, 20_000))
+        assertNull(offerReadingOrNull(85_000, 1.0, 5.0, -1))
+        assertNull(offerReadingOrNull(85_000, 1.0, 5.0, 100_000_001))
+    }
+
+    // A card laid out like PickMe's: the fare before commission in a large font with "LKR" after
+    // it, the pickup line ("… min away (… km)") and the trip line ("… min (… km)") each over an
+    // address, and the passenger's tip as a "+ LKR" chip. The values and places are made up.
     private val pickMeStyleCard = listOf(
         "TUK",
         "12 min away (5.0 km)",
@@ -101,7 +114,7 @@ class OfferTextTest {
         "+ LKR 150",
         "Accept trip",
     )
-    private val pickMeStyleReading = OfferReading(45_075, 5.0, 3.4)
+    private val pickMeStyleReading = OfferReading(45_075, 5.0, 3.4, tipCents = 15_000)
 
     @Test
     fun `PickMe style card with the fare in one text`() {
@@ -172,6 +185,25 @@ class OfferTextTest {
         assertEquals(70_500L, result.netProfitCents)
         assertEquals(7_050L, result.netProfitPerKmCents)
         assertEquals(ResultBand.PROFIT, result.band)
+    }
+
+    @Test
+    fun `the tip is added after the commission`() {
+        val last = LastCheckInputs(fareMode = FareMode.GROSS_BEFORE_COMMISSION, commissionType = CommissionType.PERCENT, commissionHundredths = 2_000)
+        val result = calculator.checkOffer(OfferReading(100_000, 2.0, 8.0, tipCents = 20_000), vehicle, last)!!
+        assertEquals(20_000L, result.commissionCents) // 20% of the fare only
+        assertEquals(20_000L, result.tipCents)
+        assertEquals(90_500L, result.netProfitCents) // G1's 705.00 + 200.00
+        assertEquals(9_050L, result.netProfitPerKmCents)
+    }
+
+    @Test
+    fun `a tip can turn a loss into a profit`() {
+        val loss = calculator.checkOffer(OfferReading(10_000, 3.0, 20.0), vehicle, LastCheckInputs())!!
+        val tipped = calculator.checkOffer(OfferReading(10_000, 3.0, 20.0, tipCents = 20_000), vehicle, LastCheckInputs())!!
+        assertEquals(ResultBand.LOSS, loss.band)
+        assertEquals(8_150L, tipped.netProfitCents)
+        assertEquals(ResultBand.PROFIT, tipped.band)
     }
 
     @Test

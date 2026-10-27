@@ -569,6 +569,7 @@
     <string name="offer_badge_amounts">%1$s · %2$s/km</string>
     <string name="offer_badge_source">Estimate · %1$s</string>
     <string name="offer_badge_hide_hint">Hold to hide</string>
+    <string name="offer_badge_tip">Includes %1$s tip</string>
     <string name="offer_badge_powered">Powered by Picksmart</string>
     <string name="offer_save_channel_name">Save offers as trips</string>
     <string name="offer_save_channel_description">After the offer reader shows a ride offer, asks whether to save it as a trip.</string>
@@ -576,6 +577,8 @@
     <string name="offer_save_body">%1$s · %2$s km · tap to check and save</string>
     <string name="offer_save_public_title">Save your last ride offer as a trip</string>
     <string name="trip_from_offer_title">Filled from the ride offer</string>
+    <string name="trip_offer_tip_title">Save the %1$s tip as other income</string>
+    <string name="trip_offer_tip_body">The offer showed a tip. It is saved as a Tip under Other income, with the same date and ride app as this trip, so it is counted once.</string>
     <string name="trip_from_offer_notice">These numbers were read from the screen. Check the fare and distances, and add any return trip or other costs, before you save.</string>
     <string name="settings_language">Language</string>
     <string name="language_system">Phone\'s language</string>

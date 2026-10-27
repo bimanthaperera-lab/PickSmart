@@ -69,6 +69,7 @@ import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.SwitchRow
 import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.components.TimeField
 import lk.picksmart.ui.components.rememberMoneyFormatter
@@ -143,7 +144,7 @@ fun EditTripScreen(
                 )
                 is EditTripUiState.Editing -> {
                     RecordVehicleField(s.vehicle, viewModel::selectVehicle)
-                    TripForm(s, viewModel::updateForm)
+                    TripForm(s, viewModel::updateForm, viewModel::setSaveTip)
                 }
             }
         }
@@ -178,7 +179,7 @@ fun EditTripScreen(
 }
 
 @Composable
-private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -> Unit) {
+private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -> Unit, onSaveTip: (Boolean) -> Unit) {
     val form = state.form
     val ride = form.ride
     val errors = state.shownErrors
@@ -200,6 +201,14 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
     }
     if (state.fromOffer) {
         NoticeCard(title = stringResource(R.string.trip_from_offer_title), body = stringResource(R.string.trip_from_offer_notice))
+    }
+    if (state.offerTipCents > 0 && form.status == TripStatus.COMPLETED) {
+        SwitchRow(
+            title = stringResource(R.string.trip_offer_tip_title, rememberMoneyFormatter().format(state.offerTipCents)),
+            body = stringResource(R.string.trip_offer_tip_body),
+            checked = state.saveTip,
+            onCheckedChange = onSaveTip,
+        )
     }
 
     FieldRow(

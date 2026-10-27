@@ -37,13 +37,14 @@ data class EditTripRoute(
     val offerFareCents: Long = 0,
     val offerPickupKm: Double = -1.0,
     val offerTripKm: Double = -1.0,
+    val offerTipCents: Long = 0,
     val offerPlatform: Platform = Platform.OTHER,
     val offerReadAtMillis: Long = 0,
 ) {
     /** The offer to fill a new trip with, or null for a blank one. Distances below 0 weren't read. */
     fun offer(): OfferToSave? {
         if (tripId != NEW) return null
-        val reading = offerReadingOrNull(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 }) ?: return null
+        val reading = offerReadingOrNull(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 }, offerTipCents) ?: return null
         return OfferToSave(reading, offerPlatform, Instant.ofEpochMilli(offerReadAtMillis))
     }
 
@@ -55,6 +56,7 @@ data class EditTripRoute(
             offerFareCents = offer.reading.fareCents,
             offerPickupKm = offer.reading.pickupKm ?: -1.0,
             offerTripKm = offer.reading.tripKm ?: -1.0,
+            offerTipCents = offer.reading.tipCents,
             offerPlatform = offer.platform,
             offerReadAtMillis = offer.readAt.toEpochMilli(),
         )

@@ -551,6 +551,7 @@ An account exists for one reason: so a rider who loses or changes their phone do
 - Phone OTP is not used (owner decision, 2026-10-23). If it is ever added, the SMS cost rules in section 16 apply first.
 - Per-user data lives under the user's own id in Firestore, isolated by security rules so one rider can never read another's data. Firestore offline persistence is on, so a signed-in rider still reads and writes offline.
 - Merge rule: last-write-wins per record using `updatedAt`, with deletes as tombstones so a delete on one device is not undone by a stale copy on another.
+- No duplicate vehicles on restore (owner decision 2026-10-27). On an account's first download into a space, a backed-up vehicle that is the same as one made on this phone and never backed up (`matchVehicle`: the same plate; otherwise the same name and type, unless the plates differ) updates that vehicle instead of being added: it takes the backup's sync id, so the backup's trips find it, and its values follow last write wins.
 - All of this sits behind an `AccountProvider` / `SyncProvider` interface with a no-op implementation, so the app compiles and runs with Firebase disabled or unreachable.
 
 ### Account tab

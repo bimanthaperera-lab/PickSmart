@@ -3,7 +3,10 @@ package lk.picksmart.data.sync
 import lk.picksmart.data.local.dao.SyncDao
 import lk.picksmart.data.local.entity.SyncKind
 import lk.picksmart.data.local.entity.SyncStateEntity
+import lk.picksmart.data.local.entity.VehicleEntity
 import lk.picksmart.domain.usecase.MergeAction
+import lk.picksmart.domain.usecase.VehicleIdentity
+import lk.picksmart.domain.usecase.matchVehicle
 import lk.picksmart.domain.usecase.mergeAction
 
 /** The settings that follow the rider to a new phone. Null means "not set". */
@@ -39,7 +42,8 @@ data class SyncReport(val downloaded: Int, val uploaded: Int)
  *    the new account ([SyncDao.startOverFor]).
  * 2. Download: the documents written since the last download, vehicles first, merged record by
  *    record with [mergeAction] (last write wins by `updatedAt`, deletes kept as tombstones). The
- *    first download for a rider also restores their settings.
+ *    first download for a rider also restores their settings, and links a backed-up vehicle to
+ *    the same vehicle made on this phone rather than adding a copy ([adoptSameVehicle]).
  * 3. Upload: every row and delete still marked pending, then the settings if they changed.
  *
  * A run that fails part-way is safe to repeat: downloads are idempotent and a row stays pending
@@ -85,8 +89,20 @@ class CloudSync(
         var written = 0
         transaction {
             val vehicleIds = if (kind == SyncKind.VEHICLES) emptyMap() else dao.allVehicles().associate { it.syncId to it.id }
+            // The first download lists every vehicle in the backup, so a vehicle here that isn't
+            // among them was made on this phone and never backed up to this account.
+            val unmatched = if (kind == SyncKind.VEHICLES && since == null) {
+                val inBackup = documents.mapTo(HashSet()) { it.id }
+                dao.allVehicles().filterTo(mutableListOf()) { it.syncId !in inBackup }
+            } else {
+                mutableListOf()
+            }
             for (document in documents) {
-                if (merge(kind, document, vehicleIds::get)) written++
+                if (kind == SyncKind.VEHICLES && adoptSameVehicle(document, unmatched)) {
+                    written++
+                } else if (merge(kind, document, vehicleIds::get)) {
+                    written++
+                }
             }
         }
         val latest = documents.mapNotNull { it.serverTimeMillis }.maxOrNull()
@@ -143,6 +159,32 @@ class CloudSync(
         }
         return true
     }
+
+    /**
+     * A backed-up vehicle the phone doesn't have yet may be one the rider made here before signing
+     * in, such as the same bike (`matchVehicle`: the plate, or the name and type). Then that vehicle
+     * takes the backup's sync id instead of a second copy being added, so the backup's trips, fuel
+     * logs and expenses find it (owner decision 2026-10-27). Its values follow last write wins like
+     * any record; when the phone's are newer, it uploads them over the backup's. True when [document]
+     * was used this way.
+     */
+    private suspend fun adoptSameVehicle(document: CloudDocument, unmatched: MutableList<VehicleEntity>): Boolean {
+        if (unmatched.isEmpty() || CloudRecords.isDeleted(document.data)) return false
+        if (dao.vehicle(document.id) != null || dao.tombstone(SyncKind.VEHICLES, document.id) != null) return false
+        val remoteUpdatedAt = CloudRecords.updatedAt(document.data) ?: return false
+        val remote = CloudRecords.vehicle(document.id, document.data, 0) ?: return false
+        val same = matchVehicle(remote.identity(), unmatched) { it.identity() } ?: return false
+        unmatched.remove(same)
+        val row = if (remoteUpdatedAt > same.updatedAtMillis) {
+            remote.copy(id = same.id)
+        } else {
+            same.copy(syncId = document.id, syncPending = true)
+        }
+        dao.updateVehicle(row)
+        return true
+    }
+
+    private fun VehicleEntity.identity() = VehicleIdentity(name, type, plateNumber)
 
     private class LocalRecord(val id: Long, val updatedAt: Long)
 

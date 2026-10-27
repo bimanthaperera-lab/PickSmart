@@ -96,6 +96,27 @@ class CloudSyncTest {
     }
 
     @Test
+    fun aRestoredVehicleUpdatesTheSameOneMadeOnThePhone() = runTest {
+        val onA = phoneA.db.vehicleDao().insert(vehicle("Honda Dio", updatedAt = 1).toEntity())
+        phoneA.db.tripDao().insert(trip(onA, fare = 100_000, updatedAt = 2).toEntity())
+        phoneA.sync(UID)
+        // Phone B made the same bike before signing in, later, with its own efficiency.
+        val onB = phoneB.db.vehicleDao().insert(vehicle(" honda  DIO", updatedAt = 5).toEntity().copy(fuelEfficiencyKmPerLitre = 45.0))
+
+        phoneB.sync(UID)
+
+        val bike = phoneB.db.vehicleDao().observeAll().first().single()
+        assertEquals(onB, bike.id)
+        assertEquals(phoneA.db.vehicleDao().get(onA)!!.syncId, bike.syncId)
+        // The phone's edit is newer, so it stays and goes up over the backup's.
+        assertEquals(45.0, bike.fuelEfficiencyKmPerLitre, 0.0)
+        assertEquals(bike.id, phoneB.db.tripDao().observeAll().first().single().vehicleId)
+        assertEquals(2, cloud.count(UID))
+        phoneA.sync(UID)
+        assertEquals(45.0, phoneA.db.vehicleDao().get(onA)!!.fuelEfficiencyKmPerLitre, 0.0)
+    }
+
+    @Test
     fun anEmptyCloudNeverEmptiesThePhone() = runTest {
         val vehicleId = phoneA.db.vehicleDao().insert(vehicle("Honda Dio", updatedAt = 1).toEntity())
         phoneA.db.tripDao().insert(trip(vehicleId, fare = 50_000, updatedAt = 2).toEntity())

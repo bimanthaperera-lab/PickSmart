@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
+import kotlin.math.abs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -118,7 +119,11 @@ private fun FirebaseUser.toProfile() = UserProfile(
     emailVerified = isEmailVerified,
     photoUrl = photoUrl?.toString(),
     method = if (providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }) SignInMethod.GOOGLE else SignInMethod.EMAIL,
+    // Firebase sets both times when it creates the account; a later sign-in moves only the last.
+    isNewAccount = metadata?.let { abs(it.lastSignInTimestamp - it.creationTimestamp) < NEW_ACCOUNT_MILLIS } ?: false,
 )
+
+private const val NEW_ACCOUNT_MILLIS = 60_000L
 
 private fun Exception.toAuthError(): AuthError = when (this) {
     is FirebaseNetworkException -> AuthError.NO_INTERNET

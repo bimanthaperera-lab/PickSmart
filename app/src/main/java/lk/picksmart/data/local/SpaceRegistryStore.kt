@@ -17,7 +17,7 @@ class SpaceRegistryStore(private val prefs: SharedPreferences) {
         val owners = prefs.all.mapNotNull { (key, value) ->
             if (key.startsWith(OWNER_PREFIX) && value is String) key.removePrefix(OWNER_PREFIX) to value else null
         }.toMap()
-        return SpaceRegistry(prefs.getString(ACTIVE, FIRST_SPACE) ?: FIRST_SPACE, owners)
+        return SpaceRegistry(prefs.getString(ACTIVE, FIRST_SPACE) ?: FIRST_SPACE, owners, prefs.getString(NO_ACCOUNT, null))
     }
 
     /** Written at once (`commit`), so a database is never opened for a space the file doesn't name. */
@@ -25,6 +25,7 @@ class SpaceRegistryStore(private val prefs: SharedPreferences) {
         prefs.edit(commit = true) {
             clear()
             putString(ACTIVE, registry.active)
+            registry.noAccount?.let { putString(NO_ACCOUNT, it) }
             registry.owners.forEach { (space, uid) -> putString(OWNER_PREFIX + space, uid) }
         }
     }
@@ -33,13 +34,14 @@ class SpaceRegistryStore(private val prefs: SharedPreferences) {
     fun newSpaceId(registry: SpaceRegistry): String {
         while (true) {
             val id = UUID.randomUUID().toString().take(8)
-            if (id != registry.active && id !in registry.owners) return id
+            if (id != registry.active && id !in registry.owners && id != registry.noAccount) return id
         }
     }
 
     companion object {
         const val FILE = "data_spaces"
         private const val ACTIVE = "active"
+        private const val NO_ACCOUNT = "no_account"
         private const val OWNER_PREFIX = "owner:"
     }
 }

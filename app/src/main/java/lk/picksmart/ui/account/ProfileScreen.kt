@@ -314,7 +314,7 @@ fun ProfileScreen(
     if (confirmSignOut) {
         ConfirmDialog(
             title = R.string.profile_sign_out_title,
-            body = R.string.profile_sign_out_body,
+            body = R.string.profile_sign_out_body_apart,
             confirm = R.string.profile_sign_out,
             destructive = false,
             onConfirm = {

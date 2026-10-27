@@ -629,7 +629,6 @@
     <string name="profile_edit_mobile">மொபைல் எண்ணைத் திருத்து</string>
     <string name="profile_sign_out">வெளியேறு (Sign out)</string>
     <string name="profile_sign_out_title">வெளியேறவா?</string>
-    <string name="profile_sign_out_body">உங்கள் சவாரிகள் மற்றும் பதிவுகள் இந்த ஃபோனில் இருக்கும். எந்த நேரத்திலும் மீண்டும் உள்நுழையலாம்.</string>
     <string name="profile_delete_account">கணக்கை நீக்கு (Delete account)</string>
     <string name="profile_delete_title">உங்கள் கணக்கை நீக்கவா?</string>
     <string name="profile_delete_body">இதைச் செயல்தவிர்க்க முடியாது. இது நிரந்தரமாக நீக்குபவை:</string>

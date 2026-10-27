@@ -630,7 +630,6 @@
     <string name="profile_edit_mobile">දුරකථන අංකය වෙනස් කරන්න</string>
     <string name="profile_sign_out">Sign out (ඉවත් වන්න)</string>
     <string name="profile_sign_out_title">Sign out වන්නද?</string>
-    <string name="profile_sign_out_body">ඔබගේ ගමන් සහ වාර්තා මෙම දුරකථනයේම පවතී. ඕනෑම වේලාවක නැවත Sign in විය හැක.</string>
     <string name="profile_delete_account">ගිණුම මකන්න (Delete account)</string>
     <string name="profile_delete_title">ඔබගේ ගිණුම මකන්නද?</string>
     <string name="profile_delete_body">මෙය ආපසු හැරවිය නොහැක. මෙයින් ස්ථිරවම මැකෙන්නේ:</string>

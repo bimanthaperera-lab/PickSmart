@@ -746,7 +746,7 @@
     <string name="profile_edit_mobile">Edit mobile number</string>
     <string name="profile_sign_out">Sign out</string>
     <string name="profile_sign_out_title">Sign out?</string>
-    <string name="profile_sign_out_body">Your trips and records stay on this phone. Sign in again any time.</string>
+    <string name="profile_sign_out_body_apart">Your trips and records stay on this phone and come back when you sign in again. Until then, Picksmart shows the records made without an account.</string>
     <string name="profile_delete_account">Delete account</string>
     <string name="profile_delete_title">Delete your account?</string>
     <string name="profile_delete_body">This can\'t be undone. It permanently deletes:</string>

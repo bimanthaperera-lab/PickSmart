@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
+
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -55,13 +56,16 @@ import lk.picksmart.data.sync.FirestoreCloudStore
 import lk.picksmart.data.sync.NoOpSyncProvider
 import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.domain.calculator.ProfitCalculator
+import lk.picksmart.domain.model.UserProfile
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.CompleteOnboarding
 import lk.picksmart.domain.usecase.DeleteAccount
 import lk.picksmart.domain.usecase.FuelPriceUpdates
+import lk.picksmart.domain.usecase.SpaceRegistry
 import lk.picksmart.domain.usecase.afterAccountDeleted
 import lk.picksmart.domain.usecase.databaseName
 import lk.picksmart.domain.usecase.signInSpace
+import lk.picksmart.domain.usecase.signOutSpace
 
 // One DataStore per process. The file lives under files/datastore/, which Auto Backup includes.
 private val Context.userPreferencesStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -74,7 +78,8 @@ private val Context.userPreferencesStore: DataStore<Preferences> by preferencesD
  * What belongs to the phone (account, fuel prices, photos, theme) lives here. A rider's records
  * live in a [DataSpace], one per account on the phone (`DataSpaces.kt`); [space] is the one on
  * screen, and the record properties below always read from it. When another account signs in,
- * [space] changes and MainActivity starts again, so every screen is built on the new records.
+ * or the rider signs out, [space] changes and MainActivity starts again, so every screen is built
+ * on the new records.
  */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
@@ -174,7 +179,13 @@ class AppContainer(context: Context) {
      */
     fun start() {
         applicationScope.launch {
-            account.profile.map { it?.uid }.distinctUntilChanged().collect { uid -> onAccountChanged(uid) }
+            var signedInBefore = false
+            account.profile.distinctUntilChangedBy { it?.uid }.collect { profile ->
+                // Only a sign-out seen while the app runs switches spaces; a rider who was already
+                // signed out when the app started (an update from before) keeps the records shown.
+                onAccountChanged(profile, signedOutNow = profile == null && signedInBefore)
+                signedInBefore = profile != null
+            }
         }
     }
 
@@ -190,29 +201,47 @@ class AppContainer(context: Context) {
         }
     }
 
-    private suspend fun onAccountChanged(uid: String?) = spaceLock.withLock {
-        if (uid == null) {
-            // Signed out: the records stay on screen and on the phone; backup stops.
+    private suspend fun onAccountChanged(profile: UserProfile?, signedOutNow: Boolean) = spaceLock.withLock {
+        if (profile == null) {
+            // Signed out: backup stops, and the records made without an account come back on
+            // screen. The account's records stay on the phone for its next sign-in.
             signedInSpace.value = null
+            if (signedOutNow) {
+                val registry = spaceRegistry.load()
+                showSpace(registry, signOutSpace(registry, spaceRegistry.newSpaceId(registry)))
+            }
             return@withLock
         }
-        val current = space.value
+        val dao = space.value.database.syncDao()
         val registry = spaceRegistry.load()
-        val backupOwner = current.database.syncDao().state(SyncDao.OWNER_KEY)
-        val next = signInSpace(registry, uid, backupOwner, spaceRegistry.newSpaceId(registry))
-        if (next != registry) spaceRegistry.save(next)
-        if (next.active != current.id) {
-            current.close()
-            mutableSpace.value = openSpace(next.active)
-        }
-        signedInSpace.value = SignedInSpace(next.active, uid)
+        val next = signInSpace(
+            registry,
+            profile.uid,
+            newAccount = profile.isNewAccount,
+            activeHasRecords = dao.recordCount() > 0,
+            activeBackupOwner = dao.state(SyncDao.OWNER_KEY),
+            newSpaceId = spaceRegistry.newSpaceId(registry),
+        )
+        showSpace(registry, next)
+        signedInSpace.value = SignedInSpace(next.active, profile.uid)
         // Starts backup for these records; a new space is filled from the account's backup.
         space.value.sync
     }
 
-    /** After the account owning the space on screen was deleted and its records erased. */
-    private suspend fun releaseSpace() = spaceLock.withLock {
-        spaceRegistry.save(afterAccountDeleted(spaceRegistry.load()))
+    /** Saves [next] and, when it shows another space, puts that one on screen. */
+    private fun showSpace(registry: SpaceRegistry, next: SpaceRegistry) {
+        if (next != registry) spaceRegistry.save(next)
+        val current = space.value
+        if (next.active != current.id) {
+            current.close()
+            mutableSpace.value = openSpace(next.active)
+        }
+    }
+
+    /** After the account owning [id] was deleted and that space's records erased. */
+    private suspend fun releaseSpace(id: String) = spaceLock.withLock {
+        val registry = spaceRegistry.load()
+        showSpace(registry, afterAccountDeleted(registry, id))
     }
 
     private fun openSpace(id: String): DataSpace {
@@ -270,7 +299,7 @@ class AppContainer(context: Context) {
             val eraser = PhoneDataEraser(database, userPreferences, profilePhotos, File(appContext.cacheDir, CsvExporter.DIRECTORY))
             DeleteAccount(account, sync) { uid ->
                 eraser.erase(uid)
-                releaseSpace()
+                releaseSpace(id)
             }
         }
 

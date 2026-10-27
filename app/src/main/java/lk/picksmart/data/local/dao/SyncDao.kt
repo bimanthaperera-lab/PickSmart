@@ -35,6 +35,14 @@ interface SyncDao {
     )
     fun observePendingCount(): Flow<Int>
 
+    /** How many records this space holds, backed up or not. */
+    @Query(
+        "SELECT (SELECT COUNT(*) FROM vehicles) + (SELECT COUNT(*) FROM trips) + " +
+            "(SELECT COUNT(*) FROM other_income) + (SELECT COUNT(*) FROM fuel_logs) + " +
+            "(SELECT COUNT(*) FROM expenses)",
+    )
+    suspend fun recordCount(): Int
+
     // Waiting to be backed up.
 
     @Query("SELECT * FROM vehicles WHERE sync_pending = 1")

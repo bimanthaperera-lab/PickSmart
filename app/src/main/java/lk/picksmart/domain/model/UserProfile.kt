@@ -29,4 +29,6 @@ data class UserProfile(
     val emailVerified: Boolean,
     val photoUrl: String?,
     val method: SignInMethod,
+    /** The account was created by this sign-in (Register, or a first Google sign-in). */
+    val isNewAccount: Boolean = false,
 )

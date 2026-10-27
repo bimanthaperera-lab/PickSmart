@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
             container.refreshFuelPrices()
             offerToSave = OfferSaveNotification.offerFrom(intent)
         }
-        // Another account signed in, so their records are now the ones on screen (DataSpaces.kt).
+        // Another account signed in, or the rider signed out, so other records are now the ones on
+        // screen (DataSpaces.kt).
         // Start again, so every screen and ViewModel is built on them, never on the last rider's.
         val shownSpace = container.space.value.id
         lifecycleScope.launch {

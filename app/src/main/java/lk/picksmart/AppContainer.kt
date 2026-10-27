@@ -327,10 +327,14 @@ class AppContainer(context: Context) {
             val cloudSync = CloudSync(
                 dao = dao,
                 cloud = FirestoreCloudStore(firestore, AppCheck::passes),
-                settings = DataStoreSyncedSettings(userPreferences, dao),
+                settings = DataStoreSyncedSettings(userPreferences, dao, profilePhotos),
                 transaction = { block -> database.withTransaction { block() } },
             )
-            CloudSyncProvider(owner, cloudSync, dao.observePendingCount(), clock, scope, appContext)
+            CloudSyncProvider(
+                owner, cloudSync, dao.observePendingCount(), clock, scope, appContext,
+                paused = userPreferences.backupPaused,
+                setPaused = userPreferences::setBackupPaused,
+            )
         }
 
         val deleteAccount: DeleteAccount by lazy {

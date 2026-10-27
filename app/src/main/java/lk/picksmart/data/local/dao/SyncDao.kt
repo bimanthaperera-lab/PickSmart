@@ -184,6 +184,43 @@ interface SyncDao {
     @Query("UPDATE sync_tombstones SET sync_pending = 1")
     suspend fun markTombstonesPending()
 
+    @Query("DELETE FROM trips WHERE sync_pending = 0")
+    suspend fun deleteBackedUpTrips()
+
+    @Query("DELETE FROM other_income WHERE sync_pending = 0")
+    suspend fun deleteBackedUpOtherIncome()
+
+    @Query("DELETE FROM fuel_logs WHERE sync_pending = 0")
+    suspend fun deleteBackedUpFuelLogs()
+
+    @Query("DELETE FROM expenses WHERE sync_pending = 0")
+    suspend fun deleteBackedUpExpenses()
+
+    /** Backed-up vehicles no record on the phone still points at. */
+    @Query(
+        "DELETE FROM vehicles WHERE sync_pending = 0 " +
+            "AND id NOT IN (SELECT vehicle_id FROM trips) " +
+            "AND id NOT IN (SELECT vehicle_id FROM fuel_logs) " +
+            "AND id NOT IN (SELECT vehicle_id FROM expenses WHERE vehicle_id IS NOT NULL)",
+    )
+    suspend fun deleteBackedUpVehicles()
+
+    /**
+     * The rider skipped a restore to start fresh (owner decision 2026-10-27): drops the rows that
+     * restore had downloaded. Only rows exactly as the backup has them (`sync_pending = 0`) go, and
+     * no tombstones are written, so nothing leaves the backup and nothing only on this phone is
+     * lost. The sync state is forgotten too, so turning backup on again restores everything.
+     */
+    @Transaction
+    suspend fun discardRestored() {
+        deleteBackedUpTrips()
+        deleteBackedUpOtherIncome()
+        deleteBackedUpFuelLogs()
+        deleteBackedUpExpenses()
+        deleteBackedUpVehicles()
+        clearState()
+    }
+
     /**
      * A different rider signed in on this phone: everything here is backed up to their account
      * from scratch, and what was downloaded for the last rider is forgotten.

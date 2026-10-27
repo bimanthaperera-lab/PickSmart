@@ -71,6 +71,7 @@ import lk.picksmart.data.account.PhotoSaveResult
 import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.sync.SyncProblem
+import lk.picksmart.data.sync.SyncProvider
 import lk.picksmart.domain.model.Gender
 import lk.picksmart.domain.model.SignInMethod
 import lk.picksmart.domain.usecase.DeleteAccount
@@ -552,6 +553,8 @@ class ProfileViewModel(
     private val preferences: UserPreferencesRepository,
     private val resolver: ContentResolver,
     private val deleter: DeleteAccount,
+    /** Backs up the personal details and photo after the rider changes them. */
+    private val sync: SyncProvider,
 ) : ViewModel() {
     val account: StateFlow<AccountUi> = accountUi
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountUi.Loading)
@@ -573,6 +576,7 @@ class ProfileViewModel(
     fun saveMobile(mobile: String) = perform(null) {
         val uid = provider.profile.first()?.uid
         if (uid != null) preferences.setMobileNumber(uid, cleanMobile(mobile))
+        sync.backUpSoon()
         AuthResult.Success
     }
 
@@ -583,6 +587,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             val uid = provider.profile.first()?.uid
             val result = if (uid == null) PhotoSaveResult.SAVED else photos.saveOwn(uid, resolver, uri)
+            if (result == PhotoSaveResult.SAVED) sync.backUpSoon()
             mutableStatus.value = when (result) {
                 PhotoSaveResult.SAVED -> ProfileStatus()
                 PhotoSaveResult.UNSUPPORTED_FORMAT -> ProfileStatus(message = R.string.profile_photo_unsupported, isError = true)
@@ -594,12 +599,14 @@ class ProfileViewModel(
 
     fun removePhoto() = perform(null) {
         provider.profile.first()?.uid?.let { photos.removeOwn(it) }
+        sync.backUpSoon()
         AuthResult.Success
     }
 
     /** Saves the gender, or removes it when [gender] is null. */
     fun saveGender(gender: Gender?) = perform(null) {
         provider.profile.first()?.uid?.let { preferences.setGender(it, gender) }
+        sync.backUpSoon()
         AuthResult.Success
     }
 
@@ -607,6 +614,7 @@ class ProfileViewModel(
     fun saveBirthDate(date: LocalDate?) = perform(null) {
         val uid = provider.profile.first()?.uid
         if (uid != null && (date == null || isValidBirthDate(date, todayInColombo()))) preferences.setBirthDate(uid, date)
+        sync.backUpSoon()
         AuthResult.Success
     }
 
@@ -668,6 +676,7 @@ class ProfileViewModel(
                     container.userPreferences,
                     application.contentResolver,
                     container.deleteAccount,
+                    container.sync,
                 )
             }
         }

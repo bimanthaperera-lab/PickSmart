@@ -156,7 +156,8 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
             onPageShown = viewModel::showIntroPage,
             onDone = viewModel::finishIntro,
         )
-        OnboardingStep.RESTORE -> RestoreStep(state.restore, onRetry = viewModel::restore, onSkip = viewModel::skipRestore)
+        OnboardingStep.RESTORE ->
+            RestoreStep(state.restore, skipping = state.skipping, onRetry = viewModel::restore, onSkip = viewModel::skipRestore)
         OnboardingStep.VEHICLE -> {
             val defaultName = stringResource(state.form.type.label)
             VehicleStep(
@@ -444,10 +445,11 @@ private fun VehicleStep(
 
 /**
  * After signing in: the rider's backup comes back before setup asks for anything, so nothing they
- * enter is merged with it later. Problems are retried on their own; Skip starts fresh, signed out.
+ * enter is merged with it later. Problems are retried on their own; Skip starts fresh in the
+ * account with backup off on this phone.
  */
 @Composable
-private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> Unit) {
+private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> Unit, onSkip: () -> Unit) {
     Column(
         Modifier
             .fillMaxSize()
@@ -477,7 +479,7 @@ private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> 
                         },
                     ),
                 )
-                PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth())
+                PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth(), enabled = !skipping)
             }
         }
         // Always there, so a rider who can't wait is never stuck here.
@@ -486,7 +488,7 @@ private fun RestoreStep(state: RestoreState, onRetry: () -> Unit, onSkip: () -> 
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth())
+        SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth(), enabled = !skipping)
     }
 }
 

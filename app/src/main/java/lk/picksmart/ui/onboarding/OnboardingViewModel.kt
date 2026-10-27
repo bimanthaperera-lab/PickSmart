@@ -57,6 +57,8 @@ data class OnboardingUiState(
     val restore: RestoreState = RestoreState.RUNNING,
     /** The rider's backup brought back a vehicle, so setup finishes without a new one. */
     val restored: Boolean = false,
+    /** Skip was tapped and the restore is being stopped. */
+    val skipping: Boolean = false,
 )
 
 /**
@@ -148,6 +150,11 @@ class OnboardingViewModel(
                         _state.update { it.copy(restore = status.problem.restoreState()) }
                         delay(RESTORE_RETRY_MILLIS)
                     }
+                    // The rider already skipped and started fresh (setup reopened since then).
+                    SyncStatus.Paused -> {
+                        _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+                        return@launch
+                    }
                     // Backup isn't running for this account's records yet: the sign-in is still
                     // being set up. Wait for it rather than going on with nothing restored.
                     SyncStatus.Off, SyncStatus.Running -> delay(RESTORE_WAIT_MILLIS)
@@ -164,14 +171,19 @@ class OnboardingViewModel(
     }
 
     /**
-     * The rider won't wait for the restore: a fresh start without an account (owner decision
-     * 2026-10-27). Signing out stops the restore and backup for this phone, so nothing new is
-     * merged with the backup; the app then shows the records made without an account (setup again
-     * when there are none). The account's backup stays in the cloud for the next sign-in.
+     * The rider won't wait for the restore: a fresh start in their account (owner decisions
+     * 2026-10-27). They stay signed in, backup is turned off for these records on this phone and
+     * whatever the restore had downloaded is dropped, so nothing they enter is merged with the
+     * backup. The backup stays in the cloud; Turn on backup on the Account tab brings it back.
      */
     fun skipRestore() {
+        if (_state.value.skipping) return
         restoring?.cancel()
-        viewModelScope.launch { account.signOut() }
+        _state.update { it.copy(skipping = true) }
+        viewModelScope.launch {
+            sync.startFresh()
+            _state.update { it.copy(skipping = false, step = OnboardingStep.VEHICLE) }
+        }
     }
 
     private fun SyncProblem.restoreState() = when (this) {
@@ -209,15 +221,16 @@ class OnboardingViewModel(
         val current = _state.value
         if (current.saving) return
         if (current.step == OnboardingStep.RESTORE) {
-            // Leaving while signed in would let setup go on without the backup, so back skips.
+            // Going back to the welcome screen signed in would let setup go on with the backup
+            // still coming, so back skips: a fresh start in the account.
             skipRestore()
-            quickSetup = false
+            return
         }
         _state.update {
             when (current.step) {
                 OnboardingStep.WELCOME -> it
                 OnboardingStep.INTRO -> it.copy(step = OnboardingStep.WELCOME)
-                OnboardingStep.RESTORE -> it.copy(step = OnboardingStep.WELCOME)
+                OnboardingStep.RESTORE -> it
                 OnboardingStep.VEHICLE -> it.copy(step = OnboardingStep.INTRO, introPage = INTRO_PAGE_COUNT - 1)
                 OnboardingStep.PERMISSIONS ->
                     if (it.restored) it.copy(step = OnboardingStep.WELCOME, restored = false) else it.copy(step = OnboardingStep.VEHICLE)

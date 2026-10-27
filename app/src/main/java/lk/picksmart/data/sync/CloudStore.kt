@@ -35,8 +35,14 @@ interface CloudStore {
     /** The rider's profile document, or null when there isn't one. */
     suspend fun readProfile(uid: String): Map<String, Any?>?
 
-    /** Merges [data] into the profile document. */
+    /** Merges [data] into the profile document; a null value removes that field. */
     suspend fun writeProfile(uid: String, data: Map<String, Any?>)
+
+    /** The photo the rider chose, as JPEG bytes, or null when none is backed up. */
+    suspend fun readPhoto(uid: String): ByteArray?
+
+    /** Replaces the backed-up photo with [jpeg], or removes it when null. */
+    suspend fun writePhoto(uid: String, jpeg: ByteArray?)
 
     /** Removes every document the rider has in the cloud. */
     suspend fun deleteEverything(uid: String)

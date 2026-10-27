@@ -117,6 +117,62 @@ class CloudSyncTest {
     }
 
     @Test
+    fun personalDetailsAndPhotoComeBackOnANewPhone() = runTest {
+        phoneA.settings.gender = "FEMALE"
+        phoneA.settings.photo = SAMPLE_JPEG
+        phoneA.sync(UID)
+
+        phoneB.sync(UID)
+
+        assertEquals("FEMALE", phoneB.settings.gender)
+        assertTrue(SAMPLE_JPEG.contentEquals(phoneB.settings.photo))
+        // The restored photo is already in the backup, so it isn't sent back up.
+        assertEquals(1, cloud.photoWrites)
+    }
+
+    @Test
+    fun removedDetailsAndPhotoLeaveTheBackup() = runTest {
+        // Phone B was set up before A added them, so it never has them.
+        phoneB.sync(UID)
+        phoneA.settings.gender = "FEMALE"
+        phoneA.settings.photo = SAMPLE_JPEG
+        phoneA.sync(UID)
+
+        // A phone without them doesn't clear what another phone backed up.
+        phoneB.sync(UID)
+        assertEquals("FEMALE", cloud.profile(UID)?.get(CloudProfile.GENDER))
+        assertTrue(SAMPLE_JPEG.contentEquals(cloud.photos[UID]))
+
+        // Removing them where they were set removes them from the backup.
+        phoneA.settings.gender = null
+        phoneA.settings.removed = setOf(CloudProfile.GENDER)
+        phoneA.settings.photo = null
+        phoneA.sync(UID)
+        assertNull(cloud.profile(UID)?.get(CloudProfile.GENDER))
+        assertNull(cloud.photos[UID])
+    }
+
+    @Test
+    fun startingFreshDropsOnlyWhatTheRestoreDownloaded() = runTest {
+        val onA = phoneA.db.vehicleDao().insert(vehicle("Honda Dio", updatedAt = 1).toEntity())
+        phoneA.db.tripDao().insert(trip(onA, fare = 100_000, updatedAt = 2).toEntity())
+        phoneA.sync(UID)
+        phoneB.sync(UID)
+        // Something made on phone B and not backed up yet stays.
+        val own = phoneB.db.vehicleDao().insert(vehicle("Own bike", updatedAt = 3).toEntity())
+
+        phoneB.db.syncDao().discardRestored()
+
+        assertEquals(listOf(own), phoneB.db.vehicleDao().observeAll().first().map { it.id })
+        assertTrue(phoneB.db.tripDao().observeAll().first().isEmpty())
+        // Nothing left the backup, and the next run brings it all back.
+        assertEquals(2, cloud.count(UID))
+        phoneB.sync(UID)
+        assertEquals(2, phoneB.db.vehicleDao().observeAll().first().size)
+        assertEquals(1, phoneB.db.tripDao().observeAll().first().size)
+    }
+
+    @Test
     fun anEmptyCloudNeverEmptiesThePhone() = runTest {
         val vehicleId = phoneA.db.vehicleDao().insert(vehicle("Honda Dio", updatedAt = 1).toEntity())
         phoneA.db.tripDao().insert(trip(vehicleId, fare = 50_000, updatedAt = 2).toEntity())
@@ -255,14 +311,27 @@ class CloudSyncTest {
 
     private class FakeSettings : SyncedSettings {
         var mobile: String? = null
+        var gender: String? = null
+        var removed: Set<String> = emptySet()
         var activeVehicleSyncId: String? = null
         var restoredVehicleSyncId: String? = null
+        var photo: ByteArray? = null
 
-        override suspend fun current(uid: String) = CloudProfile(mobile, activeVehicleSyncId)
+        override suspend fun current(uid: String) =
+            CloudProfile(mobile, activeVehicleSyncId, gender = gender, removed = removed)
 
         override suspend fun restore(uid: String, profile: CloudProfile) {
             if (mobile == null) mobile = profile.mobileNumber
+            if (gender == null) gender = profile.gender
             restoredVehicleSyncId = profile.activeVehicleSyncId
+        }
+
+        override suspend fun photo(uid: String) = photo
+
+        override suspend fun restorePhoto(uid: String, jpeg: ByteArray): Boolean {
+            if (photo != null) return false
+            photo = jpeg
+            return true
         }
     }
 
@@ -299,13 +368,32 @@ class CloudSyncTest {
 
         override suspend fun writeProfile(uid: String, data: Map<String, Any?>) {
             check()
-            profiles.getOrPut(uid) { mutableMapOf() }.putAll(data)
+            val profile = profiles.getOrPut(uid) { mutableMapOf() }
+            // Like Firestore: a null value removes the field.
+            for ((key, value) in data) if (value == null) profile.remove(key) else profile[key] = value
+        }
+
+        fun profile(uid: String): Map<String, Any?>? = profiles[uid]
+
+        val photos = mutableMapOf<String, ByteArray>()
+        var photoWrites = 0
+
+        override suspend fun readPhoto(uid: String): ByteArray? {
+            check()
+            return photos[uid]
+        }
+
+        override suspend fun writePhoto(uid: String, jpeg: ByteArray?) {
+            check()
+            photoWrites++
+            if (jpeg == null) photos.remove(uid) else photos[uid] = jpeg
         }
 
         override suspend fun deleteEverything(uid: String) {
             check()
             records.remove(uid)
             profiles.remove(uid)
+            photos.remove(uid)
         }
 
         private fun check() {
@@ -315,6 +403,9 @@ class CloudSyncTest {
 
     private companion object {
         const val UID = "rider-1"
+
+        /** Sample bytes standing in for a photo; the engine never decodes it. */
+        val SAMPLE_JPEG = byteArrayOf(1, 2, 3, 4)
         val DAY: LocalDate = LocalDate.of(2026, 10, 21)
 
         fun vehicle(name: String, updatedAt: Long) = Vehicle(

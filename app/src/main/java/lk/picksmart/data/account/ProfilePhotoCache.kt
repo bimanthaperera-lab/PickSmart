@@ -44,9 +44,9 @@ internal fun pickedPhotoProblem(mimeType: String?, sizeBytes: Long?): PhotoSaveR
 /**
  * The rider's profile photo, kept on the device so the Account tab shows it offline (CLAUDE.md
  * section 14). Two small files per user: the Google account photo, a cache removed on sign-out,
- * and a photo the rider chose from their gallery, which wins over it. The chosen photo stays on
- * the phone only (no upload) and is kept on sign-out, like the mobile number; it is removed when
- * the rider removes it or deletes the account.
+ * and a photo the rider chose from their gallery, which wins over it. The chosen photo is backed up
+ * with the account (`CloudSync`, owner decision 2026-10-27) and kept on sign-out, like the mobile
+ * number; it is removed when the rider removes it or deletes the account.
  */
 class ProfilePhotoCache(private val directory: File) {
 
@@ -96,6 +96,37 @@ class ProfilePhotoCache(private val directory: File) {
         }
         mutableChanges.update { it + 1 }
         PhotoSaveResult.SAVED
+    }
+
+    /** The chosen photo as saved (a small JPEG), for backup; null when there is none. */
+    suspend fun ownBytes(uid: String): ByteArray? = withContext(Dispatchers.IO) {
+        try {
+            ownFileFor(uid).takeIf { it.exists() }?.readBytes()
+        } catch (e: IOException) {
+            null
+        }
+    }
+
+    /**
+     * Puts back the chosen photo from the rider's backup, unless this phone has one of its own.
+     * Bytes that aren't a small image are ignored. True when the photo was saved.
+     */
+    suspend fun restoreOwn(uid: String, jpeg: ByteArray): Boolean = withContext(Dispatchers.IO) {
+        val own = ownFileFor(uid)
+        if (own.exists() || jpeg.size > MAX_BYTES || BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size) == null) {
+            return@withContext false
+        }
+        try {
+            directory.mkdirs()
+            // Written to a temporary file first, so a half-written photo is never read.
+            val partial = File(directory, own.name + ".part")
+            partial.writeBytes(jpeg)
+            if (!partial.renameTo(own)) return@withContext false
+        } catch (e: IOException) {
+            return@withContext false
+        }
+        mutableChanges.update { it + 1 }
+        true
     }
 
     /** Removes the photo the rider chose; the Google photo or initials show again. */

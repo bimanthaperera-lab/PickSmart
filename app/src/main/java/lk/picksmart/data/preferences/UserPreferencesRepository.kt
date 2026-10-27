@@ -22,6 +22,9 @@ import lk.picksmart.domain.model.PersonalDetails
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.FIRST_SPACE
 
+/** Personal details the rider removed on this phone, which cloud backup then removes too. */
+data class RemovedDetails(val mobile: Boolean, val gender: Boolean, val birthDate: Boolean)
+
 /**
  * App settings kept in DataStore. Keys are only ever added or migrated, never dropped or renamed
  * without a read-old-write-new step (CLAUDE.md N7).
@@ -97,14 +100,12 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
 
     /** Saves the number, or removes it when [number] is null or blank. */
     suspend fun setMobileNumber(uid: String, number: String?) {
-        dataStore.edit {
-            if (number.isNullOrBlank()) it.remove(Keys.mobileNumber(uid)) else it[Keys.mobileNumber(uid)] = number
-        }
+        dataStore.edit { it.setOrRemove(Keys.mobileNumber(uid), number?.takeIf(String::isNotBlank), Keys.mobileRemoved(uid)) }
     }
 
     /**
-     * The mobile number, gender and birth date the rider added for this account. They stay on the
-     * device and are kept when the rider signs out, like the mobile number.
+     * The mobile number, gender and birth date the rider added for this account. They are kept on
+     * the device when the rider signs out, and backed up with the account (CLAUDE.md section 14).
      */
     fun personalDetails(uid: String): Flow<PersonalDetails> = dataStore.data
         .map { prefs ->
@@ -118,12 +119,46 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
 
     /** Saves the gender, or removes it when [gender] is null. */
     suspend fun setGender(uid: String, gender: Gender?) {
-        dataStore.edit { if (gender == null) it.remove(Keys.gender(uid)) else it[Keys.gender(uid)] = gender.name }
+        dataStore.edit { it.setOrRemove(Keys.gender(uid), gender?.name, Keys.genderRemoved(uid)) }
     }
 
     /** Saves the birth date, or removes it when [date] is null. */
     suspend fun setBirthDate(uid: String, date: LocalDate?) {
-        dataStore.edit { if (date == null) it.remove(Keys.birthDate(uid)) else it[Keys.birthDate(uid)] = date.toString() }
+        dataStore.edit { it.setOrRemove(Keys.birthDate(uid), date?.toString(), Keys.birthDateRemoved(uid)) }
+    }
+
+    /**
+     * True after the rider skipped restoring this space's backup and started fresh (owner decision
+     * 2026-10-27): it stays signed in but doesn't back up until they turn backup on again.
+     */
+    val backupPaused: Flow<Boolean> = dataStore.data
+        .map { it[keys.BACKUP_PAUSED] == true }
+        .distinctUntilChanged()
+
+    suspend fun setBackupPaused(paused: Boolean) {
+        dataStore.edit { if (paused) it[keys.BACKUP_PAUSED] = true else it.remove(keys.BACKUP_PAUSED) }
+    }
+
+    /** Which of [uid]'s personal details the rider removed on this phone and hasn't set again. */
+    fun removedDetails(uid: String): Flow<RemovedDetails> = dataStore.data
+        .map {
+            RemovedDetails(
+                mobile = it[Keys.mobileRemoved(uid)] == true,
+                gender = it[Keys.genderRemoved(uid)] == true,
+                birthDate = it[Keys.birthDateRemoved(uid)] == true,
+            )
+        }
+        .distinctUntilChanged()
+
+    /** Stores [value] under [key], or removes it and remembers the removal in [removed]. */
+    private fun MutablePreferences.setOrRemove(key: Preferences.Key<String>, value: String?, removed: Preferences.Key<Boolean>) {
+        if (value == null) {
+            remove(key)
+            this[removed] = true
+        } else {
+            this[key] = value
+            remove(removed)
+        }
     }
 
     /**
@@ -135,7 +170,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
     suspend fun clearRiderData(uid: String) {
         dataStore.edit { prefs ->
             keys.all.forEach { prefs.remove(it) }
-            listOf(Keys.mobileNumber(uid), Keys.gender(uid), Keys.birthDate(uid)).forEach { prefs.remove(it) }
+            Keys.accountKeys(uid).forEach { prefs.remove(it) }
         }
     }
 
@@ -259,6 +294,15 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
         fun mobileNumber(uid: String) = stringPreferencesKey("account_mobile_$uid")
         fun gender(uid: String) = stringPreferencesKey("account_gender_$uid")
         fun birthDate(uid: String) = stringPreferencesKey("account_birth_date_$uid")
+
+        // Set when the rider removes a detail, so cloud backup removes it too; cleared when set again.
+        fun mobileRemoved(uid: String) = booleanPreferencesKey("account_mobile_removed_$uid")
+        fun genderRemoved(uid: String) = booleanPreferencesKey("account_gender_removed_$uid")
+        fun birthDateRemoved(uid: String) = booleanPreferencesKey("account_birth_date_removed_$uid")
+
+        fun accountKeys(uid: String) = listOf(
+            mobileNumber(uid), gender(uid), birthDate(uid), mobileRemoved(uid), genderRemoved(uid), birthDateRemoved(uid),
+        )
     }
 
     /**
@@ -282,6 +326,9 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
 
         val DISMISSED_EFFICIENCY_LOG_ID = longPreferencesKey("dismissed_efficiency_log_id$suffix")
 
+        /** The rider skipped restoring and started fresh, so this space doesn't back up until they turn it on. */
+        val BACKUP_PAUSED = booleanPreferencesKey("backup_paused$suffix")
+
         fun ownFuelPriceCents(type: FuelType) = longPreferencesKey("own_fuel_price_cents_${type.name.lowercase()}$suffix")
         val FUEL_PRICE_KEPT = stringSetPreferencesKey("fuel_price_kept$suffix")
         val FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID = longPreferencesKey("fuel_price_auto_notice_vehicle_id$suffix")
@@ -290,7 +337,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
         val all: List<Preferences.Key<*>> = listOf(
             ONBOARDING_COMPLETE, DEFAULT_VEHICLE_ID, CHECK_PLATFORM, CHECK_FARE_MODE, CHECK_COMMISSION_TYPE,
             CHECK_COMMISSION_HUNDREDTHS, CHECK_OTHER_COSTS_CENTS, CHECK_PICKUP_KM, CHECK_TRIP_KM, CHECK_RETURN_KM,
-            DISMISSED_EFFICIENCY_LOG_ID, FUEL_PRICE_KEPT, FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID,
+            DISMISSED_EFFICIENCY_LOG_ID, FUEL_PRICE_KEPT, FUEL_PRICE_AUTO_NOTICE_VEHICLE_ID, BACKUP_PAUSED,
         ) + FuelType.entries.map(::ownFuelPriceCents)
     }
 }

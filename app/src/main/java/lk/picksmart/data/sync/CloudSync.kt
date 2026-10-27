@@ -8,29 +8,62 @@ import lk.picksmart.domain.usecase.MergeAction
 import lk.picksmart.domain.usecase.VehicleIdentity
 import lk.picksmart.domain.usecase.matchVehicle
 import lk.picksmart.domain.usecase.mergeAction
+import java.security.MessageDigest
 
-/** The settings that follow the rider to a new phone. Null means "not set". */
-data class CloudProfile(val mobileNumber: String?, val activeVehicleSyncId: String?) {
-    /** Only what is set, so a phone without a value never clears the cloud's. */
+/**
+ * The settings and personal details that follow the rider to a new phone. Null means "not set".
+ * [gender] is a [lk.picksmart.domain.model.Gender] name and [birthDate] an ISO date.
+ *
+ * @property removed The personal details the rider removed on this phone ([MOBILE], [GENDER],
+ *   [BIRTH_DATE]), so they leave the backup too rather than coming back on the next restore.
+ */
+data class CloudProfile(
+    val mobileNumber: String?,
+    val activeVehicleSyncId: String?,
+    val gender: String? = null,
+    val birthDate: String? = null,
+    val removed: Set<String> = emptySet(),
+) {
+    /**
+     * What is set, plus null for each removed detail (the store deletes those fields). A detail
+     * that is neither set nor removed is left out, so a phone that never had it doesn't clear the
+     * cloud's.
+     */
     fun toCloud(): Map<String, Any?> = buildMap {
         mobileNumber?.let { put(MOBILE, it) }
         activeVehicleSyncId?.let { put(ACTIVE_VEHICLE, it) }
+        gender?.let { put(GENDER, it) }
+        birthDate?.let { put(BIRTH_DATE, it) }
+        for (field in removed) if (field !in this) put(field, null)
     }
 
     companion object {
-        private const val MOBILE = "mobileNumber"
+        const val MOBILE = "mobileNumber"
+        const val GENDER = "gender"
+        const val BIRTH_DATE = "birthDate"
         private const val ACTIVE_VEHICLE = "activeVehicleSyncId"
 
-        fun fromCloud(data: Map<String, Any?>) = CloudProfile(data[MOBILE] as? String, data[ACTIVE_VEHICLE] as? String)
+        fun fromCloud(data: Map<String, Any?>) = CloudProfile(
+            mobileNumber = data[MOBILE] as? String,
+            activeVehicleSyncId = data[ACTIVE_VEHICLE] as? String,
+            gender = data[GENDER] as? String,
+            birthDate = data[BIRTH_DATE] as? String,
+        )
     }
 }
 
-/** Where the synced settings live on the phone (DataStore). */
+/** Where the synced settings and the rider's chosen photo live on the phone. */
 interface SyncedSettings {
     suspend fun current(uid: String): CloudProfile
 
     /** Fills in what this phone doesn't have yet; never replaces a value the rider set here. */
     suspend fun restore(uid: String, profile: CloudProfile)
+
+    /** The photo the rider chose for [uid], as JPEG bytes, or null when there is none. */
+    suspend fun photo(uid: String): ByteArray?
+
+    /** Puts back the backed-up photo when this phone has none of its own. True when it was used. */
+    suspend fun restorePhoto(uid: String, jpeg: ByteArray): Boolean
 }
 
 data class SyncReport(val downloaded: Int, val uploaded: Int)
@@ -42,9 +75,11 @@ data class SyncReport(val downloaded: Int, val uploaded: Int)
  *    the new account ([SyncDao.startOverFor]).
  * 2. Download: the documents written since the last download, vehicles first, merged record by
  *    record with [mergeAction] (last write wins by `updatedAt`, deletes kept as tombstones). The
- *    first download for a rider also restores their settings, and links a backed-up vehicle to
- *    the same vehicle made on this phone rather than adding a copy ([adoptSameVehicle]).
- * 3. Upload: every row and delete still marked pending, then the settings if they changed.
+ *    first download for a rider also restores their settings, personal details and chosen photo,
+ *    and links a backed-up vehicle to the same vehicle made on this phone rather than adding a
+ *    copy ([adoptSameVehicle]).
+ * 3. Upload: every row and delete still marked pending, then the settings and the photo if they
+ *    changed.
  *
  * A run that fails part-way is safe to repeat: downloads are idempotent and a row stays pending
  * until its upload is confirmed.
@@ -64,14 +99,22 @@ class CloudSync(
             for (kind in SyncKind.ALL) downloaded += pull(uid, kind)
             if (firstDownload) {
                 cloud.readProfile(uid)?.let { settings.restore(uid, CloudProfile.fromCloud(it)) }
+                cloud.readPhoto(uid)?.let { jpeg ->
+                    // Already in the backup, so it isn't sent back up.
+                    if (settings.restorePhoto(uid, jpeg)) dao.setState(SyncStateEntity(PHOTO_SENT_KEY, fingerprint(jpeg)))
+                }
                 dao.setState(SyncStateEntity(DOWNLOADED_KEY, "1"))
             }
         }
         val uploaded = push(uid)
         pushSettings(uid)
+        pushPhoto(uid)
         dao.setState(SyncStateEntity(LAST_BACKUP_KEY, nowMillis.toString()))
         return SyncReport(downloaded, uploaded)
     }
+
+    /** Drops what a restore downloaded, for a fresh start ([SyncDao.discardRestored]). */
+    suspend fun discardRestored() = dao.discardRestored()
 
     /** When this phone last finished a backup, or null if it never did for the signed-in rider. */
     suspend fun lastBackupMillis(): Long? = dao.state(LAST_BACKUP_KEY)?.toLongOrNull()
@@ -255,10 +298,29 @@ class CloudSync(
         dao.setState(SyncStateEntity(SETTINGS_SENT_KEY, sent))
     }
 
+    /**
+     * Sends the rider's chosen photo when it changed since it was last sent, and removes it from the
+     * backup when the rider removed it here. A phone that never sent or restored a photo has
+     * nothing to remove, so it never clears one another phone backed up.
+     */
+    private suspend fun pushPhoto(uid: String) {
+        val jpeg = settings.photo(uid)
+        val sent = dao.state(PHOTO_SENT_KEY)
+        val now = jpeg?.let(::fingerprint) ?: NO_PHOTO
+        if (now == (sent ?: NO_PHOTO)) return
+        cloud.writePhoto(uid, jpeg)
+        dao.setState(SyncStateEntity(PHOTO_SENT_KEY, now))
+    }
+
+    private fun fingerprint(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
     private companion object {
         const val WATERMARK_PREFIX = "downloaded_until_"
         const val DOWNLOADED_KEY = "downloaded_once"
         const val SETTINGS_SENT_KEY = "settings_sent"
+        const val PHOTO_SENT_KEY = "photo_sent"
+        const val NO_PHOTO = "none"
         const val LAST_BACKUP_KEY = "last_backup_at"
     }
 }

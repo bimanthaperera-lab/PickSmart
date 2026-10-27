@@ -114,6 +114,12 @@ private class FakeSync(private val problem: SyncProblem?, private val steps: Mut
     override val pendingCount: Flow<Int> = flowOf(0)
     override suspend fun syncNow(): SyncStatus = status.value
 
+    override fun backUpSoon() = Unit
+
+    override suspend fun startFresh() = Unit
+
+    override fun resume() = Unit
+
     override suspend fun deleteCloudData(): SyncProblem? {
         steps += "delete cloud"
         return problem

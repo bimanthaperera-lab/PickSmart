@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -30,6 +31,9 @@ sealed interface SyncStatus {
     data class Idle(val atMillis: Long?) : SyncStatus
 
     data class Stopped(val problem: SyncProblem, val lastAtMillis: Long?) : SyncStatus
+
+    /** The rider skipped restoring and started fresh: signed in, but not backing up on this phone. */
+    data object Paused : SyncStatus
 }
 
 /**
@@ -45,6 +49,18 @@ interface SyncProvider {
     /** Backs up now, downloading other devices' changes too. Returns the status it ended in. */
     suspend fun syncNow(): SyncStatus
 
+    /** Backs up a change that isn't a record (the rider's personal details or photo) shortly. */
+    fun backUpSoon()
+
+    /**
+     * The rider skipped restoring to start fresh (owner decision 2026-10-27): backup stops for these
+     * records on this phone, and what the restore had downloaded is dropped (it stays in the cloud).
+     */
+    suspend fun startFresh()
+
+    /** Turns backup on again after [startFresh]; the next run brings the backup back and merges it in. */
+    fun resume()
+
     /**
      * Removes the signed-in rider's cloud data. Null when it is gone (or there was none), else why
      * it couldn't be removed, so the rider is told the real reason rather than always "offline".
@@ -56,6 +72,9 @@ object NoOpSyncProvider : SyncProvider {
     override val status: StateFlow<SyncStatus> = MutableStateFlow(SyncStatus.Off).asStateFlow()
     override val pendingCount: Flow<Int> = flowOf(0)
     override suspend fun syncNow(): SyncStatus = SyncStatus.Off
+    override fun backUpSoon() = Unit
+    override suspend fun startFresh() = Unit
+    override fun resume() = Unit
     override suspend fun deleteCloudData(): SyncProblem? = SyncProblem.FAILED
 }
 
@@ -78,6 +97,9 @@ class CloudSyncProvider(
     private val clock: Clock,
     private val scope: CoroutineScope,
     context: Context,
+    /** True while the rider has backup off for these records after starting fresh ([startFresh]). */
+    private val paused: Flow<Boolean>,
+    private val setPaused: suspend (Boolean) -> Unit,
 ) : SyncProvider {
 
     private val mutableStatus = MutableStateFlow<SyncStatus>(SyncStatus.Off)
@@ -91,13 +113,20 @@ class CloudSyncProvider(
 
     init {
         scope.launch {
-            signedIn.distinctUntilChanged().collect { uid ->
-                if (uid == null) {
-                    scheduledUpload?.cancel()
-                    mutableStatus.value = SyncStatus.Off
-                } else {
-                    mutableStatus.value = SyncStatus.Idle(sync.lastBackupMillis())
-                    launch { run(download = true) }
+            combine(signedIn, paused, ::Pair).distinctUntilChanged().collect { (uid, isPaused) ->
+                when {
+                    uid == null -> {
+                        scheduledUpload?.cancel()
+                        mutableStatus.value = SyncStatus.Off
+                    }
+                    isPaused -> {
+                        scheduledUpload?.cancel()
+                        mutableStatus.value = SyncStatus.Paused
+                    }
+                    else -> {
+                        mutableStatus.value = SyncStatus.Idle(sync.lastBackupMillis())
+                        launch { run(download = true) }
+                    }
                 }
             }
         }
@@ -121,6 +150,22 @@ class CloudSyncProvider(
     }
 
     override suspend fun syncNow(): SyncStatus = run(download = true, force = true)
+
+    override fun backUpSoon() {
+        if (status.value != SyncStatus.Off && status.value != SyncStatus.Paused) scheduleUpload()
+    }
+
+    override suspend fun startFresh() {
+        setPaused(true)
+        scheduledUpload?.cancel()
+        // Waits for a run already under way, so nothing it downloads is left behind.
+        running.withLock { sync.discardRestored() }
+        mutableStatus.value = SyncStatus.Paused
+    }
+
+    override fun resume() {
+        scope.launch { setPaused(false) }
+    }
 
     override suspend fun deleteCloudData(): SyncProblem? {
         val uid = signedIn.first() ?: return SyncProblem.REFUSED
@@ -146,6 +191,7 @@ class CloudSyncProvider(
 
     private suspend fun run(download: Boolean, force: Boolean = false): SyncStatus = running.withLock {
         val uid = signedIn.first() ?: return@withLock SyncStatus.Off.also { mutableStatus.value = it }
+        if (paused.first()) return@withLock SyncStatus.Paused.also { mutableStatus.value = it }
         val now = clock.millis()
         // App start, sign-in and reconnecting can arrive together; one download covers them, and
         // the others only upload.

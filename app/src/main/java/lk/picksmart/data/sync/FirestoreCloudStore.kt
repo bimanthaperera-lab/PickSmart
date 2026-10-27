@@ -1,6 +1,7 @@
 package lk.picksmart.data.sync
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,8 +17,8 @@ import lk.picksmart.data.local.entity.SyncKind
 import java.util.Date
 
 /**
- * [CloudStore] on Cloud Firestore: `users/{uid}` is the profile and `users/{uid}/{kind}/{syncId}`
- * the records. The security rules in `firestore.rules` let a rider reach only their own `users/{uid}`.
+ * [CloudStore] on Cloud Firestore: `users/{uid}` is the profile, `users/{uid}/profile/photo` the
+ * chosen photo and `users/{uid}/{kind}/{syncId}` the records. The security rules in `firestore.rules` let a rider reach only their own `users/{uid}`.
  *
  * Reads go to the server ([Source.SERVER]), never Firestore's cache. Writes are batched, and each
  * document also gets a server timestamp so other devices can ask for "what changed since".
@@ -59,7 +60,19 @@ class FirestoreCloudStore(
     }
 
     override suspend fun writeProfile(uid: String, data: Map<String, Any?>) = call {
-        withTimeout(WRITE_TIMEOUT_MILLIS) { profile(uid).set(data, SetOptions.merge()).await() }
+        val fields = data.mapValues { (_, value) -> value ?: FieldValue.delete() }
+        withTimeout(WRITE_TIMEOUT_MILLIS) { profile(uid).set(fields, SetOptions.merge()).await() }
+        Unit
+    }
+
+    override suspend fun readPhoto(uid: String): ByteArray? = call {
+        photo(uid).get(Source.SERVER).await().getBlob(PHOTO_JPEG)?.toBytes()
+    }
+
+    override suspend fun writePhoto(uid: String, jpeg: ByteArray?) = call {
+        withTimeout(WRITE_TIMEOUT_MILLIS) {
+            if (jpeg == null) photo(uid).delete().await() else photo(uid).set(mapOf(PHOTO_JPEG to Blob.fromBytes(jpeg))).await()
+        }
         Unit
     }
 
@@ -73,11 +86,17 @@ class FirestoreCloudStore(
                 withTimeout(WRITE_TIMEOUT_MILLIS) { batch.commit().await() }
             } while (page.size() == PAGE_SIZE)
         }
-        withTimeout(WRITE_TIMEOUT_MILLIS) { profile(uid).delete().await() }
+        withTimeout(WRITE_TIMEOUT_MILLIS) {
+            photo(uid).delete().await()
+            profile(uid).delete().await()
+        }
         Unit
     }
 
     private fun profile(uid: String) = firestore.collection(USERS).document(uid)
+
+    /** The chosen photo, one small JPEG in its own document so reading the profile never loads it. */
+    private fun photo(uid: String) = profile(uid).collection(PROFILE).document(PHOTO)
 
     private fun records(uid: String, kind: String) = profile(uid).collection(kind)
 
@@ -97,6 +116,9 @@ class FirestoreCloudStore(
     private companion object {
         const val USERS = "users"
         const val SERVER_TIME = "serverUpdatedAt"
+        const val PROFILE = "profile"
+        const val PHOTO = "photo"
+        const val PHOTO_JPEG = "jpeg"
 
         /** Firestore allows 500 writes per batch; this leaves room. */
         const val PAGE_SIZE = 400

@@ -76,7 +76,7 @@ fun AccountScreen(
     TabScreen {
         ScreenTitle(stringResource(R.string.account_title))
         ProfileCard(account, onSignUp, onSignIn, onOpenProfile)
-        if (account is AccountUi.SignedIn) BackupCard(backup, onBackUpNow = viewModel::backUpNow)
+        if (account is AccountUi.SignedIn) BackupCard(backup, onBackUpNow = viewModel::backUpNow, onTurnOn = viewModel::turnOnBackup)
         SettingsSections(
             onEditVehicle = onEditVehicle,
             onVehicleLimit = onVehicleLimit,
@@ -190,10 +190,11 @@ data class BackupUi(val status: SyncStatus = SyncStatus.Off, val pending: Int = 
 
 /**
  * Cloud backup for a signed-in rider: when it last finished, or why it stopped, how many changes
- * are still waiting, and Back up now. It never blocks the rest of the tab.
+ * are still waiting, and Back up now. After a fresh start it says backup is off here, with Turn on
+ * backup. It never blocks the rest of the tab.
  */
 @Composable
-private fun BackupCard(backup: BackupUi, onBackUpNow: () -> Unit) {
+private fun BackupCard(backup: BackupUi, onBackUpNow: () -> Unit, onTurnOn: () -> Unit) {
     val status = backup.status
     val running = status == SyncStatus.Running
     PicksmartCard(Modifier.fillMaxWidth()) {
@@ -229,13 +230,18 @@ private fun BackupCard(backup: BackupUi, onBackUpNow: () -> Unit) {
             }
         }
         Spacer(Modifier.size(Spacing.m))
-        SecondaryButton(stringResource(R.string.backup_now), onBackUpNow, Modifier.fillMaxWidth(), enabled = !running)
+        if (status == SyncStatus.Paused) {
+            SecondaryButton(stringResource(R.string.backup_turn_on), onTurnOn, Modifier.fillMaxWidth())
+        } else {
+            SecondaryButton(stringResource(R.string.backup_now), onBackUpNow, Modifier.fillMaxWidth(), enabled = !running)
+        }
     }
 }
 
 @Composable
 private fun backupStatusText(status: SyncStatus): String = when (status) {
     SyncStatus.Off, SyncStatus.Running -> stringResource(R.string.backup_running)
+    SyncStatus.Paused -> stringResource(R.string.backup_paused)
     is SyncStatus.Idle -> status.atMillis?.let { stringResource(R.string.backup_done, rememberBackupTime(it)) }
         ?: stringResource(R.string.backup_never)
     is SyncStatus.Stopped -> when (status.problem) {
@@ -265,6 +271,9 @@ class AccountViewModel(account: Flow<AccountUi>, private val sync: SyncProvider)
     fun backUpNow() {
         viewModelScope.launch { sync.syncNow() }
     }
+
+    /** After a fresh start: backup comes back on and brings the account's backup in with it. */
+    fun turnOnBackup() = sync.resume()
 
     companion object {
         val Factory = viewModelFactory {

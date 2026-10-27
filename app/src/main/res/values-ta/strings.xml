@@ -676,7 +676,7 @@
     <string name="onboarding_restore_none_title">Backup எதுவும் கிடைக்கவில்லை</string>
     <string name="onboarding_restore_none_body">இந்தக் கணக்கில் இன்னும் backup இல்லை, எனவே மீட்டெடுக்க எதுவும் இல்லை. தொடங்க உங்கள் வாகனத்தை அமைக்கவும். இனி உங்கள் பதிவுகள் இந்தக் கணக்கில் backup செய்யப்படும்.</string>
     <string name="offer_badge_tip">%1$s நன்கொடை (Tip) உட்பட</string>
-    <string name="trip_offer_tip_title">%1$s நன்கொடையையும் சேமி</string>
+    <string name="trip_offer_tip_title">%1$s நன்கொடையைச் சேர்</string>
     <string name="trip_offer_tip_body">பிற வருமானத்தில் சேர்க்கப்படும்.</string>
     <string name="backup_title">Cloud backup</string>
     <string name="backup_running">Backup செய்கிறது…</string>

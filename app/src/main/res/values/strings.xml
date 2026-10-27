@@ -579,7 +579,7 @@
     <string name="offer_save_body">%1$s · %2$s km · tap to check and save</string>
     <string name="offer_save_public_title">Save your last ride offer as a trip</string>
     <string name="trip_from_offer_title">Filled from the ride offer</string>
-    <string name="trip_offer_tip_title">Save the %1$s tip too</string>
+    <string name="trip_offer_tip_title">Add the %1$s tip</string>
     <string name="trip_offer_tip_body">Added to Other income.</string>
     <string name="trip_from_offer_notice">Check the numbers before you save.</string>
     <string name="settings_language">Language</string>

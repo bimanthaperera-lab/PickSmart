@@ -184,7 +184,7 @@ class OfferReaderService : AccessibilityService() {
         if (::badge.isInitialized) badge.hide()
         if (askToSave && offer != null && readAt != null && offer != lastAsked && vehicle != null) {
             lastAsked = offer
-            OfferSaveNotification.post(this, OfferToSave(offer, platformOf(shownPackage), readAt))
+            OfferSaveNotification.post(AppLanguageStore.localized(this), OfferToSave(offer, platformOf(shownPackage), readAt))
         }
     }
 

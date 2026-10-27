@@ -418,7 +418,7 @@
     <string name="onboarding_safety_estimates">முடிவுகள் நீங்கள் உள்ளிடும் எண்களின் அடிப்படையிலான மதிப்பீடுகள்.</string>
     <string name="onboarding_safety_stopped">நீங்கள் பாதுகாப்பாக நிறுத்தியிருக்கும் போது மட்டுமே சவாரி சலுகைகளைச் சரிபார்க்கவும்.</string>
     <string name="onboarding_safety_no_reading">Picksmart ஒருபோதும் பிற ஆப்ஸ்களுக்குள் தரவைப் பெறாது.</string>
-    <string name="onboarding_safety_on_device">உங்கள் பதிவுகள் இந்த ஃபோனில் தங்கியிருக்கும் மற்றும் இணையம் இல்லாமல் செயல்படும்.</string>
+    <string name="onboarding_safety_on_device">உங்கள் பதிவுகள் இந்த ஃபோனில் தங்கியிருக்கும் மற்றும் இணையம் இல்லாமல் செயல்படும். நீங்கள் உள்நுழைந்திருக்கும்போது, அவை உங்கள் கணக்கிலும் backup செய்யப்படும்.</string>
     <string name="onboarding_safety_accept">நான் புரிந்துகொண்டேன், தொடங்கு</string>
     <string name="onboarding_save_failed">உங்கள் வாகனத்தைச் சேமிக்க முடியவில்லை. மீண்டும் முயல்க.</string>
     <string name="action_continue">தொடரவும்</string>
@@ -631,7 +631,7 @@
     <string name="profile_mobile">மொபைல் எண்</string>
     <string name="profile_gender">பாலினம்</string>
     <string name="profile_birth_date">பிறந்த தேதி</string>
-    <string name="profile_photo_note">உங்கள் புகைப்படம், பாலினம் மற்றும் பிறந்த தேதி இந்தத் தொலைபேசியில் மட்டுமே இருக்கும். அவை பதிவேற்றப்படுவதோ பகிரப்படுவதோ இல்லை.</string>
+    <string name="profile_photo_note">உங்கள் புகைப்படம், பாலினம் மற்றும் பிறந்த தேதி உங்கள் கணக்கில் backup செய்யப்படுவதால், புதிய ஃபோனிலும் திரும்ப வரும். அவை ஒருபோதும் பகிரப்படுவதில்லை.</string>
     <string name="gender_male">ஆண்</string>
     <string name="gender_female">பெண்</string>
     <string name="gender_other">மற்றவை</string>
@@ -666,4 +666,32 @@
     <string name="profile_delete_cloud_error">உங்கள் கிளவுட் காப்புப் பிரதியை நீக்க முடியாததால், எதுவும் நீக்கப்படவில்லை. மீண்டும் முயல்க.</string>
     <string name="profile_delete_confirm">அனைத்தையும் நீக்கு</string>
     <string name="profile_records_stay">வெளியேறினால் உங்கள் சவாரிகளும் பதிவுகளும் இந்த ஃபோனில் இருக்கும். கணக்கை நீக்கினால் அவை இந்த ஃபோனிலிருந்தும் கிளவுடிலிருந்தும் அகற்றப்படும்.</string>
+    <!-- Restore, cloud backup, offer tips and sign-out (drafted 2026-10-27; owner to check) -->
+    <string name="onboarding_restore_title">உங்கள் தரவை மீட்டெடுக்கிறது</string>
+    <string name="onboarding_restore_body">உங்கள் தரவை மீட்டெடுக்கிறது, சிறிது காத்திருக்கவும்… உங்கள் வாகனங்கள், சவாரிகள் மற்றும் பதிவுகள் உங்கள் backup-இலிருந்து திரும்ப வருகின்றன. இதற்கு இணையம் தேவை.</string>
+    <string name="onboarding_restore_offline">இணையத்திற்காகக் காத்திருக்கிறது. நீங்கள் ஆன்லைனுக்கு வந்ததும் மீட்டெடுப்பு தானாகத் தொடரும்.</string>
+    <string name="onboarding_restore_unverified">Google Play இந்த Picksmart நகலைச் சரிபார்க்கும் வரை உங்கள் backup-ஐ இங்கே மீட்டெடுக்க முடியாது. Picksmart தொடர்ந்து முயற்சிக்கும்.</string>
+    <string name="onboarding_restore_failed">உங்கள் backup-ஐ இன்னும் மீட்டெடுக்க முடியவில்லை. Picksmart தொடர்ந்து முயற்சிக்கும்.</string>
+    <string name="onboarding_restore_skip">தவிர்த்து புதிதாகத் தொடங்கு</string>
+    <string name="onboarding_restore_skip_body">தவிர்த்தால் இந்த ஃபோனில் உங்கள் கணக்கு புதிதாகத் தொடங்கும்: எதுவும் மீட்டெடுக்கப்படாது, இங்கே backup Off ஆக இருக்கும். உங்கள் backup பாதுகாப்பாக இருக்கும்; அதைத் திரும்பப் பெற கணக்கு தாவலில் backup-ஐ ஆன் செய்யவும்.</string>
+    <string name="offer_badge_tip">%1$s நன்கொடை (Tip) உட்பட</string>
+    <string name="trip_offer_tip_title">%1$s நன்கொடையைப் பிற வருமானமாகச் சேமி</string>
+    <string name="trip_offer_tip_body">சலுகையில் ஒரு நன்கொடை (Tip) காட்டப்பட்டது. இது இந்தச் சவாரியின் அதே தேதி மற்றும் சவாரி app உடன் பிற வருமானத்தில் Tip ஆகச் சேமிக்கப்படும், எனவே ஒருமுறை மட்டுமே கணக்கிடப்படும்.</string>
+    <string name="backup_title">Cloud backup</string>
+    <string name="backup_running">Backup செய்கிறது…</string>
+    <string name="backup_never">இன்னும் backup செய்யப்படவில்லை</string>
+    <string name="backup_done">கடைசியாக backup செய்தது %1$s</string>
+    <string name="backup_offline">இணையத்திற்காகக் காத்திருக்கிறது. உங்கள் பதிவுகள் இந்த ஃபோனில் பாதுகாப்பாக உள்ளன.</string>
+    <string name="backup_refused">Backup server உங்கள் உள்நுழைவை ஏற்கவில்லை. வெளியேறி மீண்டும் உள்நுழையவும்.</string>
+    <string name="backup_unverified">Google Play இந்த Picksmart நகலைச் சரிபார்த்த பின் backup தொடங்கும். உங்கள் பதிவுகள் இந்த ஃபோனில் பாதுகாப்பாக உள்ளன.</string>
+    <string name="backup_failed">Backup முடியவில்லை. மீண்டும் முயல்க.</string>
+    <string name="backup_now">இப்போது backup செய்</string>
+    <string name="backup_paused">நீங்கள் புதிதாகத் தொடங்கியதால் இந்த ஃபோனில் backup Off ஆக உள்ளது. உங்கள் backup-ஐத் திரும்பப் பெற்று இந்தப் பதிவுகளை அதில் சேர்க்க அதை ஆன் செய்யவும்.</string>
+    <string name="backup_turn_on">Backup-ஐ ஆன் செய்</string>
+    <string name="pattern_backup_time">d MMM, h:mm a</string>
+    <string name="profile_sign_out_body_apart">உங்கள் சவாரிகளும் பதிவுகளும் இந்த ஃபோனில் இருக்கும், நீங்கள் மீண்டும் உள்நுழையும்போது திரும்ப வரும். அதுவரை, கணக்கு இல்லாமல் பதிவு செய்த பதிவுகளை Picksmart காட்டும்.</string>
+    <plurals name="backup_pending">
+        <item quantity="one">%d மாற்றம் backup செய்யக் காத்திருக்கிறது</item>
+        <item quantity="other">%d மாற்றங்கள் backup செய்யக் காத்திருக்கின்றன</item>
+    </plurals>
 </resources>

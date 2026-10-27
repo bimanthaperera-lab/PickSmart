@@ -53,6 +53,18 @@ object AppLanguageStore {
     }
 
     /**
+     * [base] in the rider's chosen language, on every Android version, or [base] for the phone's
+     * language. For the offer reader: Android 13+ applies the per-app language to activities but not
+     * to an accessibility service, whose badge and notification would otherwise stay in the phone's
+     * language. Called on each use, so a language change shows on the next offer.
+     */
+    fun localized(base: Context): Context {
+        val tag = current(base).tag ?: return base
+        val config = Configuration(base.resources.configuration).apply { setLocale(Locale.forLanguageTag(tag)) }
+        return base.createConfigurationContext(config)
+    }
+
+    /**
      * The language the screens are showing now: the rider's choice, or for [AppLanguage.SYSTEM]
      * the phone's language when Picksmart has it, else English.
      */

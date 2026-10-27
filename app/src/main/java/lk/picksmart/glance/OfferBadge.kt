@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import lk.picksmart.R
+import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.domain.calculator.ResultBand
 import lk.picksmart.util.MoneyFormatter
@@ -19,18 +20,20 @@ import lk.picksmart.util.MoneyFormatter
  * The offer reader's result, drawn over the ride app as an accessibility overlay (CLAUDE.md
  * sections 9a and 9b). It sits in the top corner, far from the Accept button in the lower part of
  * the screen, so it never covers the ride app's controls. Touches outside it pass straight through.
- * Holding it hides it until the next offer ([onHidden]).
+ * Holding it hides it until the next offer ([onHidden]). Its words follow the rider's app language
+ * ([AppLanguageStore.localized]), read each time it is drawn.
  */
 class OfferBadge(private val context: Context, private val onHidden: () -> Unit) {
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
-    private val money = MoneyFormatter(context.getString(R.string.currency_prefix))
     private var view: View? = null
 
     val isShown: Boolean get() = view != null
 
     fun show(result: ProfitResult, vehicleName: String) {
-        val badge = view ?: LayoutInflater.from(context).inflate(R.layout.offer_badge, null).also { created ->
+        val words = AppLanguageStore.localized(context)
+        val money = MoneyFormatter(words.getString(R.string.currency_prefix))
+        val badge = view ?: LayoutInflater.from(words).inflate(R.layout.offer_badge, null).also { created ->
             created.setOnLongClickListener {
                 hide()
                 onHidden()
@@ -46,21 +49,22 @@ class OfferBadge(private val context: Context, private val onHidden: () -> Unit)
             imageTintList = ColorStateList.valueOf(tint)
         }
         badge.findViewById<TextView>(R.id.offer_badge_band).apply {
-            text = context.getString(label)
+            text = words.getString(label)
             setTextColor(tint)
         }
         val net = money.formatSigned(result.netProfitCents)
-        val amounts = result.netProfitPerKmCents?.let { context.getString(R.string.offer_badge_amounts, net, money.format(it)) } ?: net
+        val amounts = result.netProfitPerKmCents?.let { words.getString(R.string.offer_badge_amounts, net, money.format(it)) } ?: net
         badge.findViewById<TextView>(R.id.offer_badge_amounts).text = amounts
         // The tip is already in the profit above; this line says so.
-        val tip = result.tipCents.takeIf { it > 0 }?.let { context.getString(R.string.offer_badge_tip, money.format(it)) }
+        val tip = result.tipCents.takeIf { it > 0 }?.let { words.getString(R.string.offer_badge_tip, money.format(it)) }
         badge.findViewById<TextView>(R.id.offer_badge_tip).apply {
             text = tip
             visibility = if (tip == null) View.GONE else View.VISIBLE
         }
-        val source = context.getString(R.string.offer_badge_source, vehicleName)
+        val source = words.getString(R.string.offer_badge_source, vehicleName)
         badge.findViewById<TextView>(R.id.offer_badge_source).text = source
-        badge.contentDescription = listOfNotNull(context.getString(label), amounts, tip, source, context.getString(R.string.offer_badge_hide_hint))
+        badge.findViewById<TextView>(R.id.offer_badge_powered).text = words.getString(R.string.offer_badge_powered)
+        badge.contentDescription = listOfNotNull(words.getString(label), amounts, tip, source, words.getString(R.string.offer_badge_hide_hint))
             .joinToString(". ")
     }
 

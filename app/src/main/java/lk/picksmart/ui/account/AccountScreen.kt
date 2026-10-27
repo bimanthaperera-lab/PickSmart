@@ -207,10 +207,17 @@ private fun BackupCard(backup: BackupUi, onBackUpNow: () -> Unit) {
             Spacer(Modifier.width(Spacing.m))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+                // Not verified by Play is a wait, not a fault the rider can fix (an app installed
+                // outside Play, such as a test build), so it isn't shown as an error.
+                val problem = (status as? SyncStatus.Stopped)?.problem
                 Text(
                     backupStatusText(status),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (status is SyncStatus.Stopped) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (problem != null && problem != SyncProblem.UNVERIFIED) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
                 if (backup.pending > 0 && !running) {
                     Text(

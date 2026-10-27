@@ -1,7 +1,9 @@
 package lk.picksmart.domain.usecase
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Sample account ids only. */
@@ -10,17 +12,42 @@ class DataSpacesTest {
     private fun signIn(
         registry: SpaceRegistry,
         uid: String,
-        newAccount: Boolean = false,
+        move: Boolean = false,
         hasRecords: Boolean = true,
         backupOwner: String? = null,
         newSpaceId: String = "x1",
-    ) = signInSpace(registry, uid, newAccount, hasRecords, backupOwner, newSpaceId)
+    ) = signInSpace(registry, uid, move, hasRecords, backupOwner, newSpaceId)
 
     @Test
-    fun `a new account keeps the records made without one`() {
-        val after = signIn(SpaceRegistry(), "rider-a", newAccount = true)
+    fun `a new account keeps the records made without one when the rider moves them`() {
+        val after = signIn(SpaceRegistry(), "rider-a", move = true)
         assertEquals(SpaceRegistry(active = FIRST_SPACE, owners = mapOf(FIRST_SPACE to "rider-a")), after)
         assertNull(after.noAccountSpace())
+    }
+
+    @Test
+    fun `a new account starts empty when the rider keeps the records without an account`() {
+        val after = signIn(SpaceRegistry(), "rider-a", move = false)
+        assertEquals(SpaceRegistry(active = "x1", owners = mapOf("x1" to "rider-a")), after)
+        // They come back as no-account records after a sign-out.
+        assertEquals(FIRST_SPACE, signOutSpace(after, newSpaceId = "x2").active)
+    }
+
+    @Test
+    fun `only a new account facing records nobody owns is asked`() {
+        val empty = SpaceRegistry()
+        assertTrue(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
+        // An account that existed before never takes them.
+        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = false, activeHasRecords = true, activeBackupOwner = null))
+        // Nothing to move.
+        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = false, activeBackupOwner = null))
+        // The records on screen already belong to an account.
+        val owned = SpaceRegistry(owners = mapOf(FIRST_SPACE to "rider-b"))
+        assertFalse(asksToMoveRecords(owned, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
+        assertFalse(asksToMoveRecords(empty, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = "rider-b"))
+        // The account already has its own space here.
+        val hasSpace = SpaceRegistry(owners = mapOf("x1" to "rider-a"))
+        assertFalse(asksToMoveRecords(hasSpace, "rider-a", newAccount = true, activeHasRecords = true, activeBackupOwner = null))
     }
 
     @Test
@@ -53,7 +80,7 @@ class DataSpacesTest {
 
     @Test
     fun `signing out of the account that took over the first space opens an empty no-account space`() {
-        val signedIn = signIn(SpaceRegistry(), "rider-a", newAccount = true)
+        val signedIn = signIn(SpaceRegistry(), "rider-a", move = true)
         val signedOut = signOutSpace(signedIn, newSpaceId = "x2")
         assertEquals(SpaceRegistry(active = "x2", owners = mapOf(FIRST_SPACE to "rider-a"), noAccount = "x2"), signedOut)
         // Records made there stay apart from an existing account that signs in next...
@@ -67,7 +94,7 @@ class DataSpacesTest {
     @Test
     fun `a new account made after signing out takes over the no-account space`() {
         val signedOut = SpaceRegistry(active = "x2", owners = mapOf(FIRST_SPACE to "rider-a"), noAccount = "x2")
-        val after = signIn(signedOut, "rider-b", newAccount = true, newSpaceId = "x3")
+        val after = signIn(signedOut, "rider-b", move = true, newSpaceId = "x3")
         assertEquals(SpaceRegistry(active = "x2", owners = mapOf(FIRST_SPACE to "rider-a", "x2" to "rider-b")), after)
         assertEquals("x3", signOutSpace(after, newSpaceId = "x3").active)
     }

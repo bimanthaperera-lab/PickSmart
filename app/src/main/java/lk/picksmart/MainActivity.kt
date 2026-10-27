@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.ui.account.MoveRecordsDialog
 import lk.picksmart.ui.navigation.PicksmartApp
 import lk.picksmart.ui.notifications.OfferSaveNotification
 import lk.picksmart.ui.onboarding.OnboardingScreen
@@ -165,6 +166,11 @@ class MainActivity : ComponentActivity() {
             // Setup runs only while the flag is false; finishing it flips the flag and this
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
             if (onboardingComplete) PicksmartApp(offerToSave, onOfferOpened = { offerToSave = null }) else OnboardingScreen()
+
+            // A new account was just created on a phone with records made without one.
+            val container = (application as PicksmartApplication).container
+            val askingToMoveRecords by container.askingToMoveRecords.collectAsStateWithLifecycle()
+            if (askingToMoveRecords) MoveRecordsDialog(onAnswer = container::answerMoveRecords)
         }
     }
 

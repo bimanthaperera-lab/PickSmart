@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
 import java.io.File
 import java.time.Clock
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,6 +64,7 @@ import lk.picksmart.domain.usecase.DeleteAccount
 import lk.picksmart.domain.usecase.FuelPriceUpdates
 import lk.picksmart.domain.usecase.SpaceRegistry
 import lk.picksmart.domain.usecase.afterAccountDeleted
+import lk.picksmart.domain.usecase.asksToMoveRecords
 import lk.picksmart.domain.usecase.databaseName
 import lk.picksmart.domain.usecase.signInSpace
 import lk.picksmart.domain.usecase.signOutSpace
@@ -110,6 +112,15 @@ class AppContainer(context: Context) {
 
     /** The rider's records on screen (`DataSpaces.kt`). */
     val space: StateFlow<DataSpace> = mutableSpace.asStateFlow()
+
+    @Volatile private var moveRecordsAnswer: CompletableDeferred<Boolean>? = null
+    private val mutableAskingToMoveRecords = MutableStateFlow(false)
+
+    /**
+     * True while a new account waits for the rider to say whether the records made without an
+     * account move to it ([asksToMoveRecords]); answered with [answerMoveRecords].
+     */
+    val askingToMoveRecords: StateFlow<Boolean> = mutableAskingToMoveRecords.asStateFlow()
 
     val userPreferences: UserPreferencesRepository get() = space.value.userPreferences
     val vehicles: VehicleRepository get() = space.value.vehicles
@@ -214,18 +225,44 @@ class AppContainer(context: Context) {
         }
         val dao = space.value.database.syncDao()
         val registry = spaceRegistry.load()
+        val activeHasRecords = dao.recordCount() > 0
+        val activeBackupOwner = dao.state(SyncDao.OWNER_KEY)
+        val move = asksToMoveRecords(registry, profile.uid, profile.isNewAccount, activeHasRecords, activeBackupOwner) &&
+            askToMoveRecords()
         val next = signInSpace(
             registry,
             profile.uid,
-            newAccount = profile.isNewAccount,
-            activeHasRecords = dao.recordCount() > 0,
-            activeBackupOwner = dao.state(SyncDao.OWNER_KEY),
+            moveNoAccountRecords = move,
+            activeHasRecords = activeHasRecords,
+            activeBackupOwner = activeBackupOwner,
             newSpaceId = spaceRegistry.newSpaceId(registry),
         )
         showSpace(registry, next)
         signedInSpace.value = SignedInSpace(next.active, profile.uid)
         // Starts backup for these records; a new space is filled from the account's backup.
         space.value.sync
+    }
+
+    /**
+     * Shows the question ([askingToMoveRecords], drawn by MainActivity) and waits for the rider's
+     * answer. Nothing changes until they answer; if the app closes first, the account counts as
+     * existing on the next start once a minute has passed, so the records stay without an account.
+     */
+    private suspend fun askToMoveRecords(): Boolean {
+        val answer = CompletableDeferred<Boolean>()
+        moveRecordsAnswer = answer
+        mutableAskingToMoveRecords.value = true
+        return try {
+            answer.await()
+        } finally {
+            mutableAskingToMoveRecords.value = false
+            moveRecordsAnswer = null
+        }
+    }
+
+    /** The rider's answer: true moves the records made without an account to the new account. */
+    fun answerMoveRecords(move: Boolean) {
+        moveRecordsAnswer?.complete(move)
     }
 
     /** Saves [next] and, when it shows another space, puts that one on screen. */

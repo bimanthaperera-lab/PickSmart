@@ -584,6 +584,10 @@
     <string name="auth_skip">මඟ හරින්න — ගිණුමක් නොමැතිව භාවිතා කරන්න</string>
     <string name="auth_needs_internet">ලොග් වීමට අන්තර්ජාලය අවශ්‍යයි. App එකේ අනෙකුත් දේවල් අන්තර්ජාලය නොමැතිව ක්‍රියා කරයි.</string>
     <string name="auth_register_later">ගිණුමක් නොමැතිව, ඔබගේ දත්ත මෙම දුරකථනයේ පමණක් පවතී.</string>
+    <string name="auth_move_records_title">ඔබගේ දත්ත මෙම ගිණුමට ගෙන යන්නද?</string>
+    <string name="auth_move_records_body">මෙම දුරකථනයේ ගිණුමක් නොමැතිව සටහන් කළ ගමන් සහ දත්ත තිබේ. ඒවා backup කිරීමට ඔබගේ නව ගිණුමට ගෙන යන්න, නැතහොත් වෙනම තබන්න: එවිට ඔබගේ ගිණුම හිස්ව ආරම්භ වන අතර, ඔබ ලොග් අවුට් වූ විට ඒවා නැවත පෙනේ.</string>
+    <string name="auth_move_records_move">මගේ ගිණුමට ගෙන යන්න</string>
+    <string name="auth_move_records_keep">වෙනම තබන්න</string>
     <string name="auth_reset_title">මුරපදය වෙනස් කරන්න (Reset password)</string>
     <string name="auth_reset_body">ඔබේ ගිණුමේ විද්‍යුත් තැපෑල (Email) ඇතුලත් කරන්න. අපි ඔබට නව මුරපදයක් තෝරා ගැනීමට සබැඳියක් (link) එවන්නෙමු.</string>
     <string name="auth_reset_action">සබැඳිය යවන්න</string>

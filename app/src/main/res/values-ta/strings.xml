@@ -583,6 +583,10 @@
     <string name="auth_skip">தவிர் — கணக்கு இல்லாமல் பயன்படுத்து</string>
     <string name="auth_needs_internet">உள்நுழைய இணையம் தேவை. ஆப்ஸின் பிற பகுதிகள் ஆஃப்லைனில் செயல்படும்.</string>
     <string name="auth_register_later">கணக்கு இல்லாமல், உங்கள் தரவு இந்த ஃபோனில் மட்டுமே இருக்கும்.</string>
+    <string name="auth_move_records_title">உங்கள் தரவை இந்தக் கணக்கிற்கு நகர்த்தவா?</string>
+    <string name="auth_move_records_body">இந்த ஃபோனில் கணக்கு இல்லாமல் பதிவு செய்த பயணங்களும் தரவும் உள்ளன. அவற்றை backup செய்ய உங்கள் புதிய கணக்கிற்கு நகர்த்துங்கள், அல்லது தனியாக வையுங்கள்: அப்போது உங்கள் கணக்கு காலியாகத் தொடங்கும், நீங்கள் வெளியேறும்போது அவை மீண்டும் தோன்றும்.</string>
+    <string name="auth_move_records_move">என் கணக்கிற்கு நகர்த்து</string>
+    <string name="auth_move_records_keep">தனியாக வை</string>
     <string name="auth_reset_title">கடவுச்சொல்லை மீட்டமைக்க (Reset password)</string>
     <string name="auth_reset_body">உங்கள் கணக்கின் மின்னஞ்சலை உள்ளிடவும், புதிய கடவுச்சொல்லைத் தேர்வு செய்வதற்கான இணைப்பை (link) நாங்கள் உங்களுக்கு அனுப்புவோம்.</string>
     <string name="auth_reset_action">இணைப்பை அனுப்பு</string>

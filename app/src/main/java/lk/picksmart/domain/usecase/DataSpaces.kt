@@ -4,9 +4,10 @@ package lk.picksmart.domain.usecase
  * Which records the app shows, when several riders sign in on one phone (owner decisions
  * 2026-10-27). Each account keeps its own records in its own "space": a Room database plus the
  * settings that go with it (active vehicle, last Check a Ride inputs, setup). Two accounts on one
- * phone never see, mix or back up each other's records, and the app never asks whose they are.
+ * phone never see, mix or back up each other's records.
  * Records made without an account are a space of their own too, owned by nobody, shown whenever
- * nobody is signed in.
+ * nobody is signed in. They go into an account only when a rider creates one and chooses to move
+ * them ([asksToMoveRecords]).
  *
  * Space `""` is the phone's first one, the original `picksmart.db`, so an existing rider's data
  * stays exactly where it was.
@@ -31,21 +32,36 @@ data class SpaceRegistry(
 const val FIRST_SPACE = ""
 
 /**
+ * Whether to ask [uid] if the records made without an account should move to their account
+ * (owner decision 2026-10-27): only for an account created just now ([newAccount]), with no space
+ * of its own here, while the space on screen belongs to nobody and has records. The answer goes to
+ * [signInSpace] as `moveNoAccountRecords`; every other sign-in needs no question.
+ */
+fun asksToMoveRecords(
+    registry: SpaceRegistry,
+    uid: String,
+    newAccount: Boolean,
+    activeHasRecords: Boolean,
+    activeBackupOwner: String?,
+): Boolean = newAccount && activeHasRecords && registry.spaceOf(uid) == null &&
+    (registry.owners[registry.active] ?: activeBackupOwner) == null
+
+/**
  * The registry once [uid] has signed in:
  *
  * - An account that already has a space here goes back to it, with everything it had.
  * - Otherwise the space on screen becomes theirs if its backup already belongs to [uid]
  *   ([activeBackupOwner], for phones from before spaces existed), or if nobody owns it and either
- *   [newAccount] (the account was created just now, so the records made without an account become
- *   its first ones, CLAUDE.md section 14) or it has no records yet ([activeHasRecords]).
+ *   [moveNoAccountRecords] (a new account whose rider chose to move the records made without an
+ *   account to it, [asksToMoveRecords]) or it has no records yet ([activeHasRecords]).
  * - Otherwise [uid] gets the new, empty space [newSpaceId], which their backup then fills. The
- *   space on screen keeps its owner, or stays the no-account space, so an account that existed
- *   before never takes over records made without it.
+ *   space on screen keeps its owner, or stays the no-account space, so records made without an
+ *   account never go into an account unless its rider chose that.
  */
 fun signInSpace(
     registry: SpaceRegistry,
     uid: String,
-    newAccount: Boolean,
+    moveNoAccountRecords: Boolean,
     activeHasRecords: Boolean,
     activeBackupOwner: String?,
     newSpaceId: String,
@@ -53,7 +69,7 @@ fun signInSpace(
     registry.spaceOf(uid)?.let { return registry.copy(active = it) }
     val active = registry.active
     val activeOwner = registry.owners[active] ?: activeBackupOwner
-    if (activeOwner == uid || (activeOwner == null && (newAccount || !activeHasRecords))) {
+    if (activeOwner == uid || (activeOwner == null && (moveNoAccountRecords || !activeHasRecords))) {
         return registry.copy(owners = registry.owners + (active to uid), noAccount = registry.noAccount.takeIf { it != active })
     }
     require(newSpaceId != active && newSpaceId !in registry.owners) { "Space $newSpaceId is in use" }

@@ -72,7 +72,7 @@ data class OnboardingUiState(
  */
 class OnboardingViewModel(
     private val completeOnboarding: CompleteOnboarding,
-    account: AccountProvider,
+    private val account: AccountProvider,
     preferences: UserPreferencesRepository,
     private val sync: SyncProvider,
     addingAccount: Boolean = false,
@@ -130,6 +130,13 @@ class OnboardingViewModel(
         restoring = viewModelScope.launch {
             val status = sync.syncNow()
             if (status is SyncStatus.Stopped) {
+                // A new account has no backup to bring back, so a problem here (for example an app
+                // installed outside Play, which can't back up) isn't worth stopping for. Backup
+                // tries again later, and the Account tab shows how it stands.
+                if (account.profile.first()?.isNewAccount == true) {
+                    _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+                    return@launch
+                }
                 val problem = when (status.problem) {
                     SyncProblem.OFFLINE -> RestoreState.OFFLINE
                     SyncProblem.UNVERIFIED -> RestoreState.UNVERIFIED

@@ -1,6 +1,9 @@
 package lk.picksmart.ui.theme
 
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -62,7 +65,10 @@ fun PicksmartTheme(
     darkTheme: Boolean,
     content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
+    CompositionLocalProvider(
+        LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors,
+        LocalRippleConfiguration provides NoHoverRipple,
+    ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
             typography = PicksmartTypography,
@@ -71,6 +77,16 @@ fun PicksmartTheme(
         )
     }
 }
+
+/**
+ * Material's ripple without the hover shade. A pointer resting over a control (the emulator sends
+ * the computer's mouse as a hovering stylus) kept buttons and rows lighter after a tap, which read
+ * as stuck. Fingers can't hover, so riders lose nothing; press and keyboard focus keep Material's
+ * values, so focus stays visible for keyboard and switch users.
+ */
+private val NoHoverRipple = RippleConfiguration(
+    rippleAlpha = RippleAlpha(draggedAlpha = 0.16f, focusedAlpha = 0.1f, hoveredAlpha = 0f, pressedAlpha = 0.1f),
+)
 
 /** Access to Picksmart-specific theme values, alongside [MaterialTheme]. */
 object PicksmartTheme {

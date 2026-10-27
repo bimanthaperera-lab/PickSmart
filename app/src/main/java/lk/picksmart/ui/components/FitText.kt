@@ -4,6 +4,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,7 +33,7 @@ fun FitText(
     lines: Int = 1,
     minScale: Float = 0.75f,
 ) {
-    var scale by remember(text, style, lines) { mutableStateOf(1f) }
+    var scale by remember(text, style, lines) { mutableFloatStateOf(1f) }
     var settled by remember(text, style, lines) { mutableStateOf(false) }
     Text(
         text = text,

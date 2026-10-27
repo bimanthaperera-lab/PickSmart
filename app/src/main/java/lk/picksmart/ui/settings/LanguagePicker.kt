@@ -3,6 +3,7 @@ package lk.picksmart.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import lk.picksmart.R
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.AppLanguage
@@ -89,7 +93,7 @@ fun LanguageDialog(selected: AppLanguage, onDismiss: () -> Unit) {
                                 role = Role.RadioButton,
                                 onClick = {
                                     onDismiss()
-                                    if (language != selected) context.findActivity()?.let { AppLanguageStore.set(it, language) }
+                                    if (language != selected) context.findActivity()?.let { setAfterDialogCloses(it, language) }
                                 },
                             ),
                         verticalAlignment = Alignment.CenterVertically,
@@ -107,6 +111,26 @@ fun LanguageDialog(selected: AppLanguage, onDismiss: () -> Unit) {
         },
     )
 }
+
+/**
+ * Applies [language] once the dialog has faded out. Redrawing every screen in a new language takes
+ * one long frame; done at the same moment, the dialog vanished mid-fade and the list jumped under
+ * it, which looked like a flicker. Runs on the activity's scope, since the dialog is already gone.
+ */
+private fun setAfterDialogCloses(activity: Activity, language: AppLanguage) {
+    val scope = (activity as? ComponentActivity)?.lifecycleScope
+    if (scope == null) {
+        AppLanguageStore.set(activity, language)
+        return
+    }
+    scope.launch {
+        delay(DIALOG_EXIT_MS)
+        AppLanguageStore.set(activity, language)
+    }
+}
+
+/** A little longer than a dialog's fade-out. */
+private const val DIALOG_EXIT_MS = 220L
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this

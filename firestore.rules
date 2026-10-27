@@ -2,46 +2,130 @@ rules_version = '2';
 
 // Picksmart cloud backup (CLAUDE.md section 14). Each rider can read and write only their own
 // users/{uid} document and the record collections under it. Everything else is closed.
+//
+// Writes are checked against what the app sends (data/sync/CloudRecords.kt): only known fields,
+// each of the right type, and text kept short, so a modified app can't fill a rider's space with
+// large documents. The text limits sit well above the app's own (plate 15, notes 200; vehicle
+// names have no limit in the app), because one refused record fails a whole backup batch. A new
+// field in CloudRecords needs adding here, and publishing, before that app version ships.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Field checks. A field the app may leave empty is sent as null.
+    function text(d, f, max) { return d[f] is string && d[f].size() <= max; }
+    function optText(d, f, max) { return d[f] == null || text(d, f, max); }
+    function num(d, f) { return d[f] is number; }
+    function optNum(d, f) { return d[f] == null || d[f] is number; }
+    function flag(d, f) { return d[f] is bool; }
+
+    // Every record: its format, times, and the server time Firestore stamps on each write.
+    function baseFields() { return ['format', 'createdAt', 'updatedAt', 'deleted', 'serverUpdatedAt']; }
+
+    function validBase(d) {
+      return d.format is int && d.updatedAt is int && d.deleted is bool && d.serverUpdatedAt == request.time;
+    }
+
+    // A deleted record keeps only its format, time and the deleted flag.
+    function validTombstone(d) {
+      return d.keys().hasOnly(['format', 'updatedAt', 'deleted', 'serverUpdatedAt']) && d.deleted == true;
+    }
+
+    function validVehicle(d) {
+      return d.keys().hasOnly(baseFields().concat(['name', 'type', 'fuelType', 'fuelPricePerLitreCents',
+          'fuelPriceSource', 'fuelPriceEffectiveDate', 'autoUpdateFuelPrice', 'fuelEfficiencyKmPerLitre',
+          'maintenanceReservePerKmCents', 'targetProfitPerKmCents', 'isSample', 'archived', 'plateNumber']))
+        && d.createdAt is int
+        && text(d, 'name', 1000) && text(d, 'type', 40) && text(d, 'fuelType', 40) && text(d, 'fuelPriceSource', 40)
+        && num(d, 'fuelPricePerLitreCents') && optText(d, 'fuelPriceEffectiveDate', 10) && flag(d, 'autoUpdateFuelPrice')
+        && num(d, 'fuelEfficiencyKmPerLitre') && num(d, 'maintenanceReservePerKmCents') && optNum(d, 'targetProfitPerKmCents')
+        && flag(d, 'isSample') && flag(d, 'archived') && optText(d, 'plateNumber', 30);
+    }
+
+    function validTrip(d) {
+      return d.keys().hasOnly(baseFields().concat(['vehicleSyncId', 'tripDateTime', 'platform', 'status', 'fareCents',
+          'fareMode', 'commissionType', 'commissionHundredths', 'pickupKm', 'tripKm', 'returnKm', 'otherCostsCents',
+          'cancellationFeeCents', 'notes', 'fuelPricePerLitreCents', 'fuelEfficiencyKmPerLitre',
+          'maintenanceReservePerKmCents', 'targetProfitPerKmCents']))
+        && d.createdAt is int
+        && text(d, 'vehicleSyncId', 64) && num(d, 'tripDateTime') && text(d, 'platform', 40) && text(d, 'status', 40)
+        && num(d, 'fareCents') && text(d, 'fareMode', 40) && text(d, 'commissionType', 40) && num(d, 'commissionHundredths')
+        && num(d, 'pickupKm') && num(d, 'tripKm') && num(d, 'returnKm') && num(d, 'otherCostsCents')
+        && optNum(d, 'cancellationFeeCents') && optText(d, 'notes', 1000) && num(d, 'fuelPricePerLitreCents')
+        && num(d, 'fuelEfficiencyKmPerLitre') && num(d, 'maintenanceReservePerKmCents') && optNum(d, 'targetProfitPerKmCents');
+    }
+
+    function validOtherIncome(d) {
+      return d.keys().hasOnly(baseFields().concat(['date', 'type', 'platform', 'amountCents', 'note']))
+        && d.createdAt is int
+        && text(d, 'date', 10) && text(d, 'type', 40) && optText(d, 'platform', 40) && num(d, 'amountCents')
+        && optText(d, 'note', 1000);
+    }
+
+    function validFuelLog(d) {
+      return d.keys().hasOnly(baseFields().concat(['vehicleSyncId', 'date', 'litres', 'pricePerLitreCents',
+          'totalCents', 'odometerKm', 'fullTank']))
+        && d.createdAt is int
+        && text(d, 'vehicleSyncId', 64) && text(d, 'date', 10) && num(d, 'litres') && num(d, 'pricePerLitreCents')
+        && num(d, 'totalCents') && optNum(d, 'odometerKm') && flag(d, 'fullTank');
+    }
+
+    function validExpense(d) {
+      return d.keys().hasOnly(baseFields().concat(['vehicleSyncId', 'date', 'category', 'amountCents', 'note', 'odometerKm']))
+        && d.createdAt is int
+        && optText(d, 'vehicleSyncId', 64) && text(d, 'date', 10) && text(d, 'category', 40) && num(d, 'amountCents')
+        && optText(d, 'note', 1000) && optNum(d, 'odometerKm');
+    }
+
+    function validRecord(kind, d) {
+      return validBase(d) && (
+        validTombstone(d)
+        || (d.deleted == false && (
+          (kind == 'vehicles' && validVehicle(d))
+          || (kind == 'trips' && validTrip(d))
+          || (kind == 'other_income' && validOtherIncome(d))
+          || (kind == 'fuel_logs' && validFuelLog(d))
+          || (kind == 'expenses' && validExpense(d)))));
+    }
+
     match /users/{uid} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if isOwner(uid);
 
       // The profile holds only the settings and details the app writes (CloudProfile). Anything
       // else, such as a Premium flag, can't be written by the app, so a rider can't grant it to
       // themselves.
-      allow create, update: if request.auth != null
-        && request.auth.uid == uid
+      allow create, update: if isOwner(uid)
         && request.resource.data.keys().hasOnly(['mobileNumber', 'activeVehicleSyncId', 'gender', 'birthDate'])
-        && (!('mobileNumber' in request.resource.data) || request.resource.data.mobileNumber is string)
-        && (!('activeVehicleSyncId' in request.resource.data) || request.resource.data.activeVehicleSyncId is string)
+        && (!('mobileNumber' in request.resource.data) || text(request.resource.data, 'mobileNumber', 200))
+        && (!('activeVehicleSyncId' in request.resource.data) || text(request.resource.data, 'activeVehicleSyncId', 64))
         && (!('gender' in request.resource.data) || request.resource.data.gender in ['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'])
         && (!('birthDate' in request.resource.data) || request.resource.data.birthDate.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}'));
 
       // The photo the rider chose: one small JPEG (the app keeps it at 512 px a side).
       match /profile/photo {
-        allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null
-          && request.auth.uid == uid
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
           && request.resource.data.keys().hasOnly(['jpeg'])
           && request.resource.data.jpeg is bytes
           && request.resource.data.jpeg.size() <= 1000000;
       }
 
       match /{kind}/{syncId} {
-        allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null
-          && request.auth.uid == uid
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
           && kind in ['vehicles', 'trips', 'other_income', 'fuel_logs', 'expenses']
-          && request.resource.data.updatedAt is int
-          && request.resource.data.deleted is bool;
+          && syncId.size() <= 64
+          && validRecord(kind, request.resource.data);
       }
     }
 
     // Premium (CLAUDE.md section 15, Phase 8d): written only by the Cloud Function that verifies
     // the Play purchase (the Admin SDK ignores these rules). The rider can read their own.
     match /entitlements/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid);
       allow write: if false;
     }
   }

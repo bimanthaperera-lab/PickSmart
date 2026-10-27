@@ -25,6 +25,36 @@ class OfferTextTest {
     }
 
     @Test
+    fun `numbers the parser could give are accepted`() {
+        assertEquals(OfferReading(85_000, 1.2, 7.5), offerReadingOrNull(85_000, 1.2, 7.5))
+        assertEquals(OfferReading(85_000, null, 7.5), offerReadingOrNull(85_000, null, 7.5))
+        assertEquals(OfferReading(1, 0.0, 500.0), offerReadingOrNull(1, 0.0, 500.0))
+        assertEquals(OfferReading(100_000_000, 2.0, null), offerReadingOrNull(100_000_000, 2.0, null))
+    }
+
+    @Test
+    fun `a fare that isn't a ride is refused`() {
+        assertNull(offerReadingOrNull(0, 1.0, 5.0))
+        assertNull(offerReadingOrNull(-500, 1.0, 5.0))
+        assertNull(offerReadingOrNull(100_000_001, 1.0, 5.0))
+        assertNull(offerReadingOrNull(Long.MAX_VALUE, 1.0, 5.0))
+    }
+
+    @Test
+    fun `a distance that can't be shown in the form is refused`() {
+        assertNull(offerReadingOrNull(85_000, Double.POSITIVE_INFINITY, 5.0))
+        assertNull(offerReadingOrNull(85_000, 1.0, Double.NaN))
+        assertNull(offerReadingOrNull(85_000, -1.0, 5.0))
+        assertNull(offerReadingOrNull(85_000, 1.0, 500.01))
+        assertNull(offerReadingOrNull(85_000, Double.MAX_VALUE, null))
+    }
+
+    @Test
+    fun `an offer needs at least one distance`() {
+        assertNull(offerReadingOrNull(85_000, null, null))
+    }
+
+    @Test
     fun `labels win over reading order`() {
         val reading = parseOfferText(listOf("Rs. 1,250", "Trip: 12 km", "Pickup 2.5 km"))
         assertEquals(OfferReading(125_000, 2.5, 12.0), reading)

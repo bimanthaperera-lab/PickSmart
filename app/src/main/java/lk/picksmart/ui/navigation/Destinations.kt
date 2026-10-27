@@ -5,8 +5,8 @@ import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
 import lk.picksmart.domain.model.Platform
-import lk.picksmart.domain.usecase.OfferReading
 import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.domain.usecase.offerReadingOrNull
 import java.time.Instant
 
 @Serializable data object HomeRoute
@@ -42,8 +42,8 @@ data class EditTripRoute(
 ) {
     /** The offer to fill a new trip with, or null for a blank one. Distances below 0 weren't read. */
     fun offer(): OfferToSave? {
-        if (tripId != NEW || offerFareCents <= 0) return null
-        val reading = OfferReading(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 })
+        if (tripId != NEW) return null
+        val reading = offerReadingOrNull(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 }) ?: return null
         return OfferToSave(reading, offerPlatform, Instant.ofEpochMilli(offerReadAtMillis))
     }
 

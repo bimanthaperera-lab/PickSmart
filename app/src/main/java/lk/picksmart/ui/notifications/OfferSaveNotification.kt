@@ -4,17 +4,17 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import lk.picksmart.MainActivity
 import lk.picksmart.R
 import lk.picksmart.domain.model.Platform
-import lk.picksmart.domain.usecase.OfferReading
 import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.domain.usecase.offerReadingOrNull
 import lk.picksmart.util.MoneyFormatter
 import lk.picksmart.util.decimalToInput
 import java.time.Instant
@@ -35,6 +35,9 @@ object OfferSaveNotification {
     private const val TIMEOUT_MS = 2 * 60 * 60 * 1000L
 
     const val ACTION_SAVE_OFFER = "lk.picksmart.action.SAVE_OFFER"
+
+    /** The `<activity-alias>` of MainActivity in the manifest that only Picksmart can open. */
+    private const val SAVE_OFFER_ENTRY = "lk.picksmart.SaveOffer"
     private const val EXTRA_FARE_CENTS = "offer_fare_cents"
     private const val EXTRA_PICKUP_KM = "offer_pickup_km"
     private const val EXTRA_TRIP_KM = "offer_trip_km"
@@ -86,7 +89,8 @@ object OfferSaveNotification {
         manager.notify(NOTIFICATION_ID, notification)
     }
 
-    private fun intent(context: Context, offer: OfferToSave) = Intent(context, MainActivity::class.java)
+    private fun intent(context: Context, offer: OfferToSave) = Intent()
+        .setComponent(ComponentName(context.packageName, SAVE_OFFER_ENTRY))
         .setAction(ACTION_SAVE_OFFER)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         .putExtra(EXTRA_FARE_CENTS, offer.reading.fareCents)
@@ -95,16 +99,19 @@ object OfferSaveNotification {
         .putExtra(EXTRA_PLATFORM, offer.platform.name)
         .putExtra(EXTRA_READ_AT, offer.readAt.toEpochMilli())
 
-    /** The offer in a tap on this notification, or null for any other intent. */
+    /**
+     * The offer in a tap on this notification, or null for any other intent. MainActivity is
+     * exported (it is the launcher entry), so any app could send it this action; only an intent
+     * that came through the [SAVE_OFFER_ENTRY] alias, which isn't exported, is from Picksmart. Its
+     * numbers are checked too ([offerReadingOrNull]).
+     */
     fun offerFrom(intent: Intent?): OfferToSave? {
-        if (intent?.action != ACTION_SAVE_OFFER) return null
-        val fare = intent.getLongExtra(EXTRA_FARE_CENTS, 0)
-        if (fare <= 0) return null
-        val reading = OfferReading(
-            fareCents = fare,
+        if (intent?.action != ACTION_SAVE_OFFER || intent.component?.className != SAVE_OFFER_ENTRY) return null
+        val reading = offerReadingOrNull(
+            fareCents = intent.getLongExtra(EXTRA_FARE_CENTS, 0),
             pickupKm = intent.getDoubleExtra(EXTRA_PICKUP_KM, -1.0).takeIf { it >= 0 },
             tripKm = intent.getDoubleExtra(EXTRA_TRIP_KM, -1.0).takeIf { it >= 0 },
-        )
+        ) ?: return null
         val platform = Platform.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_PLATFORM) } ?: Platform.OTHER
         return OfferToSave(reading, platform, Instant.ofEpochMilli(intent.getLongExtra(EXTRA_READ_AT, System.currentTimeMillis())))
     }

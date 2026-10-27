@@ -33,6 +33,16 @@
         </activity>
 
         <!--
+            The "Save this trip?" notification opens MainActivity through this alias. It isn't
+            exported, so no other app can send to it, and MainActivity takes an offer only from an
+            intent that came this way (OfferSaveNotification.offerFrom).
+        -->
+        <activity-alias
+            android:name=".SaveOffer"
+            android:exported="false"
+            android:targetActivity=".MainActivity" />
+
+        <!--
             The offer reader (CLAUDE.md section 9b): read-only, no gestures, off until the rider turns it on
             in Android's Accessibility settings after the in-app disclosure.
         -->

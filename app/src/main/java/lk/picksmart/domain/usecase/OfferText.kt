@@ -86,6 +86,19 @@ fun parseOfferText(lines: List<String>): OfferReading? {
     return OfferReading(fare, pickup, trip)
 }
 
+/**
+ * An [OfferReading] from numbers handed between parts of the app (the "Save this trip?"
+ * notification, the Add trip route), or null unless [parseOfferText] could have found them: a
+ * fare above 0 up to Rs. 1,000,000, and at least one distance, each finite and 0 to [MAX_KM]. A NaN,
+ * infinite or huge value would otherwise reach the trip form and break it.
+ */
+fun offerReadingOrNull(fareCents: Long, pickupKm: Double?, tripKm: Double?): OfferReading? {
+    if (fareCents !in 1..MAX_FARE_CENTS) return null
+    if (pickupKm == null && tripKm == null) return null
+    if (listOfNotNull(pickupKm, tripKm).any { !it.isFinite() || it !in 0.0..MAX_KM }) return null
+    return OfferReading(fareCents, pickupKm, tripKm)
+}
+
 private fun fareIn(line: String): Long? {
     val match = MONEY_BEFORE.find(line) ?: MONEY_AFTER.find(line) ?: return null
     val start = match.range.first

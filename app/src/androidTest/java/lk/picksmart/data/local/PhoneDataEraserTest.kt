@@ -38,8 +38,9 @@ import java.io.File
 import java.time.Instant
 
 /**
- * Deleting the account erases the phone (owner decision 2026-10-26), so a new account made on it
- * starts empty. Sample data only.
+ * Deleting the account erases its records and settings on the phone (owner decisions 2026-10-26
+ * and 2026-10-27), so a new account made there starts empty. Other accounts on the phone keep
+ * their details and photos. Sample data only.
  */
 @RunWith(AndroidJUnit4::class)
 class PhoneDataEraserTest {
@@ -63,7 +64,7 @@ class PhoneDataEraserTest {
     }
 
     @Test
-    fun erasesRecordsPhotosExportsAndSettingsButKeepsTheTheme() = runTest {
+    fun erasesTheRidersRecordsPhotosExportsAndSettingsButKeepsTheThemeAndOthers() = runTest {
         val vehicleId = db.vehicleDao().insert(sampleVehicle().toEntity())
         db.tripDao().insert(sampleTrip(vehicleId).toEntity())
         db.tripDao().insertTombstone(SyncTombstoneEntity(SyncKind.TRIPS, "a".repeat(32), 1))
@@ -71,12 +72,14 @@ class PhoneDataEraserTest {
         prefs.completeOnboarding(defaultVehicleId = vehicleId)
         prefs.setThemeMode(ThemeMode.DARK)
         prefs.setMobileNumber("rider-1", "077 123 4567")
+        prefs.setMobileNumber("rider-2", "071 000 0000")
         photoDir.mkdirs()
         File(photoDir, "rider-1.own.jpg").writeText("sample")
+        File(photoDir, "rider-2.own.jpg").writeText("sample")
         exportDir.mkdirs()
         File(exportDir, "picksmart-trips.csv").writeText("sample")
 
-        eraser.erase()
+        eraser.erase("rider-1")
 
         assertTrue(db.vehicleDao().observeAll().first().isEmpty())
         assertTrue(db.tripDao().observeAll().first().isEmpty())
@@ -87,7 +90,9 @@ class PhoneDataEraserTest {
         assertNull(prefs.defaultVehicleId.first())
         assertNull(prefs.personalDetails("rider-1").first().mobile)
         assertEquals(ThemeMode.DARK, prefs.themeMode.first())
-        assertFalse(photoDir.exists())
+        assertFalse(File(photoDir, "rider-1.own.jpg").exists())
+        assertTrue(File(photoDir, "rider-2.own.jpg").exists())
+        assertEquals("071 000 0000", prefs.personalDetails("rider-2").first().mobile)
         assertFalse(exportDir.exists())
     }
 

@@ -1,6 +1,7 @@
 package lk.picksmart.domain.usecase
 
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import lk.picksmart.data.account.AccountProvider
 import lk.picksmart.data.account.AuthError
@@ -26,10 +27,10 @@ sealed interface DeleteAccountResult {
 
 /**
  * Deletes the rider's account and all their data (CLAUDE.md section 14, owner decision 2026-10-26):
- * the cloud backup, then the sign-in account, then every record and setting on the phone, so a
- * new account made on this phone starts empty. The steps run in that order because the cloud
- * backup can only be reached while the account exists, and the phone's records are erased only
- * once nothing can upload them again.
+ * the cloud backup, then the sign-in account, then their records and settings on the phone (their
+ * space, `DataSpaces.kt`; other accounts' spaces stay), so a new account made on this phone starts
+ * empty. The steps run in that order because the cloud backup can only be reached while the
+ * account exists, and the phone's records are erased only once nothing can upload them again.
  *
  * The rider confirms it's them first, because Firebase deletes only after a recent sign-in; a
  * failure there, or an offline phone, deletes nothing. Once started, deleting finishes even if the
@@ -38,16 +39,17 @@ sealed interface DeleteAccountResult {
 class DeleteAccount(
     private val account: AccountProvider,
     private val sync: SyncProvider,
-    private val erasePhoneData: suspend () -> Unit,
+    private val erasePhoneData: suspend (uid: String) -> Unit,
 ) {
     suspend operator fun invoke(proof: IdentityProof): DeleteAccountResult {
+        val uid = account.profile.first()?.uid ?: return DeleteAccountResult.NotConfirmed(AuthError.UNKNOWN)
         val confirmed = account.confirmIdentity(proof)
         if (confirmed is AuthResult.Failure) return DeleteAccountResult.NotConfirmed(confirmed.error)
         return withContext(NonCancellable) {
             sync.deleteCloudData()?.let { return@withContext DeleteAccountResult.CloudNotDeleted(it) }
             val deleted = account.deleteAccount()
             if (deleted is AuthResult.Failure) return@withContext DeleteAccountResult.AccountNotDeleted(deleted.error)
-            erasePhoneData()
+            erasePhoneData(uid)
             DeleteAccountResult.Deleted
         }
     }

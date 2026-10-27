@@ -6,10 +6,12 @@
         <include domain="database" path="." />
         <include domain="file" path="datastore/" />
         <include domain="sharedpref" path="app_language.xml" />
+        <include domain="sharedpref" path="data_spaces.xml" />
     </cloud-backup>
     <device-transfer>
         <include domain="database" path="." />
         <include domain="file" path="datastore/" />
         <include domain="sharedpref" path="app_language.xml" />
+        <include domain="sharedpref" path="data_spaces.xml" />
     </device-transfer>
 </data-extraction-rules>

@@ -28,7 +28,7 @@ class DeleteAccountTest {
     ) = DeleteAccount(
         FakeAccount(confirm, accountDeleted, steps),
         FakeSync(cloudProblem, steps),
-        erasePhoneData = { steps += "erase phone" },
+        erasePhoneData = { uid -> steps += "erase phone of $uid" },
     )
 
     @Test
@@ -36,7 +36,7 @@ class DeleteAccountTest {
         val result = deleteAccount()(IdentityProof.Password("secret"))
 
         assertEquals(DeleteAccountResult.Deleted, result)
-        assertEquals(listOf("confirm", "delete cloud", "delete account", "erase phone"), steps)
+        assertEquals(listOf("confirm", "delete cloud", "delete account", "erase phone of user1"), steps)
     }
 
     @Test

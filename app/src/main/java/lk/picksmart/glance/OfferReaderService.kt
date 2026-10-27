@@ -11,8 +11,10 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.AppLanguageStore
@@ -77,11 +79,13 @@ class OfferReaderService : AccessibilityService() {
     // The badge's words follow the rider's language below Android 13 too.
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onServiceConnected() {
         badge = OfferBadge(this) { hiddenByRider = shown }
         val container = (application as PicksmartApplication).container
-        scope.launch { container.vehicles.defaultVehicle.collect { vehicle = it; refresh() } }
-        scope.launch { container.userPreferences.lastCheckInputs.collect { lastInputs = it; refresh() } }
+        // The rates and fee settings of the records on screen; they change when another account signs in.
+        scope.launch { container.space.flatMapLatest { it.vehicles.defaultVehicle }.collect { vehicle = it; refresh() } }
+        scope.launch { container.space.flatMapLatest { it.userPreferences.lastCheckInputs }.collect { lastInputs = it; refresh() } }
         scope.launch {
             container.userPreferences.offerReaderPaused.collect {
                 paused = it

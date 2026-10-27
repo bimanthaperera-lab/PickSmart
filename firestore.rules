@@ -5,7 +5,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+
+      // The profile holds only the settings the app writes (CloudProfile). Anything else, such
+      // as a Premium flag, can't be written by the app, so a rider can't grant it to themselves.
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['mobileNumber', 'activeVehicleSyncId'])
+        && (!('mobileNumber' in request.resource.data) || request.resource.data.mobileNumber is string)
+        && (!('activeVehicleSyncId' in request.resource.data) || request.resource.data.activeVehicleSyncId is string);
 
       match /{kind}/{syncId} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;
@@ -15,6 +23,13 @@ service cloud.firestore {
           && request.resource.data.updatedAt is int
           && request.resource.data.deleted is bool;
       }
+    }
+
+    // Premium (CLAUDE.md section 15, Phase 8d): written only by the Cloud Function that verifies
+    // the Play purchase (the Admin SDK ignores these rules). The rider can read their own.
+    match /entitlements/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
     }
   }
 }

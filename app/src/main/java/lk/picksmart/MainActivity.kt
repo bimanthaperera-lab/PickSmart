@@ -28,9 +28,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.OfferToSave
@@ -60,6 +64,18 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) {
             container.refreshFuelPrices()
             offerToSave = OfferSaveNotification.offerFrom(intent)
+        }
+        // Another account signed in, so their records are now the ones on screen (DataSpaces.kt).
+        // Start again, so every screen and ViewModel is built on them, never on the last rider's.
+        val shownSpace = container.space.value.id
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                container.space.first { it.id != shownSpace }
+                startActivity(
+                    Intent(this@MainActivity, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+                )
+            }
         }
 
         setContent {

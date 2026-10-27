@@ -14,11 +14,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import lk.picksmart.data.account.AccountProvider
 import java.time.Clock
 
 /** What the Account tab says about cloud backup. */
@@ -62,7 +60,9 @@ object NoOpSyncProvider : SyncProvider {
 }
 
 /**
- * Runs [CloudSync] for the signed-in rider:
+ * Runs [CloudSync] for the signed-in rider. [signedIn] is the account whose records this space
+ * holds while that account is signed in, else null (`DataSpaces.kt`), so one account's records are
+ * never backed up to another's.
  *
  * - a full run (download and upload) when a rider signs in, when the app starts, when the phone
  *   comes back online after a run failed, and when the rider asks;
@@ -72,7 +72,7 @@ object NoOpSyncProvider : SyncProvider {
  * Runs never overlap. A failure only changes [status]; local use is never affected.
  */
 class CloudSyncProvider(
-    private val account: AccountProvider,
+    private val signedIn: Flow<String?>,
     private val sync: CloudSync,
     pending: Flow<Int>,
     private val clock: Clock,
@@ -91,7 +91,7 @@ class CloudSyncProvider(
 
     init {
         scope.launch {
-            account.profile.map { it?.uid }.distinctUntilChanged().collect { uid ->
+            signedIn.distinctUntilChanged().collect { uid ->
                 if (uid == null) {
                     scheduledUpload?.cancel()
                     mutableStatus.value = SyncStatus.Off
@@ -105,14 +105,17 @@ class CloudSyncProvider(
             pending.distinctUntilChanged().collect { count -> if (count > 0) scheduleUpload() }
         }
         context.getSystemService(ConnectivityManager::class.java)?.let { connectivity ->
-            runCatching {
-                connectivity.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        if ((status.value as? SyncStatus.Stopped)?.problem == SyncProblem.OFFLINE) {
-                            scope.launch { run(download = true) }
-                        }
+            val callback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    if ((status.value as? SyncStatus.Stopped)?.problem == SyncProblem.OFFLINE) {
+                        scope.launch { run(download = true) }
                     }
-                })
+                }
+            }
+            runCatching {
+                connectivity.registerDefaultNetworkCallback(callback)
+                // The scope ends when the app switches to another account's records.
+                scope.coroutineContext[Job]?.invokeOnCompletion { runCatching { connectivity.unregisterNetworkCallback(callback) } }
             }
         }
     }
@@ -120,7 +123,7 @@ class CloudSyncProvider(
     override suspend fun syncNow(): SyncStatus = run(download = true, force = true)
 
     override suspend fun deleteCloudData(): SyncProblem? {
-        val uid = account.profile.first()?.uid ?: return SyncProblem.REFUSED
+        val uid = signedIn.first() ?: return SyncProblem.REFUSED
         scheduledUpload?.cancel()
         return running.withLock {
             try {
@@ -142,7 +145,7 @@ class CloudSyncProvider(
     }
 
     private suspend fun run(download: Boolean, force: Boolean = false): SyncStatus = running.withLock {
-        val uid = account.profile.first()?.uid ?: return@withLock SyncStatus.Off.also { mutableStatus.value = it }
+        val uid = signedIn.first() ?: return@withLock SyncStatus.Off.also { mutableStatus.value = it }
         val now = clock.millis()
         // App start, sign-in and reconnecting can arrive together; one download covers them, and
         // the others only upload.
@@ -161,7 +164,7 @@ class CloudSyncProvider(
             SyncStatus.Stopped(SyncProblem.FAILED, sync.lastBackupMillis())
         }
         // Signed out while it ran: say so rather than reporting a backup.
-        mutableStatus.value = if (account.profile.first()?.uid == uid) result else SyncStatus.Off
+        mutableStatus.value = if (signedIn.first() == uid) result else SyncStatus.Off
         mutableStatus.value
     }
 

@@ -110,9 +110,10 @@ class ProfilePhotoCache(private val directory: File) {
         Unit
     }
 
-    /** When the phone's data is erased: removes every photo kept here, for any rider. */
-    suspend fun clearEverything() = withContext(Dispatchers.IO) {
-        directory.deleteRecursively()
+    /** When [uid]'s account is deleted: removes both of their photos. Other accounts' stay. */
+    suspend fun forget(uid: String) = withContext(Dispatchers.IO) {
+        ownFileFor(uid).delete()
+        fileFor(uid).delete()
         mutableChanges.update { it + 1 }
     }
 

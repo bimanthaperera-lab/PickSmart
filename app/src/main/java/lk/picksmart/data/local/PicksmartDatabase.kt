@@ -49,15 +49,14 @@ abstract class PicksmartDatabase : RoomDatabase() {
     abstract fun syncDao(): SyncDao
 
     companion object {
-        /** The file Auto Backup includes (`database` domain). Never rename it. */
-        const val NAME = "picksmart.db"
-
         /**
-         * Opens the app database. Schema changes go through [ALL_MIGRATIONS]; there is
-         * deliberately no destructive fallback in any build type (CLAUDE.md N7).
+         * Opens the database file [name] (`databaseName` in `DataSpaces.kt`; the first one is
+         * `picksmart.db`, never renamed). Auto Backup includes them all (`database` domain).
+         * Schema changes go through [ALL_MIGRATIONS]; there is deliberately no destructive
+         * fallback in any build type (CLAUDE.md N7).
          */
-        fun build(context: Context): PicksmartDatabase =
-            Room.databaseBuilder(context.applicationContext, PicksmartDatabase::class.java, NAME)
+        fun build(context: Context, name: String): PicksmartDatabase =
+            Room.databaseBuilder(context.applicationContext, PicksmartDatabase::class.java, name)
                 .addMigrations(*ALL_MIGRATIONS)
                 .build()
     }

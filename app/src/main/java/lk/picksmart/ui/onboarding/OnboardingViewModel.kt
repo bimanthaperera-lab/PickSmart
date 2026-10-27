@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -26,6 +27,7 @@ import lk.picksmart.data.sync.SyncStatus
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.usecase.CompleteOnboarding
+import lk.picksmart.domain.usecase.FIRST_SPACE
 import lk.picksmart.domain.usecase.fuelPriceSuggestions
 import lk.picksmart.ui.vehicle.FieldError
 import lk.picksmart.ui.vehicle.VehicleField
@@ -62,16 +64,36 @@ data class OnboardingUiState(
  * signs in from the welcome screen skips the intro: their backup is restored first, and if it
  * brings back a vehicle they go straight to the permissions. Nothing new is saved until the rider
  * accepts the notice; finishing flips the onboarding flag, which takes the app to Home.
+ *
+ * When another account signs in on a phone already set up, the app opens a new, empty space for
+ * their records (`DataSpaces.kt`) and comes here signed in ([addingAccount]). Their backup is
+ * restored and setup finishes at once; a new account sets up its vehicle and finishes. The
+ * permissions and the safety notice were already seen on this phone, so they are skipped.
  */
 class OnboardingViewModel(
     private val completeOnboarding: CompleteOnboarding,
     account: AccountProvider,
     preferences: UserPreferencesRepository,
     private val sync: SyncProvider,
+    addingAccount: Boolean = false,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingUiState())
     val state: StateFlow<OnboardingUiState> = _state.asStateFlow()
+
+    /** Setting up the space of an account added to this phone: no permissions or safety notice. */
+    private var quickSetup = false
+
+    init {
+        if (addingAccount) {
+            viewModelScope.launch {
+                if (account.profile.first() != null) {
+                    quickSetup = true
+                    signedIn()
+                }
+            }
+        }
+    }
 
     /** Whether the welcome screen offers "I already have an account": sign-in exists and nobody is signed in. */
     val canSignIn: StateFlow<Boolean> =
@@ -117,6 +139,11 @@ class OnboardingViewModel(
                 return@launch
             }
             val restored = completeOnboarding.hasVehicle()
+            if (restored && quickSetup) {
+                _state.update { it.copy(restored = true) }
+                finish()
+                return@launch
+            }
             _state.update { it.copy(step = if (restored) OnboardingStep.PERMISSIONS else OnboardingStep.VEHICLE, restored = restored) }
         }
     }
@@ -133,8 +160,11 @@ class OnboardingViewModel(
     fun continueWithForm(defaultName: String) {
         when (val result = _state.value.form.validate(defaultName)) {
             is VehicleFormResult.Invalid -> _state.update { it.copy(errors = result.errors) }
-            is VehicleFormResult.Valid -> _state.update {
-                it.copy(errors = emptyMap(), pending = result.input, step = OnboardingStep.PERMISSIONS)
+            is VehicleFormResult.Valid -> if (quickSetup) {
+                _state.update { it.copy(errors = emptyMap(), pending = result.input) }
+                finish()
+            } else {
+                _state.update { it.copy(errors = emptyMap(), pending = result.input, step = OnboardingStep.PERMISSIONS) }
             }
         }
     }
@@ -155,6 +185,7 @@ class OnboardingViewModel(
                 OnboardingStep.INTRO -> it.copy(step = OnboardingStep.WELCOME)
                 OnboardingStep.RESTORE -> {
                     restoring?.cancel()
+                    quickSetup = false
                     it.copy(step = OnboardingStep.WELCOME)
                 }
                 OnboardingStep.VEHICLE -> it.copy(step = OnboardingStep.INTRO, introPage = INTRO_PAGE_COUNT - 1)
@@ -193,7 +224,8 @@ class OnboardingViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as PicksmartApplication
-                OnboardingViewModel(app.container.completeOnboarding, app.container.account, app.container.userPreferences, app.container.sync)
+                val c = app.container
+                OnboardingViewModel(c.completeOnboarding, c.account, c.userPreferences, c.sync, addingAccount = c.space.value.id != FIRST_SPACE)
             }
         }
     }

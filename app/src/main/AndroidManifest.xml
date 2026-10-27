@@ -9,10 +9,15 @@
     <!-- Android 13+: asked for when the rider turns on the offer reader, for "Save this trip?" (section 9b). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Auto Backup is on, limited by explicit rules (CLAUDE.md section 10). -->
+    <!--
+        Auto Backup is on, limited by explicit rules (CLAUDE.md section 10).
+        hasFragileUserData: on Android 10+, uninstalling from the phone's settings or launcher shows a
+        "Keep app data" checkbox, so a rider can keep their records for a reinstall (owner decision 2026-10-27).
+    -->
     <application
         android:name=".PicksmartApplication"
         android:allowBackup="true"
+        android:hasFragileUserData="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"

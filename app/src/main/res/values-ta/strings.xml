@@ -500,7 +500,7 @@
     <string name="offer_save_body">%1$s · %2$s கி.மீ · சரிபார்த்துச் சேமிக்கத் தட்டவும்</string>
     <string name="offer_save_public_title">உங்கள் கடைசி சவாரி சலுகையைச் சவாரியாகச் சேமிக்கவும்</string>
     <string name="trip_from_offer_title">சவாரி சலுகையிலிருந்து நிரப்பப்பட்டது</string>
-    <string name="trip_from_offer_notice">இந்த எண்கள் திரையிலிருந்து படிக்கப்பட்டவை. சேமிப்பதற்கு முன் கட்டணம் மற்றும் தூரங்களைச் சரிபார்த்து, திரும்பும் பயணம் அல்லது பிற செலவுகள் இருந்தால் சேர்க்கவும்.</string>
+    <string name="trip_from_offer_notice">சேமிப்பதற்கு முன் எண்களைச் சரிபார்க்கவும்.</string>
     <string name="settings_language">மொழி</string>
     <string name="language_system">ஃபோனின் மொழி</string>
     <string name="settings_theme">தீம் (Theme)</string>
@@ -676,8 +676,8 @@
     <string name="onboarding_restore_none_title">Backup எதுவும் கிடைக்கவில்லை</string>
     <string name="onboarding_restore_none_body">இந்தக் கணக்கில் இன்னும் backup இல்லை, எனவே மீட்டெடுக்க எதுவும் இல்லை. தொடங்க உங்கள் வாகனத்தை அமைக்கவும். இனி உங்கள் பதிவுகள் இந்தக் கணக்கில் backup செய்யப்படும்.</string>
     <string name="offer_badge_tip">%1$s நன்கொடை (Tip) உட்பட</string>
-    <string name="trip_offer_tip_title">%1$s நன்கொடையைப் பிற வருமானமாகச் சேமி</string>
-    <string name="trip_offer_tip_body">சலுகையில் ஒரு நன்கொடை (Tip) காட்டப்பட்டது. இது இந்தச் சவாரியின் அதே தேதி மற்றும் சவாரி app உடன் பிற வருமானத்தில் Tip ஆகச் சேமிக்கப்படும், எனவே ஒருமுறை மட்டுமே கணக்கிடப்படும்.</string>
+    <string name="trip_offer_tip_title">%1$s நன்கொடையையும் சேமி</string>
+    <string name="trip_offer_tip_body">பிற வருமானத்தில் சேர்க்கப்படும்.</string>
     <string name="backup_title">Cloud backup</string>
     <string name="backup_running">Backup செய்கிறது…</string>
     <string name="backup_never">இன்னும் backup செய்யப்படவில்லை</string>

@@ -62,6 +62,15 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
         dataStore.edit { it[Keys.OFFER_READER_PAUSED] = paused }
     }
 
+    /** True when the offer reader plays a chime for a new offer's profit or loss (section 9b). Off by default. */
+    val offerSound: Flow<Boolean> = dataStore.data
+        .map { it[Keys.OFFER_SOUND] ?: false }
+        .distinctUntilChanged()
+
+    suspend fun setOfferSound(on: Boolean) {
+        dataStore.edit { it[Keys.OFFER_SOUND] = on }
+    }
+
     /** The vehicle Check a Ride pre-fills from, or null before setup. */
     val defaultVehicleId: Flow<Long?> = dataStore.data
         .map { it[keys.DEFAULT_VEHICLE_ID] }
@@ -282,6 +291,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val OFFER_READER_PAUSED = booleanPreferencesKey("offer_reader_paused")
+        val OFFER_SOUND = booleanPreferencesKey("offer_sound")
 
         // Published fuel prices (CLAUDE.md section 8a). The list is stored as separate keys, one
         // price per fuel type, so adding a fuel type later only adds a key.

@@ -601,6 +601,8 @@
     <string name="offer_reader_disclosure_body">Picksmart can read the fare and distances on a ride offer in Uber Driver and show the estimated profit or loss in a small badge at the top of the screen.\n\nIt uses Android\'s accessibility service to read the text on the offer only. It never taps, accepts or declines anything. What it reads stays on this phone: it is not saved, logged or sent anywhere.\n\nWhen an offer closes, a notification asks whether you took it. Tapping it fills in a trip for you to check; nothing is saved until you tap Save.\n\nRide apps may not allow other apps to read their screens. Using this could get your driver account warned or blocked. Use it at your own risk.\n\nThe result is an estimate from your vehicle\'s rates. Always check before you accept.</string>
     <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
     <string name="offer_reader_paused">Paused · not reading offers</string>
+    <string name="offer_sound_title">Sound on profit or loss</string>
+    <string name="offer_sound_body">A rising chime for a profit, a falling one for a loss. Plays at the notification volume, and not when the phone is on silent.</string>
     <!-- The switch at the top of Check a Ride -->
     <string name="offer_reader_switch_label">Read offers</string>
     <string name="offer_reader_state_on">Active</string>

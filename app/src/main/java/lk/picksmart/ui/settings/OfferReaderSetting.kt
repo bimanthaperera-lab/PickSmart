@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -64,6 +67,8 @@ import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.R
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.domain.usecase.OfferChime
+import lk.picksmart.glance.OfferChimes
 import lk.picksmart.glance.OfferReaderService
 import lk.picksmart.ui.components.ListGroup
 import lk.picksmart.ui.components.ListRow
@@ -77,14 +82,21 @@ import lk.picksmart.ui.theme.Spacing
  */
 enum class OfferReaderStatus { OFF, ON, PAUSED }
 
-/** The pause flag, kept in DataStore so the service sees it too. */
+/** The pause flag and the sound switch, kept in DataStore so the service sees them too. */
 class OfferReaderViewModel(private val preferences: UserPreferencesRepository) : ViewModel() {
 
     val paused: StateFlow<Boolean> = preferences.offerReaderPaused
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val sound: StateFlow<Boolean> = preferences.offerSound
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     fun setPaused(paused: Boolean) {
         viewModelScope.launch { preferences.setOfferReaderPaused(paused) }
+    }
+
+    fun setSound(on: Boolean) {
+        viewModelScope.launch { preferences.setOfferSound(on) }
     }
 
     companion object {
@@ -218,12 +230,15 @@ fun OfferReaderSwitch(
 /**
  * "Read ride offers" on the Account tab: On, Paused or Off. Tapping it shows the disclosure when
  * it is off, and otherwise offers Pause or Resume, and Turn off completely (off in Android too).
+ * Below it, "Sound on profit or loss" turns the reader's chimes on, playing the profit one as a
+ * sample.
  */
 @Composable
 fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)) {
     val context = LocalContext.current
     val (enabled, recheck) = rememberReaderEnabled()
     val paused by viewModel.paused.collectAsStateWithLifecycle()
+    val sound by viewModel.sound.collectAsStateWithLifecycle()
     val turnOn = rememberTurnOn(viewModel)
     var showDialog by rememberSaveable { mutableStateOf(false) }
     val status = when {
@@ -234,19 +249,33 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
 
     SectionLabel(stringResource(R.string.settings_section_glance))
     ListGroup(
-        rows = listOf {
-            ListRow(
-                title = stringResource(R.string.offer_reader_title),
-                subtitle = stringResource(
-                    when (status) {
-                        OfferReaderStatus.OFF -> R.string.offer_reader_off
-                        OfferReaderStatus.ON -> R.string.offer_reader_on
-                        OfferReaderStatus.PAUSED -> R.string.offer_reader_paused
+        rows = listOf(
+            {
+                ListRow(
+                    title = stringResource(R.string.offer_reader_title),
+                    subtitle = stringResource(
+                        when (status) {
+                            OfferReaderStatus.OFF -> R.string.offer_reader_off
+                            OfferReaderStatus.ON -> R.string.offer_reader_on
+                            OfferReaderStatus.PAUSED -> R.string.offer_reader_paused
+                        },
+                    ),
+                    onClick = { showDialog = true },
+                )
+            },
+            {
+                SwitchListRow(
+                    title = stringResource(R.string.offer_sound_title),
+                    subtitle = stringResource(R.string.offer_sound_body),
+                    checked = sound,
+                    onCheckedChange = { on ->
+                        viewModel.setSound(on)
+                        // A sample, so the rider knows what to listen for.
+                        if (on) OfferChimes.play(context, OfferChime.PROFIT)
                     },
-                ),
-                onClick = { showDialog = true },
-            )
-        },
+                )
+            },
+        ),
     )
 
     if (!showDialog) return
@@ -271,6 +300,27 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
             },
             onDismiss = { showDialog = false },
         )
+    }
+}
+
+/** A [ListRow]-sized row with a switch at the end. The whole row is the control. */
+@Composable
+private fun SwitchListRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .defaultMinSize(minHeight = 64.dp)
+            .padding(horizontal = Spacing.l, vertical = Spacing.m),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.width(Spacing.m))
+        // The row handles the toggle, so the switch itself takes no clicks.
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

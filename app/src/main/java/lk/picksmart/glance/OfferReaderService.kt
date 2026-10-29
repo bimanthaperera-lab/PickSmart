@@ -24,6 +24,7 @@ import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.usecase.OfferReading
 import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.domain.usecase.checkOffer
+import lk.picksmart.domain.usecase.offerChime
 import lk.picksmart.domain.usecase.parseOfferText
 import lk.picksmart.ui.notifications.OfferSaveNotification
 import java.lang.ref.WeakReference
@@ -36,6 +37,8 @@ import java.time.Instant
  * vehicle's rates. When the offer
  * leaves the screen it asks, in a notification, whether to save it as a trip
  * ([OfferSaveNotification]); only the numbers go into it, and the rider saves them in the app.
+ * When the rider has turned the sound on, a new offer's profit or loss also plays a chime
+ * ([OfferChimes]).
  *
  * It only reads. It never performs an action, gesture or global action, and the text it reads is
  * kept in memory for one calculation and never logged, saved or sent. Which apps it reads is set
@@ -55,6 +58,7 @@ class OfferReaderService : AccessibilityService() {
     @Volatile private var vehicle: Vehicle? = null
     @Volatile private var paused = false
     @Volatile private var lastInputs = LastCheckInputs()
+    @Volatile private var soundOn = false
 
     /** The offer shown in the badge, or the one the rider hid, so the same offer isn't redrawn. */
     private var shown: OfferReading? = null
@@ -63,6 +67,9 @@ class OfferReaderService : AccessibilityService() {
     /** Where and when [shown] was read, for the "Save this trip?" notification. */
     private var shownPackage: String? = null
     private var shownAt: Instant? = null
+
+    /** The offer whose chime has played, so a redraw of the same offer stays quiet. */
+    private var chimed: OfferReading? = null
 
     /** The offer last offered for saving, so the same offer isn't offered again. */
     private var lastAsked: OfferReading? = null
@@ -86,6 +93,7 @@ class OfferReaderService : AccessibilityService() {
         // The rates and fee settings of the records on screen; they change when another account signs in.
         scope.launch { container.space.flatMapLatest { it.vehicles.defaultVehicle }.collect { vehicle = it; refresh() } }
         scope.launch { container.space.flatMapLatest { it.userPreferences.lastCheckInputs }.collect { lastInputs = it; refresh() } }
+        scope.launch { container.userPreferences.offerSound.collect { soundOn = it } }
         scope.launch {
             container.userPreferences.offerReaderPaused.collect {
                 paused = it
@@ -162,7 +170,15 @@ class OfferReaderService : AccessibilityService() {
         val reading = shown ?: return
         val active = vehicle
         val result = active?.let { (application as PicksmartApplication).container.profitCalculator.checkOffer(reading, it, lastInputs) }
-        if (active == null || result == null) badge.hide() else badge.show(result, active.name)
+        if (active == null || result == null) {
+            badge.hide()
+            return
+        }
+        badge.show(result, active.name)
+        if (reading != chimed) {
+            chimed = reading
+            if (soundOn) offerChime(result.band)?.let { OfferChimes.play(this, it) }
+        }
     }
 
     private fun scheduleClear() {
@@ -179,6 +195,7 @@ class OfferReaderService : AccessibilityService() {
         val offer = shown
         val readAt = shownAt
         shown = null
+        chimed = null
         handler.removeCallbacks(clear)
         handler.removeCallbacks(expire)
         if (::badge.isInitialized) badge.hide()

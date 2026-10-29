@@ -1,5 +1,7 @@
 package lk.picksmart.util
 
+import java.math.BigDecimal
+
 /**
  * How many whole-number digits each kind of number field takes, so a rider can't type or paste a
  * number long enough to overflow a total. Money allows Rs. 9,999,999.99, far above any ride or
@@ -12,6 +14,21 @@ object InputDigits {
     const val LITRES = 4
     const val ODOMETER = 7
 }
+
+/**
+ * A money field after a quick-add button ("+50", "+1,000"): [rupees] added to [text], an empty
+ * field counting as 0, shown as short text ("1450", "12.5"). Text that isn't a number, or a sum
+ * past the field's [InputDigits.MONEY] digits, stays as it is.
+ */
+fun addRupeesToInput(text: String, rupees: Long): String {
+    val current = if (text.isBlank()) 0L else parseRupeesToCents(text) ?: return text
+    val cents = current + rupees * 100
+    if (cents >= MAX_MONEY_CENTS) return text
+    return hundredthsToInput(cents)
+}
+
+/** One more than the largest amount a money field takes ([InputDigits.MONEY] whole rupees). */
+private val MAX_MONEY_CENTS = BigDecimal.TEN.pow(InputDigits.MONEY).movePointRight(2).toLong()
 
 /**
  * Cleans what a rider types into a number field: keeps digits and one decimal point, drops

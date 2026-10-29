@@ -15,6 +15,17 @@ val ExpenseCategory.label: Int
         ExpenseCategory.OTHER -> R.string.expense_category_other
     }
 
+/** A short line under the category on Add expense saying what it covers. */
+@get:StringRes
+val ExpenseCategory.hint: Int
+    get() = when (this) {
+        ExpenseCategory.MAINTENANCE_REPAIR -> R.string.expense_category_maintenance_hint
+        ExpenseCategory.PARKING -> R.string.expense_category_parking_hint
+        ExpenseCategory.MOBILE_DATA -> R.string.expense_category_mobile_data_hint
+        ExpenseCategory.TOLLS -> R.string.expense_category_tolls_hint
+        ExpenseCategory.OTHER -> R.string.expense_category_other_hint
+    }
+
 @get:DrawableRes
 val ExpenseCategory.icon: Int
     get() = when (this) {

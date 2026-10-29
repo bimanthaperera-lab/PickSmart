@@ -41,6 +41,10 @@
     <string name="income_type_tip">நன்கொடை (Tip)</string>
     <string name="income_type_bonus">போனஸ்</string>
     <string name="income_type_other">பிற</string>
+    <string name="income_type_incentive_hint">இலக்குகள் மற்றும் ஊக்குவிப்புகள்</string>
+    <string name="income_type_tip_hint">பயணிகளிடமிருந்து</string>
+    <string name="income_type_bonus_hint">வாராந்திர மற்றும் சிறப்பு</string>
+    <string name="income_type_other_hint">வேறு எதுவும்</string>
     <string name="pattern_date_field">d MMM yyyy</string>
     <string name="pattern_time">h:mm a</string>
     <string name="pattern_day">EEE d MMM</string>
@@ -287,6 +291,11 @@
     <string name="expense_category_mobile_data">மொபைல் டேட்டா</string>
     <string name="expense_category_tolls">சுங்கச்சாவடி</string>
     <string name="expense_category_other">பிற</string>
+    <string name="expense_category_maintenance_hint">பழுதுபார்ப்பு மற்றும் எண்ணெய்</string>
+    <string name="expense_category_parking_hint">வீதி மற்றும் வாகன நிறுத்துமிடங்கள்</string>
+    <string name="expense_category_mobile_data_hint">டேட்டா மற்றும் ஆப் பேக்கேஜ்கள்</string>
+    <string name="expense_category_tolls_hint">அதிவேக நெடுஞ்சாலை கட்டணம்</string>
+    <string name="expense_category_other_hint">கழுவுதல், பஞ்சர், அபராதம் மற்றும் பல</string>
     <string name="expense_amount">தொகை</string>
     <string name="expense_date">தேதி</string>
     <string name="expense_odometer">ஓடோமீட்டர் · விருப்பப்படி</string>
@@ -388,6 +397,9 @@
     <string name="vehicle_field_fuel_price_help">கடைசியாக நிரப்பிய போது நீங்கள் செலுத்திய விலையைப் பயன்படுத்தவும்.</string>
     <string name="vehicle_price_up_description">எரிபொருள் விலையை ரூ. %1$d உயர்த்து</string>
     <string name="vehicle_price_down_description">எரிபொருள் விலையை ரூ. %1$d குறை</string>
+    <string name="amount_quick_add">விரைவாகச் சேர்</string>
+    <string name="amount_add_description">ரூ. %1$d சேர்</string>
+    <string name="amount_clear">%1$s அழி</string>
     <string name="vehicle_field_efficiency">எரிபொருள் திறன் (Fuel efficiency)</string>
     <string name="vehicle_field_efficiency_help">ஒரு லிட்டரிலிருந்து நீங்கள் வழக்கமாகப் பெறும் கி.மீ.</string>
     <string name="vehicle_field_maintenance">பராமரிப்பு இருப்பு</string>

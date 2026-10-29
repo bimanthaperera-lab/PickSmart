@@ -4,7 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,6 +76,7 @@ import lk.picksmart.ui.components.FitText
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.util.InputDigits
 import lk.picksmart.util.limitDecimalInput
+import java.util.Locale
 
 /**
  * A group of Check a Ride inputs on its own card: a small upper-case title, an optional item on
@@ -200,7 +203,8 @@ internal fun FareBox(
  * A tap anywhere in the box goes to the number, like a normal text field. At large font sizes
  * ([stacked]) the buttons move under the box so the number keeps its width. An error shows only
  * as the outline; the message goes under the box ([ErrorText]). A [placeholder] other than "0"
- * shows in body type, so a short hint fits beside the buttons.
+ * shows in body type, so a short hint fits beside the buttons. [leadingIcon] sits before the
+ * number; with [onClear] a small × empties the box while it has a value.
  */
 @Composable
 internal fun ValueBox(
@@ -218,6 +222,8 @@ internal fun ValueBox(
     focusRequester: FocusRequester = remember { FocusRequester() },
     imeAction: ImeAction = ImeAction.Next,
     stacked: Boolean = false,
+    @DrawableRes leadingIcon: Int? = null,
+    onClear: (() -> Unit)? = null,
     buttons: (@Composable () -> Unit)? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -248,6 +254,14 @@ internal fun ValueBox(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
+            if (leadingIcon != null) {
+                Icon(
+                    painterResource(leadingIcon),
+                    contentDescription = null,
+                    tint = if (focused) colors.primary else colors.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
             if (prefix != null) {
                 Text(prefix, style = MaterialTheme.typography.titleLarge, color = colors.primary)
             }
@@ -266,6 +280,16 @@ internal fun ValueBox(
                     .weight(1f)
                     .focusRequester(focusRequester),
             )
+            if (onClear != null && value.isNotEmpty()) {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.amount_clear, label),
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
             if (unit != null) UnitBox(unit, if (buttons == null || stacked) Spacing.s else 0.dp)
             if (buttons != null && !stacked) buttons()
         }
@@ -312,6 +336,38 @@ internal fun StepButton(text: String, description: String, onClick: () -> Unit) 
         }
     }
 }
+
+/**
+ * "Quick add" and buttons that add round amounts to a money field (+100 … +2,000), under its
+ * [ValueBox]. The buttons wrap to a second line when they don't fit (large fonts).
+ */
+@Composable
+internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Modifier) {
+    val locale = LocalConfiguration.current.locales[0]
+    FlowRow(
+        modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.amount_quick_add).uppercase(locale),
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.8.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        QUICK_ADD_AMOUNT_RUPEES.forEach { rupees ->
+            StepButton(
+                // Western digits with a thousands comma ("+1,000"), as every amount in the app.
+                text = stringResource(R.string.amount_quick_add_button, String.format(Locale.US, "%,d", rupees)),
+                description = stringResource(R.string.amount_add_description, rupees),
+                onClick = { onAdd(rupees) },
+            )
+        }
+    }
+}
+
+/** The quick-add amounts for income and expenses, in rupees. */
+private val QUICK_ADD_AMOUNT_RUPEES = listOf(100L, 500L, 1_000L, 2_000L)
 
 /**
  * A small number tile: the label at the top, then the number, as in the fee and distance rows.
@@ -580,6 +636,58 @@ internal fun TextBox(
                 }
             }
         },
+    )
+}
+
+/**
+ * A note in the same box as the number tiles: two to five lines, up to [maxLength] characters,
+ * with the brand outline while it has focus and [placeholder] while it is empty.
+ */
+@Composable
+internal fun NoteBox(value: String, onValueChange: (String) -> Unit, label: String, maxLength: Int, placeholder: String? = null) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val colors = MaterialTheme.colorScheme
+    val shape = MaterialTheme.shapes.medium
+    val border = if (focused) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outlineVariant)
+    val textStyle = MaterialTheme.typography.bodyLarge
+    BasicTextField(
+        value = value,
+        onValueChange = { onValueChange(it.take(maxLength)) },
+        textStyle = textStyle.copy(color = colors.onSurface),
+        cursorBrush = SolidColor(colors.primary),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        minLines = 2,
+        maxLines = 5,
+        interactionSource = interaction,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = label },
+        decorationBox = { field ->
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(shape)
+                    .background(colors.surface)
+                    .border(border, shape)
+                    .padding(horizontal = Spacing.m, vertical = Spacing.s + 2.dp),
+            ) {
+                if (value.isEmpty() && placeholder != null) {
+                    Text(placeholder, style = textStyle, color = colors.onSurfaceVariant.copy(alpha = 0.7f))
+                }
+                field()
+            }
+        },
+    )
+}
+
+/** How much of a note's length is used ("12/100"), for the right of its card's title. */
+@Composable
+internal fun NoteCounter(length: Int, maxLength: Int) {
+    Text(
+        stringResource(R.string.note_counter, length, maxLength),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 

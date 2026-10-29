@@ -41,6 +41,10 @@
     <string name="income_type_tip">Tip</string>
     <string name="income_type_bonus">බෝනස්</string>
     <string name="income_type_other">වෙනත්</string>
+    <string name="income_type_incentive_hint">ඉලක්ක සහ ප්‍රවර්ධන</string>
+    <string name="income_type_tip_hint">මගීන්ගෙන්</string>
+    <string name="income_type_bonus_hint">සතිපතා සහ විශේෂ</string>
+    <string name="income_type_other_hint">වෙනත් ඕනෑම දෙයක්</string>
     <string name="pattern_date_field">yyyy MMM d</string>
     <string name="pattern_time">a h:mm</string>
     <string name="pattern_day">MMM d EEE</string>
@@ -287,6 +291,11 @@
     <string name="expense_category_mobile_data">මොබයිල් ඩේටා</string>
     <string name="expense_category_tolls">මාර්ග ගාස්තු</string>
     <string name="expense_category_other">වෙනත්</string>
+    <string name="expense_category_maintenance_hint">අලුත්වැඩියා සහ ඔයිල්</string>
+    <string name="expense_category_parking_hint">පාර අයිනේ සහ වාහන නැවතුම්</string>
+    <string name="expense_category_mobile_data_hint">ඩේටා සහ ඇප් පැකේජ</string>
+    <string name="expense_category_tolls_hint">අධිවේගී මාර්ග ගාස්තු</string>
+    <string name="expense_category_other_hint">සේදීම, පංචර්, දඩ සහ තවත්</string>
     <string name="expense_amount">මුදල</string>
     <string name="expense_date">දිනය</string>
     <string name="expense_odometer">දුර මීටරය · විකල්ප</string>
@@ -389,6 +398,9 @@
     <string name="vehicle_field_fuel_price_help">ඔබ අවසන් වරට තෙල් ගසන විට ගෙවූ මිල භාවිතා කරන්න.</string>
     <string name="vehicle_price_up_description">ඉන්ධන මිල රු. %1$dකින් වැඩි කරන්න</string>
     <string name="vehicle_price_down_description">ඉන්ධන මිල රු. %1$dකින් අඩු කරන්න</string>
+    <string name="amount_quick_add">ඉක්මනින් එකතු කරන්න</string>
+    <string name="amount_add_description">රු. %1$d එකතු කරන්න</string>
+    <string name="amount_clear">%1$s මකන්න</string>
     <string name="vehicle_field_efficiency">ඉන්ධන කාර්යක්ෂමතාව (Fuel efficiency)</string>
     <string name="vehicle_field_efficiency_help">ලීටරයකින් ඔබට කොපමණ කි.මී ප්‍රමාණයක් යා හැකිද.</string>
     <string name="vehicle_field_maintenance">නඩත්තු මුදල</string>

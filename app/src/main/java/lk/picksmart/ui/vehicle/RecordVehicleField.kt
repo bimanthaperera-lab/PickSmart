@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import lk.picksmart.R
 import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.ui.checkride.InputSection
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.FieldLabel
 
@@ -30,22 +31,35 @@ data class RecordVehicle(
         get() = choices.size > 1 || (selectedId != null && choices.none { it.id == selectedId })
 }
 
-/** Chips to pick the vehicle while adding, or the saved record's vehicle name. Hidden with one vehicle. */
+/**
+ * Chips to pick the vehicle while adding, or the saved record's vehicle name. Hidden with one
+ * vehicle. With [card] it sits on its own card ([InputSection]), as on Add expense.
+ */
 @Composable
-fun RecordVehicleField(vehicle: RecordVehicle, onSelect: (vehicleId: Long) -> Unit) {
+fun RecordVehicleField(vehicle: RecordVehicle, onSelect: (vehicleId: Long) -> Unit, card: Boolean = false) {
     if (!vehicle.shown) return
-    Column {
-        FieldLabel(stringResource(R.string.record_vehicle_label))
-        if (vehicle.editable) {
-            ChoiceChips(
-                options = vehicle.choices,
-                selected = vehicle.choices.firstOrNull { it.id == vehicle.selectedId },
-                optionLabel = { it.name },
-                optionIcon = { it.type.icon },
-                onSelect = { onSelect(it.id) },
-            )
-        } else if (vehicle.selectedName != null) {
-            Text(vehicle.selectedName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+    val label = stringResource(R.string.record_vehicle_label)
+    if (card) {
+        InputSection(title = label) { VehicleChoice(vehicle, onSelect) }
+    } else {
+        Column {
+            FieldLabel(label)
+            VehicleChoice(vehicle, onSelect)
         }
+    }
+}
+
+@Composable
+private fun VehicleChoice(vehicle: RecordVehicle, onSelect: (vehicleId: Long) -> Unit) {
+    if (vehicle.editable) {
+        ChoiceChips(
+            options = vehicle.choices,
+            selected = vehicle.choices.firstOrNull { it.id == vehicle.selectedId },
+            optionLabel = { it.name },
+            optionIcon = { it.type.icon },
+            onSelect = { onSelect(it.id) },
+        )
+    } else if (vehicle.selectedName != null) {
+        Text(vehicle.selectedName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
     }
 }

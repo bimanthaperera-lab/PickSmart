@@ -1,12 +1,8 @@
 package lk.picksmart.ui.trip
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -20,8 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -42,9 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,7 +44,6 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,6 +66,7 @@ import lk.picksmart.ui.checkride.FeeUnitToggle
 import lk.picksmart.ui.checkride.HelpText
 import lk.picksmart.ui.checkride.InputSection
 import lk.picksmart.ui.checkride.LocationFields
+import lk.picksmart.ui.checkride.NoteBox
 import lk.picksmart.ui.checkride.NumberTile
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.checkride.TileRow
@@ -423,7 +415,7 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
 
     val notesLabel = stringResource(R.string.trip_notes)
     InputSection(title = notesLabel) {
-        NoteBox(form.notes, { onChange(form.copy(notes = it)) }, notesLabel)
+        NoteBox(form.notes, { onChange(form.copy(notes = it)) }, notesLabel, NOTES_MAX_LENGTH)
     }
 
     RatesLine(state.rates)
@@ -456,41 +448,6 @@ private fun StatusSelector(statuses: List<TripStatus>, selected: TripStatus, onS
     }
 }
 
-/**
- * The note, in the same box as the number tiles: a few lines, up to [NOTES_MAX_LENGTH]
- * characters, with the brand outline while it has focus.
- */
-@Composable
-private fun NoteBox(value: String, onValueChange: (String) -> Unit, label: String) {
-    val interaction = remember { MutableInteractionSource() }
-    val focused by interaction.collectIsFocusedAsState()
-    val colors = MaterialTheme.colorScheme
-    val shape = MaterialTheme.shapes.medium
-    val border = if (focused) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outlineVariant)
-    BasicTextField(
-        value = value,
-        onValueChange = { onValueChange(it.take(NOTES_MAX_LENGTH)) },
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurface),
-        cursorBrush = SolidColor(colors.primary),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        minLines = 2,
-        maxLines = 5,
-        interactionSource = interaction,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        decorationBox = { field ->
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(shape)
-                    .background(colors.surface)
-                    .border(border, shape)
-                    .padding(horizontal = Spacing.m, vertical = Spacing.s + 2.dp),
-            ) { field() }
-        },
-    )
-}
 
 /** The rate snapshot this trip is calculated with. It never follows later vehicle edits. */
 @Composable

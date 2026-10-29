@@ -68,4 +68,13 @@ class NumberInputTest {
     fun `a value saved over the limit can still be shortened`() {
         assertEquals("123456789", limitDecimalInput("1234567890", "123456789", 2, 7))
     }
+
+    @Test
+    fun `quick add adds whole rupees and refuses bad text or too many digits`() {
+        assertEquals("1450", addRupeesToInput("450", 1000))
+        assertEquals("100", addRupeesToInput("", 100))
+        assertEquals("112.5", addRupeesToInput("12.50", 100))
+        assertEquals("12.3.4", addRupeesToInput("12.3.4", 100))
+        assertEquals("9999900", addRupeesToInput("9999900", 100))
+    }
 }

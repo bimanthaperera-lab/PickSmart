@@ -48,6 +48,10 @@
     <string name="income_type_tip">Tip</string>
     <string name="income_type_bonus">Bonus</string>
     <string name="income_type_other">Other</string>
+    <string name="income_type_incentive_hint">Targets and promotions</string>
+    <string name="income_type_tip_hint">From passengers</string>
+    <string name="income_type_bonus_hint">Weekly and special</string>
+    <string name="income_type_other_hint">Anything else</string>
     <!-- java.time patterns -->
     <string name="pattern_date_field">d MMM yyyy</string>
     <string name="pattern_time">h:mm a</string>
@@ -338,6 +342,11 @@
     <string name="expense_category_mobile_data">Mobile data</string>
     <string name="expense_category_tolls">Tolls</string>
     <string name="expense_category_other">Other</string>
+    <string name="expense_category_maintenance_hint">Repairs and oil</string>
+    <string name="expense_category_parking_hint">Street and car parks</string>
+    <string name="expense_category_mobile_data_hint">Data and app packages</string>
+    <string name="expense_category_tolls_hint">Highway tolls</string>
+    <string name="expense_category_other_hint">Wash, puncture, fines and more</string>
     <string name="expense_amount">Amount</string>
     <string name="expense_date">Date</string>
     <string name="expense_odometer">Odometer · optional</string>
@@ -448,6 +457,11 @@
     <string name="vehicle_price_step_down" translatable="false">−%1$d</string>
     <string name="vehicle_price_up_description">Raise the fuel price by Rs. %1$d</string>
     <string name="vehicle_price_down_description">Lower the fuel price by Rs. %1$d</string>
+    <string name="amount_quick_add_button" translatable="false">+%1$s</string>
+    <string name="note_counter" translatable="false">%1$d/%2$d</string>
+    <string name="amount_quick_add">Quick add</string>
+    <string name="amount_add_description">Add Rs. %1$d</string>
+    <string name="amount_clear">Clear %1$s</string>
     <string name="vehicle_field_efficiency">Fuel efficiency</string>
     <string name="vehicle_field_efficiency_help">How many km you usually get from one litre.</string>
     <string name="vehicle_field_maintenance">Maintenance reserve</string>

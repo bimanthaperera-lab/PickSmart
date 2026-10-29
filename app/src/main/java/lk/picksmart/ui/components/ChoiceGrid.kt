@@ -2,7 +2,9 @@ package lk.picksmart.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -44,6 +46,8 @@ import lk.picksmart.ui.theme.Spacing
  * tiles in a row share one height, and an odd last tile takes the whole row (e.g. "Other" under
  * four expense categories). With no [label] the grid has no title of its own (a card's title
  * names it); [tileColor] is the unselected tiles' fill, darker than the card when the grid is on one.
+ * With [optionSubtitle] and [optionIcon] the icon sits in a small square and a short line under the
+ * label says what the option covers ("Repairs and oil").
  */
 @Composable
 fun <T> ChoiceGrid(
@@ -57,6 +61,7 @@ fun <T> ChoiceGrid(
     optionIcon: ((T) -> Int)? = null,
     largeIcons: Boolean = false,
     tileColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    optionSubtitle: (@Composable (T) -> String)? = null,
 ) {
     Column(modifier) {
         if (label != null) FieldLabel(label)
@@ -70,7 +75,11 @@ fun <T> ChoiceGrid(
             val widest = labels
                 .flatMap { if (optionIcon != null) it.split(' ') else listOf(it) }
                 .maxOf { measurer.measure(it, style).size.width }
-            val iconSpace = if (optionIcon != null && !largeIcons) TileIconSize + Spacing.s else 0.dp
+            val iconSpace = when {
+                optionIcon == null || largeIcons -> 0.dp
+                optionSubtitle != null -> TileIconBoxSize + Spacing.s
+                else -> TileIconSize + Spacing.s
+            }
             val tileTextWidth = (maxWidth - Spacing.s * (columns - 1)) / columns - TilePadding * 2 - iconSpace
             val fitColumns = if (widest <= with(LocalDensity.current) { tileTextWidth.toPx() }) columns else 1
 
@@ -80,6 +89,7 @@ fun <T> ChoiceGrid(
                         row.forEach { (option, text) ->
                             ChoiceTile(
                                 text = text,
+                                subtitle = optionSubtitle?.invoke(option),
                                 icon = optionIcon?.invoke(option),
                                 largeIcon = largeIcons,
                                 selected = option == selected,
@@ -102,10 +112,12 @@ fun <T> ChoiceGrid(
 private val TilePadding = Spacing.m
 private val TileIconSize = 20.dp
 private val TileLargeIconSize = 28.dp
+private val TileIconBoxSize = 36.dp
 
 @Composable
 private fun ChoiceTile(
     text: String,
+    subtitle: String?,
     @DrawableRes icon: Int?,
     largeIcon: Boolean,
     selected: Boolean,
@@ -121,7 +133,40 @@ private fun ChoiceTile(
         color = if (selected) colors.secondaryContainer else color,
         border = if (selected) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outline),
     ) {
-        if (icon != null && largeIcon) {
+        if (icon != null && subtitle != null) {
+            Row(
+                Modifier
+                    .defaultMinSize(minHeight = Spacing.buttonHeight)
+                    .padding(horizontal = Spacing.s + 2.dp, vertical = Spacing.s + 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(TileIconBoxSize)
+                        .background(
+                            if (selected) colors.primaryContainer else colors.surfaceContainerHighest,
+                            MaterialTheme.shapes.small,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painterResource(icon),
+                        contentDescription = null,
+                        tint = if (selected) colors.onPrimaryContainer else colors.onSurfaceVariant,
+                        modifier = Modifier.size(TileIconSize),
+                    )
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(text, style = MaterialTheme.typography.titleSmall, color = content)
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (selected) colors.primary else colors.onSurfaceVariant,
+                    )
+                }
+            }
+        } else if (icon != null && largeIcon) {
             Column(
                 Modifier
                     .defaultMinSize(minHeight = Spacing.buttonHeight)

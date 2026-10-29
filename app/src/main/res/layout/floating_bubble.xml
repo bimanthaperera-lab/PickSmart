@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     The floating bubble (CLAUDE.md section 9a). Closed, only the pin on its near-black circle shows;
-    a tap opens the yellow pill with the minimum fare per km and "Hold to hide" under it. Always the
-    same colours, because it sits on top of other apps. FloatingBubble sets the pill's background and
+    a tap opens the yellow pill with the minimum fare per km and "Hold to hide" under it. While the
+    offer reader shows an offer, the pill gives way to the offer badge's card. Always the same
+    colours, because it sits on top of other apps. FloatingBubble sets the pill's background and
     which side the pin is on.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -45,6 +46,13 @@
             android:textStyle="bold"
             android:visibility="gone" />
     </LinearLayout>
+
+    <include
+        android:id="@+id/bubble_offer"
+        layout="@layout/offer_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/bubble_hint"

@@ -32,7 +32,6 @@ class OfferBadge(private val context: Context, private val onHidden: () -> Unit)
 
     fun show(result: ProfitResult, vehicleName: String) {
         val words = AppLanguageStore.localized(context)
-        val money = MoneyFormatter(words.getString(R.string.currency_prefix))
         val badge = view ?: LayoutInflater.from(words).inflate(R.layout.offer_badge, null).also { created ->
             created.setOnLongClickListener {
                 hide()
@@ -42,30 +41,8 @@ class OfferBadge(private val context: Context, private val onHidden: () -> Unit)
             windowManager.addView(created, layoutParams())
             view = created
         }
-        val (label, icon, color) = result.band.look()
-        val tint = ContextCompat.getColor(context, color)
-        badge.findViewById<ImageView>(R.id.offer_badge_icon).apply {
-            setImageResource(icon)
-            imageTintList = ColorStateList.valueOf(tint)
-        }
-        badge.findViewById<TextView>(R.id.offer_badge_band).apply {
-            text = words.getString(label)
-            setTextColor(tint)
-        }
-        val net = money.formatSigned(result.netProfitCents)
-        val amounts = result.netProfitPerKmCents?.let { words.getString(R.string.offer_badge_amounts, net, money.format(it)) } ?: net
-        badge.findViewById<TextView>(R.id.offer_badge_amounts).text = amounts
-        // The tip is already in the profit above; this line says so.
-        val tip = result.tipCents.takeIf { it > 0 }?.let { words.getString(R.string.offer_badge_tip, money.format(it)) }
-        badge.findViewById<TextView>(R.id.offer_badge_tip).apply {
-            text = tip
-            visibility = if (tip == null) View.GONE else View.VISIBLE
-        }
-        val source = words.getString(R.string.offer_badge_source, vehicleName)
-        badge.findViewById<TextView>(R.id.offer_badge_source).text = source
-        badge.findViewById<TextView>(R.id.offer_badge_powered).text = words.getString(R.string.offer_badge_powered)
-        badge.contentDescription = listOfNotNull(words.getString(label), amounts, tip, source, words.getString(R.string.offer_badge_hide_hint))
-            .joinToString(". ")
+        badge.contentDescription = badge.showOfferResult(words, result, vehicleName) + ". " +
+            words.getString(R.string.offer_badge_hide_hint)
     }
 
     fun hide() {
@@ -87,6 +64,37 @@ class OfferBadge(private val context: Context, private val onHidden: () -> Unit)
         x = (12 * density).toInt()
         y = (88 * density).toInt()
     }
+}
+
+/**
+ * Fills an `offer_badge` layout with [result] in [words]' language, and returns what it says, for
+ * a content description. The floating bubble shows the same card when it is on.
+ */
+internal fun View.showOfferResult(words: Context, result: ProfitResult, vehicleName: String): String {
+    val money = MoneyFormatter(words.getString(R.string.currency_prefix))
+    val (label, icon, color) = result.band.look()
+    val tint = ContextCompat.getColor(context, color)
+    findViewById<ImageView>(R.id.offer_badge_icon).apply {
+        setImageResource(icon)
+        imageTintList = ColorStateList.valueOf(tint)
+    }
+    findViewById<TextView>(R.id.offer_badge_band).apply {
+        text = words.getString(label)
+        setTextColor(tint)
+    }
+    val net = money.formatSigned(result.netProfitCents)
+    val amounts = result.netProfitPerKmCents?.let { words.getString(R.string.offer_badge_amounts, net, money.format(it)) } ?: net
+    findViewById<TextView>(R.id.offer_badge_amounts).text = amounts
+    // The tip is already in the profit above; this line says so.
+    val tip = result.tipCents.takeIf { it > 0 }?.let { words.getString(R.string.offer_badge_tip, money.format(it)) }
+    findViewById<TextView>(R.id.offer_badge_tip).apply {
+        text = tip
+        visibility = if (tip == null) View.GONE else View.VISIBLE
+    }
+    val source = words.getString(R.string.offer_badge_source, vehicleName)
+    findViewById<TextView>(R.id.offer_badge_source).text = source
+    findViewById<TextView>(R.id.offer_badge_powered).text = words.getString(R.string.offer_badge_powered)
+    return listOfNotNull(words.getString(label), amounts, tip, source).joinToString(". ")
 }
 
 private fun ResultBand.look(): Triple<Int, Int, Int> = when (this) {

@@ -34,7 +34,7 @@ import java.time.Instant
  * The offer reader (CLAUDE.md N5, section 9b). When a listed ride app's window changes, it reads
  * the visible text of that app's windows, finds an offer's fare and distances with
  * [parseOfferText], and shows the estimated profit or loss in an [OfferBadge], using the active
- * vehicle's rates. When the offer
+ * vehicle's rates, or in the floating bubble when that is on ([FloatingBubbleService.showOffer]). When the offer
  * leaves the screen it asks, in a notification, whether to save it as a trip
  * ([OfferSaveNotification]); only the numbers go into it, and the rider saves them in the app.
  * When the rider has turned the sound on, a new offer's profit or loss also plays a chime
@@ -172,11 +172,15 @@ class OfferReaderService : AccessibilityService() {
         val result = active?.let { (application as PicksmartApplication).container.profitCalculator.checkOffer(reading, it, lastInputs) }
         if (active == null || result == null) {
             badge.hide()
+            FloatingBubbleService.clearOffer()
             return
         }
-        badge.show(result, active.name)
-        // The open floating bubble closes, so only the badge shows over the offer.
-        FloatingBubbleService.close()
+        // With the floating bubble on, the bubble itself is the badge, so only one window shows.
+        if (FloatingBubbleService.showOffer(result, active.name) { hiddenByRider = shown }) {
+            badge.hide()
+        } else {
+            badge.show(result, active.name)
+        }
         if (reading != chimed) {
             chimed = reading
             if (soundOn) offerChime(result.band)?.let { OfferChimes.play(this, it) }
@@ -201,6 +205,7 @@ class OfferReaderService : AccessibilityService() {
         handler.removeCallbacks(clear)
         handler.removeCallbacks(expire)
         if (::badge.isInitialized) badge.hide()
+        FloatingBubbleService.clearOffer()
         if (askToSave && offer != null && readAt != null && offer != lastAsked && vehicle != null) {
             lastAsked = offer
             OfferSaveNotification.post(AppLanguageStore.localized(this), OfferToSave(offer, platformOf(shownPackage), readAt))
@@ -236,6 +241,7 @@ class OfferReaderService : AccessibilityService() {
         if (running?.get() === this) running = null
         handler.removeCallbacksAndMessages(null)
         if (::badge.isInitialized) badge.hide()
+        FloatingBubbleService.clearOffer()
         scope.cancel()
         super.onDestroy()
     }

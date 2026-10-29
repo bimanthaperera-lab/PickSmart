@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.AppLanguageStore
+import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.domain.calculator.minimumFarePerKm
 import java.lang.ref.WeakReference
 
@@ -100,9 +101,19 @@ class FloatingBubbleService : Service() {
             runCatching { context.startService(Intent(context, FloatingBubbleService::class.java)) }
         }
 
-        /** Closes the open bubble, so it never covers a ride offer (the offer badge calls this). */
-        fun close() {
-            running?.get()?.bubble?.close()
+        /**
+         * Shows an offer's result in the bubble, which then is the offer badge (section 9b).
+         * False when the bubble isn't on screen, so the offer reader draws its own badge.
+         */
+        fun showOffer(result: ProfitResult, vehicleName: String, onHidden: () -> Unit): Boolean {
+            val bubble = running?.get()?.bubble ?: return false
+            bubble.showOffer(result, vehicleName, onHidden)
+            return true
+        }
+
+        /** The offer has gone: back to the pin. */
+        fun clearOffer() {
+            running?.get()?.bubble?.clearOffer()
         }
     }
 }

@@ -207,7 +207,6 @@ private fun CheckRideForm(
     val errors = (state.outcome as? CheckRideOutcome.Invalid)?.errors.orEmpty()
     val currency = stringResource(R.string.currency_prefix)
     val km = stringResource(R.string.unit_km)
-    val zero = stringResource(R.string.placeholder_zero)
     val payout = form.fareMode == FareMode.PAYOUT_AFTER_COMMISSION
     // Side-by-side fields get too narrow for their labels at large font sizes.
     val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
@@ -237,108 +236,111 @@ private fun CheckRideForm(
         onSelect = { onChange(form.copy(platform = it)) },
     )
 
-    FareModeSelector(form.fareMode) { onChange(form.copy(fareMode = it)) }
-
-    NumberField(
-        value = form.fare,
-        onValueChange = { onChange(form.copy(fare = it)) },
-        label = stringResource(if (payout) R.string.check_fare_payout else R.string.check_fare_gross),
-        modifier = Modifier.focusRequester(fareFocus),
-        prefix = currency,
-        supportingText = if (payout) stringResource(R.string.check_fare_payout_help) else null,
-        error = errors.text(InputField.FARE),
-        trailing = if (form.fare.isEmpty()) {
-            null
-        } else {
-            {
-                IconButton(onClick = {
-                    onChange(form.copy(fare = ""))
-                    fareFocus.requestFocus()
-                }) {
-                    Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.check_clear_fare))
+    val fareLabel = stringResource(if (payout) R.string.check_fare_payout else R.string.check_fare_gross)
+    InputSection(
+        title = fareLabel,
+        action = { width -> FareModePills(form.fareMode, width) { onChange(form.copy(fareMode = it)) } },
+    ) {
+        FareBox(
+            value = form.fare,
+            onValueChange = { onChange(form.copy(fare = it)) },
+            label = fareLabel,
+            focusRequester = fareFocus,
+            error = errors.text(InputField.FARE),
+            stacked = stacked,
+            onAdd = { onChange(form.addToFare(it)) },
+        )
+        if (payout) {
+            Text(
+                stringResource(R.string.check_fare_payout_help),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TileRow(
+            stacked,
+            buildList {
+                if (!payout) {
+                    add { m ->
+                        // In percent, the fee in rupees for this fare, once there is a result.
+                        val feeCents = (state.outcome as? CheckRideOutcome.Calculated)?.result?.commissionCents
+                            ?.takeIf { form.commissionType == CommissionType.PERCENT && it > 0 }
+                        NumberTile(
+                            value = form.commission,
+                            onValueChange = { onChange(form.copy(commission = it)) },
+                            label = stringResource(R.string.check_fee),
+                            modifier = m,
+                            error = errors.text(InputField.COMMISSION),
+                            note = feeCents?.let { stringResource(R.string.check_fee_equivalent, rememberMoneyFormatter().format(it)) },
+                            trailing = {
+                                FeeUnitToggle(form.commissionType) { onChange(form.copy(commissionType = it)) }
+                            },
+                        )
+                    }
                 }
-            }
-        },
-    )
-
-    FieldRow(
-        stacked,
-        buildList {
-            if (!payout) {
                 add { m ->
-                    NumberField(
-                        value = form.commission,
-                        onValueChange = { onChange(form.copy(commission = it)) },
-                        label = stringResource(R.string.check_fee),
+                    NumberTile(
+                        value = form.otherCosts,
+                        onValueChange = { onChange(form.copy(otherCosts = it)) },
+                        label = stringResource(R.string.check_other_costs),
                         modifier = m,
-                        placeholder = zero,
-                        error = errors.text(InputField.COMMISSION),
-                        trailing = {
-                            FeeUnitToggle(form.commissionType) { onChange(form.copy(commissionType = it)) }
-                        },
+                        prefix = currency,
+                        error = errors.text(InputField.OTHER_COSTS),
                     )
                 }
-            }
-            add { m ->
-                NumberField(
-                    value = form.otherCosts,
-                    onValueChange = { onChange(form.copy(otherCosts = it)) },
-                    label = stringResource(R.string.check_other_costs),
-                    modifier = m,
-                    placeholder = zero,
-                    prefix = currency,
-                    error = errors.text(InputField.OTHER_COSTS),
-                )
-            }
-        },
-    )
+            },
+        )
+    }
 
-    FieldRow(
-        stacked,
-        listOf(
-            { m ->
-                NumberField(
-                    value = form.pickupKm,
-                    onValueChange = { onChange(form.copy(pickupKm = it)) },
-                    label = stringResource(R.string.check_pickup),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    maxIntegerDigits = InputDigits.DISTANCE,
-                    error = errors.text(InputField.PICKUP_KM),
-                )
-            },
-            { m ->
-                NumberField(
-                    value = form.tripKm,
-                    onValueChange = { onChange(form.copy(tripKm = it)) },
-                    label = stringResource(R.string.check_trip),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    maxIntegerDigits = InputDigits.DISTANCE,
-                    error = errors.text(InputField.TRIP_KM),
-                )
-            },
-            { m ->
-                NumberField(
-                    value = form.returnKm,
-                    onValueChange = { onChange(form.copy(returnKm = it)) },
-                    label = stringResource(R.string.check_return),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    maxIntegerDigits = InputDigits.DISTANCE,
-                    supportingText = stringResource(R.string.check_optional),
-                    error = errors.text(InputField.RETURN_KM),
-                    imeAction = if (form.overrides == null) ImeAction.Done else ImeAction.Next,
-                )
-            },
-        ),
-    )
+    val totalKm = (state.outcome as? CheckRideOutcome.Calculated)?.result?.totalKm
+    InputSection(
+        title = stringResource(R.string.check_result_distance),
+        action = totalKm?.let { total -> { _ -> TotalKmPill(total) } },
+    ) {
+        TileRow(
+            stacked,
+            listOf(
+                { m ->
+                    NumberTile(
+                        value = form.pickupKm,
+                        onValueChange = { onChange(form.copy(pickupKm = it)) },
+                        label = stringResource(R.string.check_pickup),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.PICKUP_KM),
+                    )
+                },
+                { m ->
+                    NumberTile(
+                        value = form.tripKm,
+                        onValueChange = { onChange(form.copy(tripKm = it)) },
+                        label = stringResource(R.string.check_trip),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.TRIP_KM),
+                        highlighted = true,
+                    )
+                },
+                { m ->
+                    NumberTile(
+                        value = form.returnKm,
+                        onValueChange = { onChange(form.copy(returnKm = it)) },
+                        label = stringResource(R.string.check_return_optional),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.RETURN_KM),
+                        imeAction = if (form.overrides == null) ImeAction.Done else ImeAction.Next,
+                    )
+                },
+            ),
+        )
+    }
 
     val overrides = form.overrides
     if (overrides == null) {
@@ -388,6 +390,19 @@ private fun SafetyLine() {
 }
 
 private const val SHIELD_ID = "shield"
+
+/** "Total 10.0 km", beside the distance section's title once there is a result. */
+@Composable
+private fun TotalKmPill(totalKm: Double) {
+    Surface(shape = MaterialTheme.shapes.extraSmall, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+        Text(
+            stringResource(R.string.check_total_km, formatDecimal(totalKm, 1)),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = Spacing.s, vertical = Spacing.xs),
+        )
+    }
+}
 
 @Composable
 internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {

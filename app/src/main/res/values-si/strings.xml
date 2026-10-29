@@ -80,6 +80,9 @@
     <string name="check_trip">ගමන</string>
     <string name="check_return">ආපසු</string>
     <string name="check_optional">විකල්ප</string>
+    <string name="check_return_optional">ආපසු (විකල්ප)</string>
+    <string name="check_total_km">මුළු කි.මී %1$s</string>
+    <string name="check_fare_add_description">ගාස්තුවට රු. %1$d එකතු කරන්න</string>
     <string name="unit_km">කි.මී</string>
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
@@ -483,6 +486,9 @@
     <string name="offer_reader_disclosure_accept">Settings වෙතින් On කරන්න</string>
     <string name="offer_reader_paused">නවත්වා ඇත · දීමනා කියවන්නේ නැත</string>
     <string name="offer_reader_switch_label">දීමනා කියවන්න</string>
+    <string name="offer_reader_state_on">සක්‍රියයි</string>
+    <string name="offer_reader_state_paused">නවත්වා ඇත</string>
+    <string name="offer_reader_state_off">Off</string>
     <string name="offer_reader_manage_on_body">Picksmart නව දීමනා කියවයි.</string>
     <string name="offer_reader_manage_paused_body">නවත්වා ඇත (Paused): Picksmart කිසිවක් කියවන්නේ නැත.</string>
     <string name="offer_reader_pause">නවත්වන්න (Pause)</string>

@@ -9,11 +9,24 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import lk.picksmart.ui.theme.PicksmartTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
@@ -116,9 +129,11 @@ internal fun rememberTurnOn(viewModel: OfferReaderViewModel = viewModel(factory 
 }
 
 /**
- * "Read offers" with a switch, for the top of Home. While the reader is on in Android, the
- * switch pauses and resumes it at once. The first time, it shows the disclosure, then opens
- * Android's Accessibility settings, where only the rider can turn it on.
+ * "Read offers" as a small status card with a switch, for the top of Home: a shield and the state
+ * (Active in green, Paused in amber, Off) above the label, so it never relies on colour alone.
+ * While the reader is on in Android, the switch pauses and resumes it at once. The first time, it
+ * shows the disclosure, then opens Android's Accessibility settings, where only the rider can turn
+ * it on.
  */
 @Composable
 fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)) {
@@ -127,30 +142,61 @@ fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewM
     val turnOn = rememberTurnOn(viewModel)
     var showDisclosure by rememberSaveable { mutableStateOf(false) }
     val on = enabled && !paused
+    val status = PicksmartTheme.status
+    val (stateLabel, stateColor) = when {
+        on -> stringResource(R.string.offer_reader_state_on) to status.profit
+        enabled -> stringResource(R.string.offer_reader_state_paused) to status.belowTarget
+        else -> stringResource(R.string.offer_reader_state_off) to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val locale = LocalConfiguration.current.locales[0]
 
-    Row(
-        modifier
-            .heightIn(min = Spacing.touchTarget)
-            .toggleable(
-                value = on,
-                role = Role.Switch,
-                onValueChange = { turnOn ->
-                    when {
-                        !enabled -> showDisclosure = true
-                        else -> viewModel.setPaused(!turnOn)
-                    }
-                },
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, if (on) stateColor.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
+        modifier = modifier,
     ) {
-        Text(
-            stringResource(R.string.offer_reader_switch_label),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        // The whole row is the control, so the switch itself takes no clicks.
-        Switch(checked = on, onCheckedChange = null)
+        Row(
+            Modifier
+                .heightIn(min = Spacing.touchTarget)
+                .toggleable(
+                    value = on,
+                    role = Role.Switch,
+                    onValueChange = { turnOn ->
+                        when {
+                            !enabled -> showDisclosure = true
+                            else -> viewModel.setPaused(!turnOn)
+                        }
+                    },
+                )
+                .padding(start = Spacing.s, end = Spacing.m, top = Spacing.xs, bottom = Spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        ) {
+            Box(
+                Modifier
+                    .size(32.dp)
+                    .background(stateColor.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Decorative: the state is read out from the text.
+                Icon(painterResource(R.drawable.ic_shield), contentDescription = null, tint = stateColor, modifier = Modifier.size(18.dp))
+            }
+            Column {
+                Text(
+                    stateLabel.uppercase(locale),
+                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.6.sp),
+                    color = stateColor,
+                )
+                Text(
+                    stringResource(R.string.offer_reader_switch_label),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            // The whole card is the control, so the switch itself takes no clicks.
+            Switch(checked = on, onCheckedChange = null)
+        }
     }
 
     if (showDisclosure) {

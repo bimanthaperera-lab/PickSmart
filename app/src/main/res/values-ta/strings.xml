@@ -80,6 +80,9 @@
     <string name="check_trip">சவாரி</string>
     <string name="check_return">திரும்பச் செல்ல</string>
     <string name="check_optional">விருப்பப்படி (Optional)</string>
+    <string name="check_return_optional">திரும்பச் செல்ல (விருப்பப்படி)</string>
+    <string name="check_total_km">மொத்தம் %1$s கி.மீ</string>
+    <string name="check_fare_add_description">கட்டணத்தில் ரூ. %1$d சேர்</string>
     <string name="unit_km">கி.மீ</string>
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
@@ -482,6 +485,9 @@
     <string name="offer_reader_disclosure_accept">Settings இல் ஆன் செய்யவும்</string>
     <string name="offer_reader_paused">இடைநிறுத்தப்பட்டது (Paused) · சலுகைகளைப் படிக்கவில்லை</string>
     <string name="offer_reader_switch_label">சலுகைகளைப் படி</string>
+    <string name="offer_reader_state_on">செயலில்</string>
+    <string name="offer_reader_state_paused">இடைநிறுத்தப்பட்டது</string>
+    <string name="offer_reader_state_off">Off</string>
     <string name="offer_reader_manage_on_body">Picksmart புதிய சலுகைகளைப் படிக்கிறது.</string>
     <string name="offer_reader_manage_paused_body">இடைநிறுத்தப்பட்டது: Picksmart எதையும் படிக்கவில்லை.</string>
     <string name="offer_reader_pause">இடைநிறுத்து (Pause)</string>

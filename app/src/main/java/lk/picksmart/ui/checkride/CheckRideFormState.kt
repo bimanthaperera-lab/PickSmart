@@ -12,6 +12,8 @@ import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.Vehicle
+import java.math.BigDecimal
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.hundredthsToInput
@@ -155,6 +157,20 @@ private fun List<ValidationError>.toOutcome(): CheckRideOutcome.Invalid {
     }
     return CheckRideOutcome.Invalid(errors, tooLarge)
 }
+
+/**
+ * The "+50" / "+100" buttons by the fare: adds [rupees] to it (an empty fare counts as 0). A fare
+ * that doesn't parse, or one that would pass the fare field's digit limit, stays as it is.
+ */
+fun CheckRideFormState.addToFare(rupees: Long): CheckRideFormState {
+    val current = if (fare.isBlank()) 0L else parseRupeesToCents(fare) ?: return this
+    val cents = current + rupees * 100
+    if (cents >= MAX_FARE_CENTS) return this
+    return copy(fare = hundredthsToInput(cents))
+}
+
+/** One more than the largest fare the field takes ([InputDigits.MONEY] whole rupees). */
+private val MAX_FARE_CENTS = BigDecimal.TEN.pow(InputDigits.MONEY).movePointRight(2).toLong()
 
 /** Starts a new check from the remembered values. The fare always starts empty. */
 fun LastCheckInputs.toFormState() = CheckRideFormState(

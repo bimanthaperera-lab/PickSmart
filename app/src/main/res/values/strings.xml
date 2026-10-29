@@ -95,6 +95,11 @@
     <string name="check_trip">Trip</string>
     <string name="check_return">Return</string>
     <string name="check_optional">Optional</string>
+    <string name="check_return_optional">Return (optional)</string>
+    <string name="check_total_km">Total %1$s km</string>
+    <string name="check_fare_add" translatable="false">+%1$d</string>
+    <string name="check_fare_add_description">Add Rs. %1$d to the fare</string>
+    <string name="check_fee_equivalent" translatable="false">= %1$s</string>
     <string name="unit_km">km</string>
     <!-- Rates beside their icons on the Check a Ride vehicle card and the Vehicles list. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
     <string name="check_rate_fuel_price">%1$s/L</string>
@@ -560,6 +565,9 @@
     <string name="offer_reader_paused">Paused · not reading offers</string>
     <!-- The switch at the top of Check a Ride -->
     <string name="offer_reader_switch_label">Read offers</string>
+    <string name="offer_reader_state_on">Active</string>
+    <string name="offer_reader_state_paused">Paused</string>
+    <string name="offer_reader_state_off">Off</string>
     <string name="offer_reader_manage_on_body">Picksmart is reading new offers in Uber Driver.\n\nPause stops it until you resume; it stays on in Android, so ride apps can still see it is turned on.\n\nTurn off completely switches it off in Android too. Turning it on again then needs Accessibility settings.</string>
     <string name="offer_reader_manage_paused_body">Paused: Picksmart reads nothing and shows no badge.\n\nIt is still on in Android, so ride apps can still see it is turned on. Turn off completely to switch it off in Android too.</string>
     <string name="offer_reader_pause">Pause</string>

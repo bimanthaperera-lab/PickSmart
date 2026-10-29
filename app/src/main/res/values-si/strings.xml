@@ -68,7 +68,6 @@
     <string name="check_fare_gross">පෙන්වන ගාස්තුව</string>
     <string name="check_fare_payout">ඔබට ලැබෙන මුදල</string>
     <string name="check_fare_payout_help">Platform ගාස්තුව දැනටමත් අඩු කර ඇති බැවින් එය මෙහි ඇතුලත් කිරීම අවශ්‍ය නැත.</string>
-    <string name="check_clear_fare">ගාස්තුව මකන්න</string>
     <string name="check_fee">Platform ගාස්තුව</string>
     <string name="check_fee_unit_amount">රු.</string>
     <string name="check_fee_in_rupees">රුපියල් වලින් ගාස්තුව</string>

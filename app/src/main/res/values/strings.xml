@@ -82,7 +82,6 @@
     <string name="check_fare_gross">Fare offered</string>
     <string name="check_fare_payout">Payout to you</string>
     <string name="check_fare_payout_help">The platform fee is already taken out, so it isn\'t asked for.</string>
-    <string name="check_clear_fare">Clear fare</string>
     <string name="check_fee">Platform fee</string>
     <string name="check_fee_unit_amount">Rs.</string>
     <string name="check_fee_unit_percent" translatable="false">%</string>

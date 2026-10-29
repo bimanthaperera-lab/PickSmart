@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -27,11 +25,10 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,8 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -68,10 +65,9 @@ import lk.picksmart.util.limitDecimalInput
 
 /**
  * A group of Check a Ride inputs on its own card: a small upper-case title, an optional item on
- * the right of it (the fare mode, the total distance), then the inputs. The right-hand item moves
- * under the title when both don't fit.
+ * the right of it (the fare mode, the total distance), then the inputs. The title takes what the
+ * item leaves and wraps if it must; at large font sizes the item moves under the title.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun InputSection(
     title: String,
@@ -85,24 +81,25 @@ internal fun InputSection(
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {
-        BoxWithConstraints(Modifier.padding(Spacing.l)) {
+        BoxWithConstraints(Modifier.padding(Spacing.m)) {
             val width = maxWidth
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                FlowRow(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        title.uppercase(locale),
-                        style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.8.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .padding(end = Spacing.s)
-                            .semantics { heading() },
-                    )
+            val titleText = @Composable { m: Modifier ->
+                Text(
+                    title.uppercase(locale),
+                    style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.8.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = m.semantics { heading() },
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
+                    titleText(Modifier)
                     action?.invoke(width)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        titleText(Modifier.weight(1f))
+                        action?.invoke(width)
+                    }
                 }
                 content()
             }
@@ -111,14 +108,16 @@ internal fun InputSection(
 }
 
 /**
- * Gross fare / Payout after fee as two small pills for the fare card's title row. Each label keeps
- * to two lines at most, shrinking a little first ("கட்டணங்களுக்குப் பின் வருமானம்" in Tamil).
+ * Gross fare / Payout after fee as two small pills for the fare card's title row. The row keeps
+ * 48 dp of height for touch; the pills inside are drawn smaller. Each label keeps to two lines at
+ * most, shrinking a little first ("கட்டணங்களுக்குப் பின் வருமானம்" in Tamil).
  */
 @Composable
 internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode) -> Unit) {
     Row(
         Modifier
             .widthIn(max = maxWidth)
+            .minimumInteractiveComponentSize()
             .height(IntrinsicSize.Min)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surface)
@@ -132,11 +131,11 @@ internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode
                 Modifier
                     .weight(1f, fill = false)
                     .fillMaxHeight()
-                    .defaultMinSize(minHeight = Spacing.touchTarget - 4.dp)
+                    .defaultMinSize(minHeight = 32.dp)
                     .clip(CircleShape)
                     .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
                     .selectable(selected = isSelected, role = Role.RadioButton, onClick = { onSelect(mode) })
-                    .padding(horizontal = Spacing.m),
+                    .padding(horizontal = Spacing.s + 2.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 FitText(
@@ -146,7 +145,7 @@ internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode
                             FareMode.PAYOUT_AFTER_COMMISSION -> R.string.check_fare_mode_payout
                         },
                     ),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelMedium,
                     color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     lines = 2,
@@ -158,8 +157,8 @@ internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode
 }
 
 /**
- * The fare: "Rs." and a large number in a box with the brand outline while it has focus, a clear
- * button once there is a fare, and the "+50" / "+100" buttons. At large font sizes ([stacked]) the
+ * The fare: "Rs." and a large number in a box with the brand outline while it has focus, and the
+ * "+50" / "+100" buttons. At large font sizes ([stacked]) the
  * add buttons move under the box so the number keeps its width.
  */
 @Composable
@@ -189,7 +188,7 @@ internal fun FareBox(
         Row(
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = 72.dp)
+                .heightIn(min = 56.dp)
                 .clip(shape)
                 .background(colors.surface)
                 .border(border, shape)
@@ -200,17 +199,17 @@ internal fun FareBox(
                         keyboard?.show()
                     }
                 }
-                .padding(start = Spacing.l, end = Spacing.s),
+                .padding(start = Spacing.m, end = Spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            Text(stringResource(R.string.currency_prefix), style = MaterialTheme.typography.headlineSmall, color = colors.primary)
+            Text(stringResource(R.string.currency_prefix), style = MaterialTheme.typography.titleLarge, color = colors.primary)
             NumberInput(
                 value = value,
                 onValueChange = onValueChange,
                 label = label,
                 error = error,
-                textStyle = MaterialTheme.typography.displaySmall,
+                textStyle = MaterialTheme.typography.headlineMedium,
                 maxDecimals = 2,
                 maxIntegerDigits = InputDigits.MONEY,
                 interaction = interaction,
@@ -218,14 +217,6 @@ internal fun FareBox(
                     .weight(1f)
                     .focusRequester(focusRequester),
             )
-            if (value.isNotEmpty()) {
-                IconButton(onClick = {
-                    onValueChange("")
-                    focusRequester.requestFocus()
-                }) {
-                    Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.check_clear_fare))
-                }
-            }
             if (!stacked) addButtons()
         }
         if (stacked) {
@@ -243,13 +234,13 @@ private fun QuickAddButton(rupees: Long, onClick: () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier
-            .defaultMinSize(minWidth = Spacing.touchTarget, minHeight = Spacing.touchTarget)
+            .defaultMinSize(minWidth = 44.dp, minHeight = 36.dp)
             .semantics { contentDescription = description },
     ) {
         Box(Modifier.padding(horizontal = Spacing.s), contentAlignment = Alignment.Center) {
             Text(
                 stringResource(R.string.check_fare_add, rupees),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
@@ -304,7 +295,7 @@ internal fun NumberTile(
                         keyboard?.show()
                     }
                 }
-                .padding(start = Spacing.m, end = if (trailing != null) Spacing.xs else Spacing.m, top = Spacing.s, bottom = Spacing.s),
+                .padding(start = Spacing.m, end = if (trailing != null) Spacing.xs else Spacing.m, top = Spacing.s, bottom = Spacing.xs),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             FitText(
@@ -315,7 +306,7 @@ internal fun NumberTile(
                 minScale = 0.85f,
             )
             Row(
-                Modifier.heightIn(min = Spacing.touchTarget),
+                Modifier.heightIn(min = 36.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
             ) {
@@ -327,7 +318,7 @@ internal fun NumberTile(
                     onValueChange = onValueChange,
                     label = label,
                     error = error,
-                    textStyle = MaterialTheme.typography.titleLarge,
+                    textStyle = MaterialTheme.typography.titleMedium,
                     maxDecimals = maxDecimals,
                     maxIntegerDigits = maxIntegerDigits,
                     interaction = interaction,
@@ -342,7 +333,7 @@ internal fun NumberTile(
                 trailing?.invoke()
             }
             if (note != null) {
-                Text(note, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
+                Text(note, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
             }
         }
         if (error != null) {

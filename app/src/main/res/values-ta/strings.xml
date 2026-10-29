@@ -68,7 +68,6 @@
     <string name="check_fare_gross">காட்டப்படும் கட்டணம்</string>
     <string name="check_fare_payout">உங்களுக்குக் கிடைக்கும் கட்டணம்</string>
     <string name="check_fare_payout_help">பிளாட்ஃபார்ம் கட்டணம் ஏற்கனவே கழிக்கப்பட்டுள்ளதால் அதைக் கேட்கவில்லை.</string>
-    <string name="check_clear_fare">கட்டணத்தை அழி</string>
     <string name="check_fee">பிளாட்ஃபார்ம் கட்டணம்</string>
     <string name="check_fee_unit_amount">ரூ.</string>
     <string name="check_fee_in_rupees">ரூபாயில் கட்டணம்</string>

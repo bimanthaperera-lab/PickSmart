@@ -73,6 +73,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -273,7 +274,7 @@ private fun CheckRideForm(
                             error = errors.text(InputField.COMMISSION),
                             note = feeCents?.let { stringResource(R.string.check_fee_equivalent, rememberMoneyFormatter().format(it)) },
                             trailing = {
-                                FeeUnitToggle(form.commissionType) { onChange(form.copy(commissionType = it)) }
+                                FeeUnitToggle(form.commissionType, size = 36.dp) { onChange(form.copy(commissionType = it)) }
                             },
                         )
                     }
@@ -440,9 +441,9 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
     }
 }
 
-/** The "Rs." / "%" switch inside the fee field. */
+/** The "Rs." / "%" switch inside the fee field. [size] is how big it is drawn; Compose keeps a 48 dp touch area. */
 @Composable
-internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> Unit) {
+internal fun FeeUnitToggle(type: CommissionType, size: Dp = Spacing.touchTarget, onSelect: (CommissionType) -> Unit) {
     val amount = type == CommissionType.AMOUNT
     val description = stringResource(if (amount) R.string.check_fee_in_rupees else R.string.check_fee_in_percent)
     val actionLabel = stringResource(if (amount) R.string.check_fee_switch_to_percent else R.string.check_fee_switch_to_rupees)
@@ -450,7 +451,7 @@ internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> U
     Box(
         Modifier
             .padding(end = Spacing.xs)
-            .defaultMinSize(minWidth = Spacing.touchTarget, minHeight = Spacing.touchTarget)
+            .defaultMinSize(minWidth = size, minHeight = size)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
             .clickable(role = Role.Button, onClickLabel = actionLabel) {
@@ -483,7 +484,7 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(start = Spacing.m, top = Spacing.m, bottom = Spacing.m, end = Spacing.xs)) {
+        Column(Modifier.padding(start = Spacing.m, top = Spacing.s, bottom = Spacing.s, end = Spacing.xs)) {
             Row(
                 // Stacked rates are tall; the tile then stays by the name instead of floating.
                 verticalAlignment = if (stacked) Alignment.Top else Alignment.CenterVertically,
@@ -491,8 +492,8 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
             ) {
                 Box(
                     Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.medium),
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small),
                     contentAlignment = Alignment.Center,
                 ) {
                     // Decorative: the name and type are read out with the text.
@@ -500,7 +501,7 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
                         painterResource(vehicle.type.icon),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Column(
@@ -650,10 +651,12 @@ private fun ResultPanel(
 
 @Composable
 private fun MessagePanel(title: String, body: String?, modifier: Modifier, isError: Boolean = false) {
-    PicksmartCard(modifier.fillMaxWidth()) {
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+            modifier = Modifier
+                .padding(Spacing.m)
+                .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(
                 painterResource(if (isError) R.drawable.ic_error else R.drawable.ic_info),
@@ -662,9 +665,9 @@ private fun MessagePanel(title: String, body: String?, modifier: Modifier, isErr
                 modifier = Modifier.size(24.dp),
             )
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleSmall)
                 if (body != null) {
-                    Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -698,8 +701,8 @@ private fun CalculatedPanel(
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
-                .padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                .padding(horizontal = Spacing.m, vertical = Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(
@@ -726,10 +729,10 @@ private fun CalculatedPanel(
                 itemVerticalAlignment = Alignment.Bottom,
                 modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = netDescription },
             ) {
-                Text(net, style = MaterialTheme.typography.displaySmall, color = style.onContainer)
+                Text(net, style = MaterialTheme.typography.headlineLarge, color = style.onContainer)
                 Text(
                     perKm,
-                    style = if (result.netProfitPerKmCents != null) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyMedium,
+                    style = if (result.netProfitPerKmCents != null) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodySmall,
                     color = style.content,
                     modifier = Modifier.padding(bottom = Spacing.xs),
                 )
@@ -812,14 +815,14 @@ private fun SaveButtons(isLoss: Boolean, enabled: Boolean, onSave: (TripStatus) 
         stacked,
         listOf(
             { m ->
-                SecondaryButton(stringResource(R.string.check_save_offer), { onSave(TripStatus.OFFER_CHECK) }, m, enabled = enabled)
+                SecondaryButton(stringResource(R.string.check_save_offer), { onSave(TripStatus.OFFER_CHECK) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
             },
             { m ->
                 // Taking a loss-making ride is allowed but not encouraged: no yellow fill.
                 if (isLoss) {
-                    SecondaryButton(stringResource(R.string.check_took_it_anyway), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                    SecondaryButton(stringResource(R.string.check_took_it_anyway), { onSave(TripStatus.COMPLETED) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
                 } else {
-                    PrimaryButton(stringResource(R.string.check_took_it), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                    PrimaryButton(stringResource(R.string.check_took_it), { onSave(TripStatus.COMPLETED) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
                 }
             },
         ),

@@ -269,7 +269,7 @@
     <string name="expense_category_maintenance">பராமரிப்பு</string>
     <string name="expense_category_parking">பார்க்கிங்</string>
     <string name="expense_category_mobile_data">மொபைல் டேட்டா</string>
-    <string name="expense_category_tolls">சுங்கச்சாவடி (Tolls)</string>
+    <string name="expense_category_tolls">சுங்கச்சாவடி</string>
     <string name="expense_category_other">பிற</string>
     <string name="expense_amount">தொகை</string>
     <string name="expense_date">தேதி</string>

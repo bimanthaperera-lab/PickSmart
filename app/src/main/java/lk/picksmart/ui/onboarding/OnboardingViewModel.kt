@@ -125,10 +125,20 @@ class OnboardingViewModel(
 
     private var restoring: Job? = null
 
-    /** Signed in or registered from the welcome screen: the intro is skipped, and the backup restored. */
+    /**
+     * Signed in or registered from the welcome screen: the intro is skipped, and the backup restored.
+     * A new account has no backup yet, so it goes straight on to the vehicle without "Restoring your
+     * data"; backup starts by itself in the background.
+     */
     fun signedIn() {
-        _state.update { it.copy(step = OnboardingStep.RESTORE) }
-        restore()
+        viewModelScope.launch {
+            if (account.profile.first()?.isNewAccount == true) {
+                _state.update { it.copy(step = OnboardingStep.VEHICLE) }
+            } else {
+                _state.update { it.copy(step = OnboardingStep.RESTORE) }
+                restore()
+            }
+        }
     }
 
     /**

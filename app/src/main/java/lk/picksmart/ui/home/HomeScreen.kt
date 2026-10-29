@@ -2,6 +2,7 @@ package lk.picksmart.ui.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -10,14 +11,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -32,7 +38,6 @@ import lk.picksmart.R
 import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.PublishedPriceAction
-import lk.picksmart.ui.components.AdaptiveRow
 import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.InfoNote
 import lk.picksmart.ui.components.LoadingState
@@ -69,12 +74,13 @@ fun HomeScreen(
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
     onOpenFuelPrice: () -> Unit,
+    onOpenReports: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     TabScreen {
-        HomeHeader()
+        HomeHeader(onOpenReports)
         when (val s = state) {
             HomeUiState.Loading -> LoadingState()
             is HomeUiState.Loaded -> {
@@ -138,26 +144,46 @@ private fun FuelPriceNotice(prices: FuelPriceState, onReview: () -> Unit, onDism
 }
 
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(onOpenReports: () -> Unit) {
     val pattern = stringResource(R.string.home_date_pattern)
     val locale = LocalConfiguration.current.locales[0]
     val date = remember(pattern, locale) {
         todayInColombo().format(dateFormatter(pattern, locale))
     }
-    // The offer reader's card sits on the right; when both don't fit (a long translation, a narrow
-    // phone, a large font) it goes under the title at full width.
-    AdaptiveRow(
-        start = {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                BrandMark()
-                Column {
-                    Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    ScreenTitle(stringResource(R.string.home_title))
-                }
+    // The offer reader's card always goes under the title at full width, in every language, so the
+    // top-right corner holds the menu.
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            BrandMark()
+            Column(Modifier.weight(1f)) {
+                Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                ScreenTitle(stringResource(R.string.home_title))
             }
-        },
-        end = { stacked -> OfferReaderSwitch(fillWidth = stacked) },
-    )
+            HomeMenu(onOpenReports)
+        }
+        OfferReaderSwitch(fillWidth = true)
+    }
+}
+
+/** The three-dot menu in the header's top-right corner. */
+@Composable
+private fun HomeMenu(onOpenReports: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.home_more_options))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.reports_title)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_nav_reports), contentDescription = null) },
+                onClick = {
+                    expanded = false
+                    onOpenReports()
+                },
+            )
+        }
+    }
 }
 
 /**

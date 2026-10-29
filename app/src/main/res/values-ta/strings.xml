@@ -286,6 +286,7 @@
     <string name="expense_save_failed">சேமிக்க முடியவில்லை. மீண்டும் முயல்க.</string>
 
     <string name="reports_title">அறிக்கைகள்</string>
+    <string name="home_more_options">மேலும் விருப்பங்கள்</string>
     <string name="reports_empty_title">இன்னும் அறிக்கைகள் இல்லை</string>
     <string name="reports_empty_body">நீங்கள் சவாரிகளைப் பதிவு செய்தவுடன் உங்கள் தினசரி, வாராந்திர மற்றும் மாதாந்திர இலாபம் இங்கே தோன்றும்.</string>
     <string name="reports_period_day">நாள்</string>

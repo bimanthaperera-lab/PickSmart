@@ -336,6 +336,7 @@
 
     <!-- Reports -->
     <string name="reports_title">Reports</string>
+    <string name="home_more_options">More options</string>
     <string name="reports_empty_title">No reports yet</string>
     <string name="reports_empty_body">Your daily, weekly and monthly profit will appear here once you record trips.</string>
     <string name="reports_period_day">Day</string>

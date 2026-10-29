@@ -186,6 +186,7 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier) {
                 onOpenFuelLog = openFuelLog,
                 onOpenExpenses = openExpenses,
                 onOpenFuelPrice = openFuelPrice,
+                onOpenReports = { navController.navigate(ReportsRoute) },
             )
         }
         composable<CheckRideRoute> {

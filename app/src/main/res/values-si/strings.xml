@@ -260,16 +260,16 @@
     <string name="expense_title">වියදම්</string>
     <string name="expense_month_total">මෙම මාසයේ වියදම් · ඉන්ධන හැර</string>
     <string name="expense_recent">මෑත</string>
-    <string name="expense_help">නඩත්තු, වාහන නැවැත්වීමේ ගාස්තු, ඩේටා සහ ටෝල් ගාස්තු වැනි වියදම් මෙහි එක් කරන්න.</string>
+    <string name="expense_help">නඩත්තු, වාහන නැවැත්වීමේ ගාස්තු, ඩේටා සහ මාර්ග ගාස්තු වැනි වියදම් මෙහි එක් කරන්න.</string>
     <string name="expense_add">වියදමක් එක් කරන්න</string>
     <string name="expense_empty_title">තවම වියදම් නැත</string>
     <string name="expense_add_title">වියදමක් එක් කරන්න</string>
     <string name="expense_edit_title">වියදම වෙනස් කරන්න</string>
     <string name="expense_category">කාණ්ඩය</string>
     <string name="expense_category_maintenance">නඩත්තු</string>
-    <string name="expense_category_parking">වාහන නැවැත්වීම (Parking)</string>
+    <string name="expense_category_parking">වාහන නැවැත්වීම</string>
     <string name="expense_category_mobile_data">මොබයිල් ඩේටා</string>
-    <string name="expense_category_tolls">ටෝල් ගාස්තු</string>
+    <string name="expense_category_tolls">මාර්ග ගාස්තු</string>
     <string name="expense_category_other">වෙනත්</string>
     <string name="expense_amount">මුදල</string>
     <string name="expense_date">දිනය</string>
@@ -286,6 +286,7 @@
     <string name="expense_save_failed">සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.</string>
 
     <string name="reports_title">වාර්තා</string>
+    <string name="home_more_options">තවත් විකල්ප</string>
     <string name="reports_empty_title">තවම වාර්තා නැත</string>
     <string name="reports_empty_body">ඔබ ගමන් වාර්තා කළ පසු ඔබේ දෛනික, සතිපතා සහ මාසික ලාභය මෙහි දිස්වනු ඇත.</string>
     <string name="reports_period_day">දින</string>
@@ -472,7 +473,7 @@
     <string name="settings_fuel_log">ඉන්ධන සටහන</string>
     <string name="settings_fuel_log_body">ඉන්ධන පිරවීම් සහ ඔබගේ සැබෑ කි.මී/ලීටර්</string>
     <string name="settings_expenses">වියදම්</string>
-    <string name="settings_expenses_body">නඩත්තු, වාහන නැවැත්වීම, ඩේටා සහ ටෝල් ගාස්තු</string>
+    <string name="settings_expenses_body">නඩත්තු, වාහන නැවැත්වීම, ඩේටා සහ මාර්ග ගාස්තු</string>
     <string name="settings_section_app">App එක ගැන</string>
     <string name="settings_section_about">ගැන (About)</string>
 

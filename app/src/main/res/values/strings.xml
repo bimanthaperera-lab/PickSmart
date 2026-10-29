@@ -73,6 +73,13 @@
     <string name="home_stat_trips">Completed trips</string>
     <string name="home_stat_distance">Distance</string>
     <string name="home_recent">Recent trips</string>
+    <string name="home_month_profit">This month\'s profit</string>
+    <string name="home_month_detail">%1$s · %2$s per km</string>
+    <string name="home_month_empty">No trips this month yet</string>
+    <string name="home_all_time">All time</string>
+    <string name="home_total_distance">Total distance</string>
+    <string name="home_longest_trip">Longest trip</string>
+    <string name="home_longest_none">No trips with a distance yet</string>
     <string name="home_see_all">See all</string>
 
     <!-- Check a Ride -->

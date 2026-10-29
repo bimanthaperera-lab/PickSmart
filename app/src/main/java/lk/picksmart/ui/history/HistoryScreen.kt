@@ -466,29 +466,31 @@ internal fun TripRow(
 }
 
 /**
- * The trip's places in small type, "Pickup → Where to", on one line that ends in "…" when it is
+ * The trip's places in small type, "Pickup → Where to", on [maxLines] lines that end in "…" when
  * too long. Nothing when the trip has neither; one alone shows with its own icon.
  */
 @Composable
-private fun RouteLine(pickup: String?, dropOff: String?) {
+internal fun RouteLine(pickup: String?, dropOff: String?, maxLines: Int = 1) {
     if (pickup == null && dropOff == null) return
     val text = when {
         pickup != null && dropOff != null -> stringResource(R.string.history_row_route, pickup, dropOff)
         pickup != null -> pickup
         else -> stringResource(R.string.history_row_route_to, dropOff.orEmpty())
     }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Icon(
             painterResource(if (pickup != null) R.drawable.ic_pin else R.drawable.ic_flag),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(14.dp),
         )
         Text(
             text,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
         )
     }

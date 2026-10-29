@@ -18,6 +18,10 @@ import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.usecase.AccountingRecords
 import lk.picksmart.domain.usecase.DateRange
+import lk.picksmart.domain.usecase.DistanceRecords
+import lk.picksmart.domain.usecase.ReportPeriod
+import lk.picksmart.domain.usecase.distanceRecords
+import lk.picksmart.domain.usecase.rangeContaining
 import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.FuelPriceUpdates
@@ -38,9 +42,13 @@ sealed interface HomeUiState {
      *   income or expenses with no vehicle, which belong to no single vehicle and so aren't in it.
      * @property recent The active vehicle's newest few trips of any day, offers included (they
      *   are marked as such).
+     * @property month This calendar month so far, for the month's profit card.
+     * @property distance The active vehicle's all-time distance and longest trip.
      */
     data class Loaded(
         val summary: PeriodSummary,
+        val month: PeriodSummary,
+        val distance: DistanceRecords,
         val vehicleName: String?,
         val sharedLeftOut: Boolean,
         val recent: List<HistoryRow>,
@@ -48,8 +56,8 @@ sealed interface HomeUiState {
 }
 
 /**
- * Today's figures (estimated view, CLAUDE.md section 7) for the active vehicle, and the latest
- * trips. Switching the vehicle switches the figures. Works offline.
+ * Today's and this month's figures (estimated view, CLAUDE.md section 7) for the active vehicle,
+ * its all-time distance and longest trip, and the latest trips. Switching the vehicle switches the figures. Works offline.
  */
 class HomeViewModel(
     trips: TripRepository,
@@ -65,11 +73,14 @@ class HomeViewModel(
     private val records = combine(trips.all, otherIncome.all, expenses.all) { t, i, e -> AccountingRecords(t, i, e, emptyList()) }
 
     val state: StateFlow<HomeUiState> = combine(records, vehicles.defaultVehicle, vehicles.allVehicles) { all, active, vehicleList ->
-        val today = DateRange.day(clock.instant().atZone(ColomboZone).toLocalDate())
+        val date = clock.instant().atZone(ColomboZone).toLocalDate()
+        val today = DateRange.day(date)
         val scope = activeVehicleScope(active, vehicleList)
         val shown = all.forVehicle(scope)
         HomeUiState.Loaded(
             summary = calculator.summarizePeriod(today, shown),
+            month = calculator.summarizePeriod(ReportPeriod.MONTH.rangeContaining(date), shown),
+            distance = distanceRecords(shown.trips),
             vehicleName = active?.name,
             sharedLeftOut = scope != VehicleScope.All && all.hasSharedRecordsIn(today),
             recent = shown.trips.take(RECENT_TRIPS).map { HistoryRow(it, calculator.estimate(it)) },

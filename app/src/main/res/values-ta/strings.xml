@@ -60,6 +60,13 @@
     <string name="home_stat_trips">முடிக்கப்பட்ட சவாரிகள்</string>
     <string name="home_stat_distance">தூரம்</string>
     <string name="home_recent">சமீபத்திய சவாரிகள்</string>
+    <string name="home_month_profit">இந்த மாத லாபம்</string>
+    <string name="home_month_detail">%1$s · கி.மீக்கு %2$s</string>
+    <string name="home_month_empty">இந்த மாதம் இன்னும் சவாரிகள் இல்லை</string>
+    <string name="home_all_time">இதுவரை மொத்தம்</string>
+    <string name="home_total_distance">மொத்த தூரம்</string>
+    <string name="home_longest_trip">நீண்ட சவாரி</string>
+    <string name="home_longest_none">தூரத்துடன் சவாரிகள் இன்னும் இல்லை</string>
     <string name="home_see_all">அனைத்தையும் காண்</string>
 
     <string name="check_ride_title">சவாரியைச் சரிபார்க்கவும்</string>

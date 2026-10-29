@@ -60,6 +60,13 @@
     <string name="home_stat_trips">ගමන් ගණන</string>
     <string name="home_stat_distance">දුර</string>
     <string name="home_recent">මෑත ගමන්</string>
+    <string name="home_month_profit">මේ මාසයේ ලාභය</string>
+    <string name="home_month_detail">%1$s · කි.මී එකකට %2$s</string>
+    <string name="home_month_empty">මේ මාසයේ තවම ගමන් නැත</string>
+    <string name="home_all_time">මුළු කාලයම</string>
+    <string name="home_total_distance">මුළු දුර</string>
+    <string name="home_longest_trip">දිගම ගමන</string>
+    <string name="home_longest_none">දුර සහිත ගමන් තවම නැත</string>
     <string name="home_see_all">සියල්ල බලන්න</string>
 
     <string name="check_ride_title">ගමන පරීක්ෂා කරන්න</string>

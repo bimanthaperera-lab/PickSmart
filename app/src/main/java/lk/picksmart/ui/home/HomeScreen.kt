@@ -1,5 +1,16 @@
 package lk.picksmart.ui.home
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
+import lk.picksmart.domain.usecase.DistanceRecords
+import lk.picksmart.ui.checkride.STACK_FONT_SCALE
+import lk.picksmart.ui.history.RouteLine
+import lk.picksmart.util.ColomboZone
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,8 +73,8 @@ import lk.picksmart.util.formatDecimal
 import lk.picksmart.util.todayInColombo
 
 /**
- * Today at a glance: estimated net profit, the figures behind it, the way into Check a Ride, the
- * latest trips and the rider's records.
+ * Today at a glance: estimated net profit, the figures behind it, the way into Check a Ride, this
+ * month's profit, the all-time distance and longest trip, the latest trips and the rider's records.
  */
 @Composable
 fun HomeScreen(
@@ -94,6 +105,8 @@ fun HomeScreen(
                     iconRes = R.drawable.ic_nav_check_ride,
                 )
                 fuelPrices?.let { FuelPriceNotice(it, onOpenFuelPrice, viewModel::dismissFuelPriceNotice) }
+                MonthProfitCard(s.month, onOpenReports)
+                AllTimeCards(s.distance, onOpenTrip)
                 if (s.recent.isNotEmpty()) RecentTrips(s.recent, onOpenHistory, onOpenTrip)
             }
         }
@@ -268,6 +281,161 @@ private fun TodayStats(summary: PeriodSummary) {
             Stat(stringResource(R.string.home_stat_distance), stringResource(R.string.check_km_value, formatDecimal(summary.distanceKm, 1))),
         ),
     )
+}
+
+/**
+ * This calendar month's estimated net profit for the active vehicle (CLAUDE.md section 7, the
+ * same view as Today), with its trips and profit per km. A tap opens Reports.
+ */
+@Composable
+private fun MonthProfitCard(month: PeriodSummary, onOpenReports: () -> Unit) {
+    val money = rememberMoneyFormatter()
+    val net = month.estimatedProfitCents
+    val color = when {
+        net > 0 -> PicksmartTheme.status.profit
+        net < 0 -> PicksmartTheme.status.loss
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val trips = pluralStringResource(R.plurals.reports_trips_line, month.completedTrips, month.completedTrips)
+    Surface(
+        onClick = onOpenReports,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {},
+    ) {
+        Row(Modifier.padding(Spacing.l), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                Text(
+                    stringResource(R.string.home_month_profit),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s), itemVerticalAlignment = Alignment.CenterVertically) {
+                    if (net != 0L) {
+                        Icon(
+                            painterResource(if (net > 0) R.drawable.ic_trend_up else R.drawable.ic_trend_down),
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Text(money.format(net), style = MaterialTheme.typography.headlineSmall, color = color)
+                }
+                Text(
+                    when {
+                        month.isEmpty -> stringResource(R.string.home_month_empty)
+                        month.tripProfitPerKmCents != null ->
+                            stringResource(R.string.home_month_detail, trips, money.format(month.tripProfitPerKmCents))
+                        else -> trips
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * The active vehicle's all-time distance driven and its longest trip, side by side (one under
+ * the other at large font sizes). The longest trip shows its date and places, and opens it.
+ */
+@Composable
+private fun AllTimeCards(distance: DistanceRecords, onOpenTrip: (Long) -> Unit) {
+    val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
+    val total = @Composable { m: Modifier ->
+        AllTimeCard(
+            label = stringResource(R.string.home_total_distance),
+            value = stringResource(R.string.check_km_value, formatDecimal(distance.totalKm, 1)),
+            iconRes = R.drawable.ic_gauge,
+            modifier = m,
+        ) {
+            Text(
+                pluralStringResource(R.plurals.reports_trips_line, distance.drivenTrips, distance.drivenTrips),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    val longest = @Composable { m: Modifier ->
+        val trip = distance.longestTrip
+        AllTimeCard(
+            label = stringResource(R.string.home_longest_trip),
+            value = trip?.let { stringResource(R.string.check_km_value, formatDecimal(it.tripKm, 1)) } ?: "—",
+            iconRes = R.drawable.ic_route,
+            modifier = m,
+            onClick = trip?.let { { onOpenTrip(it.id) } },
+        ) {
+            if (trip == null) {
+                Text(
+                    stringResource(R.string.home_longest_none),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    rememberRecordDate(trip.tripDateTime.atZone(ColomboZone).toLocalDate(), todayInColombo()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                RouteLine(trip.pickupLocation, trip.dropOffLocation, maxLines = 2)
+            }
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Text(
+            stringResource(R.string.home_all_time),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { heading() },
+        )
+        if (stacked) {
+            total(Modifier.fillMaxWidth())
+            longest(Modifier.fillMaxWidth())
+        } else {
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                total(Modifier.weight(1f).fillMaxHeight())
+                longest(Modifier.weight(1f).fillMaxHeight())
+            }
+        }
+    }
+}
+
+/** One all-time figure: an icon and label, the value, then [details]. Tappable with [onClick]. */
+@Composable
+private fun AllTimeCard(
+    label: String,
+    value: String,
+    @DrawableRes iconRes: Int,
+    modifier: Modifier,
+    onClick: (() -> Unit)? = null,
+    details: @Composable ColumnScope.() -> Unit,
+) {
+    val content = @Composable {
+        Column(Modifier.padding(Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                Icon(painterResource(iconRes), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(value, style = MaterialTheme.typography.titleLarge)
+            details()
+        }
+    }
+    val shape = MaterialTheme.shapes.large
+    val color = MaterialTheme.colorScheme.surfaceContainer
+    val merged = modifier.semantics(mergeDescendants = true) {}
+    if (onClick == null) {
+        Surface(shape = shape, color = color, modifier = merged) { content() }
+    } else {
+        Surface(onClick = onClick, shape = shape, color = color, modifier = merged) { content() }
+    }
 }
 
 @Composable

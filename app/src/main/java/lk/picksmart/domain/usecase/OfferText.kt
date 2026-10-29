@@ -19,8 +19,8 @@ import java.time.Instant
  *
  * @property pickupKm Distance to the pickup, or null when the offer didn't say which part is which.
  * @property tripKm Distance of the trip itself.
- * @property tipCents A tip shown on the offer ("+ LKR 200" on PickMe's card), paid on top of the
- *   fare; 0 when there is none.
+ * @property tipCents A tip paid on top of the fare; 0 when there is none. [parseOfferText] never
+ *   sets one: the "+ LKR" chip on Uber's and PickMe's cards is a surge, not a tip.
  * @property pickupLocation The place shown under the pickup distance, or null. Only ever used to
  *   fill Add trip, where the rider checks it (N6); never logged.
  * @property dropOffLocation The place shown under the trip distance ("Where to"), or null.
@@ -78,9 +78,9 @@ private const val MAX_KM = 500.0
  *   with thousands separators allowed ("LKR 1,250.00", "850 LKR"). The amount and the currency may
  *   be two texts next to each other ("299.50", "LKR"), as on PickMe's card. An amount after a "+"
  *   is never the fare.
- * - **Tip:** the first amount after a "+" ("+ LKR 200" on PickMe's card, "+LKR 50"), or 0. On
- *   Uber ([platform]) the "+ LKR" chip is a surge or boost, not a passenger's tip, so it is never
- *   counted: the tip is 0 (owner decision 2026-10-29). It is still never the fare.
+ * - **"+" chips:** an amount after a "+" ("+ LKR 100" with a flame, on Uber's and PickMe's cards)
+ *   is a surge, never the fare and never counted, so the reading's tip is always 0 (owner
+ *   decision 2026-10-29).
  * - **Distances:** numbers followed by "km". A distance whose words say "away" or "pickup" is the
  *   pickup; one whose words say "trip", "ride" or "drop-off" is the trip. Its words are its line,
  *   up to the distances either side of it, so a whole card read as one text still splits up.
@@ -89,31 +89,29 @@ private const val MAX_KM = 500.0
  * - **Locations:** the line just under a distance line that holds only that one distance, as on
  *   PickMe's card (the pickup line over its address, the trip line over its address), when it
  *   looks like a place: three letters or more, no amount or distance, not a time ("12 min"), not
- *   a button ("Accept") and not a tip chip. A card read as one text gives no locations.
+ *   a button ("Accept") and not a "+" chip. A card read as one text gives no locations.
  * - Lines with nine or more digits in a row (phone numbers, ids) are ignored.
  * - **Cards:** a card runs from its fare down to the next fare, and the first card that gives a
- *   reading is read, so when a list of offers is on screen (Uber's Trip scanner) one card's fare,
- *   tip or distances never mix with another's. The lines above the first fare (a title, a tip
+ *   reading is read, so when a list of offers is on screen (a trip scanner) one card's fare
+ *   or distances never mix with another's. The lines above the first fare (a title, a "+"
  *   chip) are part of the first card, unless they hold a distance: then they belong to a card
  *   whose fare has scrolled off, and are skipped. Only when no card gives a reading and there is
  *   a single fare are all the lines read as one card (its distances may sit above its fare).
  */
-fun parseOfferText(lines: List<String>, platform: Platform? = null): OfferReading? {
+fun parseOfferText(lines: List<String>): OfferReading? {
     val usable = lines.map { it.trim() }.filter { line -> line.isNotEmpty() && !LONG_NUMBER.containsMatchIn(line) }
     val fareLines = amountsIn(usable).filterNot { it.afterPlus }.map { it.line }.distinct()
     val card = fareLines.indices.firstNotNullOfOrNull { i ->
         val above = i == 0 && usable.subList(0, fareLines[0]).none { DISTANCE.containsMatchIn(it) }
         parseCard(usable.subList(if (above) 0 else fareLines[i], fareLines.getOrNull(i + 1) ?: usable.size))
     }
-    val reading = card ?: if (fareLines.size == 1) parseCard(usable) else null
-    return if (platform == Platform.UBER) reading?.copy(tipCents = 0) else reading
+    return card ?: if (fareLines.size == 1) parseCard(usable) else null
 }
 
 /** [parseOfferText] for the lines of one card. */
 private fun parseCard(usable: List<String>): OfferReading? {
     val amounts = amountsIn(usable)
     val fare = amounts.firstOrNull { !it.afterPlus }?.cents ?: return null
-    val tip = amounts.firstOrNull { it.afterPlus }?.cents ?: 0L
 
     var pickup: Distance? = null
     var trip: Distance? = null
@@ -149,7 +147,6 @@ private fun parseCard(usable: List<String>): OfferReading? {
         fareCents = fare,
         pickupKm = pickup?.km,
         tripKm = trip?.km,
-        tipCents = tip,
         pickupLocation = pickup?.let { placeUnder(usable, it) },
         dropOffLocation = trip?.let { placeUnder(usable, it) },
     )
@@ -190,7 +187,7 @@ fun offerReadingOrNull(
 }
 
 /**
- * An amount marked with a currency, whether a "+" comes just before it (a tip, not the fare), and
+ * An amount marked with a currency, whether a "+" comes just before it (a surge chip, not the fare), and
  * the line it starts on.
  */
 private class Amount(val cents: Long, val afterPlus: Boolean, val line: Int)

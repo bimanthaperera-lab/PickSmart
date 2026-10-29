@@ -6,7 +6,6 @@ import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.LastCheckInputs
-import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.model.VehicleType
 import org.junit.Assert.assertEquals
@@ -79,21 +78,14 @@ class OfferTextTest {
     }
 
     @Test
-    fun `an amount after a plus is the tip, not the fare`() {
-        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 5_000), parseOfferText(listOf("+LKR 50 Boost", "LKR 700", "8 km")))
-    }
-
-    @Test
-    fun `a tip with a space after the plus is not the fare`() {
-        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km")))
-        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("LKR 700", "+", "LKR 200", "8 km")))
+    fun `an amount after a plus is a surge, never the fare or a tip`() {
+        val reading = OfferReading(70_000, null, 8.0)
+        assertEquals(reading, parseOfferText(listOf("+LKR 50 Boost", "LKR 700", "8 km")))
+        assertEquals(reading, parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km")))
+        assertEquals(reading, parseOfferText(listOf("LKR 700", "+", "LKR 200", "8 km")))
+        assertEquals(reading, parseOfferText(listOf("LKR 700", "+ LKR 200", "+ LKR 50", "8 km")))
         assertNull(parseOfferText(listOf("+ LKR 200", "8 km")))
         assertNull(parseOfferText(listOf("+", "LKR", "200", "8 km")))
-    }
-
-    @Test
-    fun `only the first tip is read`() {
-        assertEquals(OfferReading(70_000, null, 8.0, tipCents = 20_000), parseOfferText(listOf("LKR 700", "+ LKR 200", "+ LKR 50", "8 km")))
     }
 
     @Test
@@ -105,7 +97,7 @@ class OfferTextTest {
 
     // A card laid out like PickMe's: the fare before commission in a large font with "LKR" after
     // it, the pickup line ("… min away (… km)") and the trip line ("… min (… km)") each over an
-    // address, and the passenger's tip as a "+ LKR" chip. The values and places are made up.
+    // address, and a surge as a "+ LKR" chip, which is not counted. The values and places are made up.
     private val pickMeStyleCard = listOf(
         "TUK",
         "12 min away (5.0 km)",
@@ -119,7 +111,6 @@ class OfferTextTest {
         45_075,
         5.0,
         3.4,
-        tipCents = 15_000,
         pickupLocation = "Sample Road, Sampletown",
         dropOffLocation = "Example Mawatha, Exampleville",
     )
@@ -173,7 +164,7 @@ class OfferTextTest {
 
     // A list of offers laid out like Uber's Trip scanner: each card has the fare in a large font
     // with "LKR" after it, the pickup and trip lines over their places, and an optional "+ LKR"
-    // chip. The first card is a long, high fare trip. The values and places are made up.
+    // surge chip. The first card is a long, high fare trip. The values and places are made up.
     private val scannerFirstCard = listOf(
         "10,250.40", "LKR", "TUK",
         "1 min away (0.2 km)", "Sample Road, Sampletown",
@@ -191,7 +182,7 @@ class OfferTextTest {
     fun `a high fare long trip is read in full`() {
         val reading = parseOfferText(listOf("Trip scanner (1)") + scannerFirstCard)
         assertEquals(
-            OfferReading(1_025_040, 0.2, 131.75, 10_000, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
+            OfferReading(1_025_040, 0.2, 131.75, 0, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
             reading,
         )
     }
@@ -200,7 +191,7 @@ class OfferTextTest {
     fun `a list of offers reads only the first card`() {
         val reading = parseOfferText(listOf("Trip scanner (2)", "New trips available") + scannerFirstCard + scannerSecondCard)
         assertEquals(
-            OfferReading(1_025_040, 0.2, 131.75, 10_000, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
+            OfferReading(1_025_040, 0.2, 131.75, 0, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
             reading,
         )
     }
@@ -215,7 +206,7 @@ class OfferTextTest {
     }
 
     @Test
-    fun `a tip on the next card is not this card's tip`() {
+    fun `the next card's fare and chip stay with it`() {
         val reading = parseOfferText(listOf("LKR 700", "8 km", "LKR 500", "+ LKR 200", "4 km"))
         assertEquals(OfferReading(70_000, null, 8.0), reading)
     }
@@ -223,21 +214,6 @@ class OfferTextTest {
     @Test
     fun `a card with no distance gives way to the next card`() {
         assertEquals(OfferReading(50_000, null, 4.0), parseOfferText(listOf("LKR 700", "Accept", "LKR 500", "4 km")))
-    }
-
-    @Test
-    fun `Uber's plus chip is a surge, not a tip`() {
-        val reading = parseOfferText(scannerFirstCard, Platform.UBER)
-        assertEquals(
-            OfferReading(1_025_040, 0.2, 131.75, 0, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
-            reading,
-        )
-        assertEquals(OfferReading(70_000, null, 8.0), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km"), Platform.UBER))
-    }
-
-    @Test
-    fun `PickMe's plus chip is still the tip`() {
-        assertEquals(15_000L, parseOfferText(listOf("450.75 LKR") + pickMeStyleCard, Platform.PICKME)?.tipCents)
     }
 
     @Test

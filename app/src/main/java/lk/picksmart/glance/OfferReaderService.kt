@@ -113,7 +113,7 @@ class OfferReaderService : AccessibilityService() {
             val lines = visibleText(root)
             // Picksmart's own screens are listed only in the debug build, for its sample offer.
             if (root.packageName == packageName && SAMPLE_OFFER_MARKER !in lines) continue
-            val reading = parseOfferText(lines, Platform.UBER.takeIf { root.packageName == UBER_DRIVER }) ?: continue
+            val reading = parseOfferText(lines) ?: continue
             offer = reading to root.packageName.toString()
             break
         }

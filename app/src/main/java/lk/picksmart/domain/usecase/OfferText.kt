@@ -89,9 +89,25 @@ private const val MAX_KM = 500.0
  *   looks like a place: three letters or more, no amount or distance, not a time ("12 min"), not
  *   a button ("Accept") and not a tip chip. A card read as one text gives no locations.
  * - Lines with nine or more digits in a row (phone numbers, ids) are ignored.
+ * - **Cards:** a card runs from its fare down to the next fare, and the first card that gives a
+ *   reading is read, so when a list of offers is on screen (Uber's Trip scanner) one card's fare,
+ *   tip or distances never mix with another's. The lines above the first fare (a title, a tip
+ *   chip) are part of the first card, unless they hold a distance: then they belong to a card
+ *   whose fare has scrolled off, and are skipped. Only when no card gives a reading and there is
+ *   a single fare are all the lines read as one card (its distances may sit above its fare).
  */
 fun parseOfferText(lines: List<String>): OfferReading? {
     val usable = lines.map { it.trim() }.filter { line -> line.isNotEmpty() && !LONG_NUMBER.containsMatchIn(line) }
+    val fareLines = amountsIn(usable).filterNot { it.afterPlus }.map { it.line }.distinct()
+    val card = fareLines.indices.firstNotNullOfOrNull { i ->
+        val above = i == 0 && usable.subList(0, fareLines[0]).none { DISTANCE.containsMatchIn(it) }
+        parseCard(usable.subList(if (above) 0 else fareLines[i], fareLines.getOrNull(i + 1) ?: usable.size))
+    }
+    return card ?: if (fareLines.size == 1) parseCard(usable) else null
+}
+
+/** [parseOfferText] for the lines of one card. */
+private fun parseCard(usable: List<String>): OfferReading? {
     val amounts = amountsIn(usable)
     val fare = amounts.firstOrNull { !it.afterPlus }?.cents ?: return null
     val tip = amounts.firstOrNull { it.afterPlus }?.cents ?: 0L
@@ -170,8 +186,11 @@ fun offerReadingOrNull(
     return OfferReading(fareCents, pickupKm, tripKm, tipCents, cleanLocation(pickupLocation), cleanLocation(dropOffLocation))
 }
 
-/** An amount marked with a currency, and whether a "+" comes just before it (a tip, not the fare). */
-private class Amount(val cents: Long, val afterPlus: Boolean)
+/**
+ * An amount marked with a currency, whether a "+" comes just before it (a tip, not the fare), and
+ * the line it starts on.
+ */
+private class Amount(val cents: Long, val afterPlus: Boolean, val line: Int)
 
 /**
  * Every amount in reading order: those within one line, and those split over a line and the next
@@ -184,7 +203,7 @@ private fun amountsIn(lines: List<String>): List<Amount> = buildList {
         val inLine = (MONEY_BEFORE.findAll(line) + MONEY_AFTER.findAll(line)).sortedBy { it.range.first }
         for (match in inLine) {
             val cents = centsOf(match.groupValues[1]) ?: continue
-            add(Amount(cents, isAfterPlus(before + " " + line.substring(0, match.range.first))))
+            add(Amount(cents, isAfterPlus(before + " " + line.substring(0, match.range.first)), i))
         }
         val next = lines.getOrNull(i + 1) ?: continue
         val split = when {
@@ -192,7 +211,7 @@ private fun amountsIn(lines: List<String>): List<Amount> = buildList {
             CURRENCY_ONLY.matches(line) && BARE_AMOUNT.matches(next) -> next
             else -> continue
         }
-        centsOf(split)?.let { add(Amount(it, isAfterPlus(before))) }
+        centsOf(split)?.let { add(Amount(it, isAfterPlus(before), i)) }
     }
 }
 

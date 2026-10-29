@@ -170,6 +170,65 @@ class OfferTextTest {
         assertEquals(OfferReading(85_000, 1.2, 7.5), parseOfferText(listOf("UberX LKR 850.00 4 min (1.2 km) away 18 min (7.5 km) trip Accept")))
     }
 
+    // A list of offers laid out like Uber's Trip scanner: each card has the fare in a large font
+    // with "LKR" after it, the pickup and trip lines over their places, and an optional "+ LKR"
+    // chip. The first card is a long, high fare trip. The values and places are made up.
+    private val scannerFirstCard = listOf(
+        "10,250.40", "LKR", "TUK",
+        "1 min away (0.2 km)", "Sample Road, Sampletown",
+        "3 hr 40 min  (131.75 km)", "Example Town, Sri Lanka",
+        "+ LKR 100", "Accept trip",
+    )
+    private val scannerSecondCard = listOf(
+        "480.25", "LKR", "TUK",
+        "2 min away (0.3 km)", "Example Mawatha, Exampleville",
+        "11 min  (4.8 km)", "Sample Lane, Sampletown",
+        "Accept trip",
+    )
+
+    @Test
+    fun `a high fare long trip is read in full`() {
+        val reading = parseOfferText(listOf("Trip scanner (1)") + scannerFirstCard)
+        assertEquals(
+            OfferReading(1_025_040, 0.2, 131.75, 10_000, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
+            reading,
+        )
+    }
+
+    @Test
+    fun `a list of offers reads only the first card`() {
+        val reading = parseOfferText(listOf("Trip scanner (2)", "New trips available") + scannerFirstCard + scannerSecondCard)
+        assertEquals(
+            OfferReading(1_025_040, 0.2, 131.75, 10_000, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
+            reading,
+        )
+    }
+
+    @Test
+    fun `a card whose fare scrolled off is not mixed with the next card`() {
+        val reading = parseOfferText(scannerFirstCard.drop(2) + scannerSecondCard)
+        assertEquals(
+            OfferReading(48_025, 0.3, 4.8, pickupLocation = "Example Mawatha, Exampleville", dropOffLocation = "Sample Lane, Sampletown"),
+            reading,
+        )
+    }
+
+    @Test
+    fun `a tip on the next card is not this card's tip`() {
+        val reading = parseOfferText(listOf("LKR 700", "8 km", "LKR 500", "+ LKR 200", "4 km"))
+        assertEquals(OfferReading(70_000, null, 8.0), reading)
+    }
+
+    @Test
+    fun `a card with no distance gives way to the next card`() {
+        assertEquals(OfferReading(50_000, null, 4.0), parseOfferText(listOf("LKR 700", "Accept", "LKR 500", "4 km")))
+    }
+
+    @Test
+    fun `a single card may show its distances above the fare`() {
+        assertEquals(OfferReading(50_000, 1.0, 6.0), parseOfferText(listOf("1 km away", "6 km trip", "LKR 500", "Accept")))
+    }
+
     @Test
     fun `a bare number next to LKR is the fare only when they touch`() {
         assertNull(parseOfferText(listOf("450", "TUK", "LKR", "5 km")))

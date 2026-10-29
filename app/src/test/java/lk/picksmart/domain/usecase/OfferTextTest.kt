@@ -6,6 +6,7 @@ import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.model.VehicleType
 import org.junit.Assert.assertEquals
@@ -222,6 +223,21 @@ class OfferTextTest {
     @Test
     fun `a card with no distance gives way to the next card`() {
         assertEquals(OfferReading(50_000, null, 4.0), parseOfferText(listOf("LKR 700", "Accept", "LKR 500", "4 km")))
+    }
+
+    @Test
+    fun `Uber's plus chip is a surge, not a tip`() {
+        val reading = parseOfferText(scannerFirstCard, Platform.UBER)
+        assertEquals(
+            OfferReading(1_025_040, 0.2, 131.75, 0, "Sample Road, Sampletown", "Example Town, Sri Lanka"),
+            reading,
+        )
+        assertEquals(OfferReading(70_000, null, 8.0), parseOfferText(listOf("+ LKR 200", "LKR 700", "8 km"), Platform.UBER))
+    }
+
+    @Test
+    fun `PickMe's plus chip is still the tip`() {
+        assertEquals(15_000L, parseOfferText(listOf("450.75 LKR") + pickMeStyleCard, Platform.PICKME)?.tipCents)
     }
 
     @Test

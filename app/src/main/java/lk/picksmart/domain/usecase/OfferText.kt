@@ -78,7 +78,9 @@ private const val MAX_KM = 500.0
  *   with thousands separators allowed ("LKR 1,250.00", "850 LKR"). The amount and the currency may
  *   be two texts next to each other ("299.50", "LKR"), as on PickMe's card. An amount after a "+"
  *   is never the fare.
- * - **Tip:** the first amount after a "+" ("+ LKR 200" on PickMe's card, "+LKR 50"), or 0.
+ * - **Tip:** the first amount after a "+" ("+ LKR 200" on PickMe's card, "+LKR 50"), or 0. On
+ *   Uber ([platform]) the "+ LKR" chip is a surge or boost, not a passenger's tip, so it is never
+ *   counted: the tip is 0 (owner decision 2026-10-29). It is still never the fare.
  * - **Distances:** numbers followed by "km". A distance whose words say "away" or "pickup" is the
  *   pickup; one whose words say "trip", "ride" or "drop-off" is the trip. Its words are its line,
  *   up to the distances either side of it, so a whole card read as one text still splits up.
@@ -96,14 +98,15 @@ private const val MAX_KM = 500.0
  *   whose fare has scrolled off, and are skipped. Only when no card gives a reading and there is
  *   a single fare are all the lines read as one card (its distances may sit above its fare).
  */
-fun parseOfferText(lines: List<String>): OfferReading? {
+fun parseOfferText(lines: List<String>, platform: Platform? = null): OfferReading? {
     val usable = lines.map { it.trim() }.filter { line -> line.isNotEmpty() && !LONG_NUMBER.containsMatchIn(line) }
     val fareLines = amountsIn(usable).filterNot { it.afterPlus }.map { it.line }.distinct()
     val card = fareLines.indices.firstNotNullOfOrNull { i ->
         val above = i == 0 && usable.subList(0, fareLines[0]).none { DISTANCE.containsMatchIn(it) }
         parseCard(usable.subList(if (above) 0 else fareLines[i], fareLines.getOrNull(i + 1) ?: usable.size))
     }
-    return card ?: if (fareLines.size == 1) parseCard(usable) else null
+    val reading = card ?: if (fareLines.size == 1) parseCard(usable) else null
+    return if (platform == Platform.UBER) reading?.copy(tipCents = 0) else reading
 }
 
 /** [parseOfferText] for the lines of one card. */

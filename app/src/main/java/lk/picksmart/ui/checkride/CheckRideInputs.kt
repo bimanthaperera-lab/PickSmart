@@ -64,6 +64,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import lk.picksmart.R
@@ -172,6 +173,53 @@ internal fun FareBox(
     stacked: Boolean,
     onAdd: (rupees: Long) -> Unit,
 ) {
+    ValueBox(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        error = error,
+        prefix = stringResource(R.string.currency_prefix),
+        textStyle = MaterialTheme.typography.headlineMedium,
+        focusRequester = focusRequester,
+        stacked = stacked,
+        buttons = {
+            QUICK_ADD_RUPEES.forEach { rupees ->
+                StepButton(
+                    text = stringResource(R.string.check_fare_add, rupees),
+                    description = stringResource(R.string.check_fare_add_description, rupees),
+                    onClick = { onAdd(rupees) },
+                )
+            }
+        },
+    )
+}
+
+/**
+ * A number in a box with the brand outline while it has focus: an optional [prefix] ("Rs.") in
+ * the brand colour, the number, then a small [unit] box ("km/L") and step [buttons] ("+50").
+ * A tap anywhere in the box goes to the number, like a normal text field. At large font sizes
+ * ([stacked]) the buttons move under the box so the number keeps its width. An error shows only
+ * as the outline; the message goes under the box ([ErrorText]). A [placeholder] other than "0"
+ * shows in body type, so a short hint fits beside the buttons.
+ */
+@Composable
+internal fun ValueBox(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String?,
+    modifier: Modifier = Modifier,
+    prefix: String? = null,
+    unit: String? = null,
+    placeholder: String? = null,
+    textStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    maxDecimals: Int = 2,
+    maxIntegerDigits: Int = InputDigits.MONEY,
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    imeAction: ImeAction = ImeAction.Next,
+    stacked: Boolean = false,
+    buttons: (@Composable () -> Unit)? = null,
+) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val keyboard = LocalSoftwareKeyboardController.current
@@ -182,10 +230,7 @@ internal fun FareBox(
         focused -> BorderStroke(2.dp, colors.primary)
         else -> BorderStroke(1.dp, colors.outline)
     }
-    val addButtons = @Composable {
-        QUICK_ADD_RUPEES.forEach { QuickAddButton(it) { onAdd(it) } }
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -193,7 +238,6 @@ internal fun FareBox(
                 .clip(shape)
                 .background(colors.surface)
                 .border(border, shape)
-                // A tap anywhere in the box goes to the number, like a normal text field.
                 .pointerInput(Unit) {
                     detectTapGestures {
                         focusRequester.requestFocus()
@@ -204,31 +248,52 @@ internal fun FareBox(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            Text(stringResource(R.string.currency_prefix), style = MaterialTheme.typography.titleLarge, color = colors.primary)
+            if (prefix != null) {
+                Text(prefix, style = MaterialTheme.typography.titleLarge, color = colors.primary)
+            }
             NumberInput(
                 value = value,
                 onValueChange = onValueChange,
                 label = label,
                 error = error,
-                textStyle = MaterialTheme.typography.headlineMedium,
-                maxDecimals = 2,
-                maxIntegerDigits = InputDigits.MONEY,
+                textStyle = textStyle,
+                maxDecimals = maxDecimals,
+                maxIntegerDigits = maxIntegerDigits,
                 interaction = interaction,
+                imeAction = imeAction,
+                placeholder = placeholder,
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(focusRequester),
             )
-            if (!stacked) addButtons()
+            if (unit != null) UnitBox(unit, if (buttons == null || stacked) Spacing.s else 0.dp)
+            if (buttons != null && !stacked) buttons()
         }
-        if (stacked) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) { addButtons() }
+        if (buttons != null && stacked) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) { buttons() }
         }
     }
 }
 
+/** The unit at the end of a [ValueBox] ("km/L", "/km"), in its own small outlined box. */
 @Composable
-private fun QuickAddButton(rupees: Long, onClick: () -> Unit) {
-    val description = stringResource(R.string.check_fare_add_description, rupees)
+private fun UnitBox(text: String, endPadding: Dp) {
+    val shape = MaterialTheme.shapes.small
+    Box(
+        Modifier
+            .padding(end = endPadding)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** A small button in a [ValueBox] that changes the number by a step ("+50", "−5"); [description] is read out. */
+@Composable
+internal fun StepButton(text: String, description: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = MaterialTheme.shapes.small,
@@ -240,7 +305,7 @@ private fun QuickAddButton(rupees: Long, onClick: () -> Unit) {
     ) {
         Box(Modifier.padding(horizontal = Spacing.s), contentAlignment = Alignment.Center) {
             Text(
-                stringResource(R.string.check_fare_add, rupees),
+                text,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -360,7 +425,7 @@ internal fun TileRow(stacked: Boolean, tiles: List<@Composable (Modifier) -> Uni
     }
 }
 
-/** The bare number field inside [FareBox] and [NumberTile]: a "0" placeholder and a numeric keyboard. */
+/** The bare number field inside [ValueBox] and [NumberTile]: a "0" placeholder and a numeric keyboard. */
 @Composable
 private fun NumberInput(
     value: String,
@@ -373,6 +438,7 @@ private fun NumberInput(
     interaction: MutableInteractionSource,
     modifier: Modifier,
     imeAction: ImeAction = ImeAction.Next,
+    placeholder: String? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     BasicTextField(
@@ -393,7 +459,13 @@ private fun NumberInput(
         decorationBox = { field ->
             Box(contentAlignment = Alignment.CenterStart) {
                 if (value.isEmpty()) {
-                    Text(stringResource(R.string.placeholder_zero), style = textStyle, color = colors.onSurfaceVariant.copy(alpha = 0.6f))
+                    Text(
+                        placeholder ?: stringResource(R.string.placeholder_zero),
+                        style = if (placeholder == null) textStyle else MaterialTheme.typography.bodyLarge,
+                        color = colors.onSurfaceVariant.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
                 field()
             }
@@ -433,9 +505,36 @@ internal fun LocationFields(
     }
 }
 
-/** One place: an icon, then the text, with the label as its placeholder and the brand outline while focused. */
+/** One place: an icon, then the text, with the label as its placeholder. */
 @Composable
 private fun LocationBox(value: String, onValueChange: (String) -> Unit, label: String, @DrawableRes iconRes: Int, imeAction: ImeAction) {
+    TextBox(
+        value = value,
+        onValueChange = onValueChange,
+        label = label,
+        iconRes = iconRes,
+        maxLength = LOCATION_MAX_LENGTH,
+        imeAction = imeAction,
+    )
+}
+
+/**
+ * One line of text in the same box as [ValueBox], with the brand outline while it has focus: an
+ * optional icon, then the text, with [placeholder] (the label unless given) while it is empty.
+ * Line breaks become spaces and the text stops at [maxLength] characters.
+ */
+@Composable
+internal fun TextBox(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    maxLength: Int,
+    modifier: Modifier = Modifier,
+    placeholder: String = label,
+    @DrawableRes iconRes: Int? = null,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.Words,
+    imeAction: ImeAction = ImeAction.Next,
+) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val colors = MaterialTheme.colorScheme
@@ -444,13 +543,13 @@ private fun LocationBox(value: String, onValueChange: (String) -> Unit, label: S
     val textStyle = MaterialTheme.typography.bodyLarge
     BasicTextField(
         value = value,
-        onValueChange = { onValueChange(it.replace('\n', ' ').take(LOCATION_MAX_LENGTH)) },
+        onValueChange = { onValueChange(it.replace('\n', ' ').take(maxLength)) },
         singleLine = true,
         textStyle = textStyle.copy(color = colors.onSurface),
         cursorBrush = SolidColor(colors.primary),
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = imeAction),
+        keyboardOptions = KeyboardOptions(capitalization = capitalization, imeAction = imeAction),
         interactionSource = interaction,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .semantics { contentDescription = label },
         decorationBox = { field ->
@@ -465,19 +564,33 @@ private fun LocationBox(value: String, onValueChange: (String) -> Unit, label: S
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
-                Icon(
-                    painterResource(iconRes),
-                    contentDescription = null,
-                    tint = if (focused) colors.primary else colors.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp),
-                )
+                if (iconRes != null) {
+                    Icon(
+                        painterResource(iconRes),
+                        contentDescription = null,
+                        tint = if (focused) colors.primary else colors.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                     if (value.isEmpty()) {
-                        Text(label, style = textStyle, color = colors.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(placeholder, style = textStyle, color = colors.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     field()
                 }
             }
         },
     )
+}
+
+/** A field's error under its box; the boxes mark an error with their outline only. */
+@Composable
+internal fun ErrorText(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+}
+
+/** A short hint under a box. */
+@Composable
+internal fun HelpText(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

@@ -68,9 +68,11 @@ import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.ui.checkride.CheckRideError
 import lk.picksmart.ui.checkride.CheckRideFormState
 import lk.picksmart.ui.checkride.CheckRideOutcome
+import lk.picksmart.ui.checkride.ErrorText
 import lk.picksmart.ui.checkride.FareBox
 import lk.picksmart.ui.checkride.FareModeSelector
 import lk.picksmart.ui.checkride.FeeUnitToggle
+import lk.picksmart.ui.checkride.HelpText
 import lk.picksmart.ui.checkride.InputSection
 import lk.picksmart.ui.checkride.LocationFields
 import lk.picksmart.ui.checkride.NumberTile
@@ -452,17 +454,6 @@ private fun StatusSelector(statuses: List<TripStatus>, selected: TripStatus, onS
             )
         }
     }
-}
-
-/** The fare box marks an error with its outline only; the message goes under it. */
-@Composable
-private fun ErrorText(text: String) {
-    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-}
-
-@Composable
-private fun HelpText(text: String) {
-    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 /**

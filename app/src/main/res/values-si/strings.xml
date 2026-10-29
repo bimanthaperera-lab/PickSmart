@@ -387,6 +387,8 @@
     <string name="vehicle_field_fuel_price">ඉන්ධන මිල</string>
     <string name="vehicle_field_fuel_price_placeholder">අද පොම්ප මිල</string>
     <string name="vehicle_field_fuel_price_help">ඔබ අවසන් වරට තෙල් ගසන විට ගෙවූ මිල භාවිතා කරන්න.</string>
+    <string name="vehicle_price_up_description">ඉන්ධන මිල රු. %1$dකින් වැඩි කරන්න</string>
+    <string name="vehicle_price_down_description">ඉන්ධන මිල රු. %1$dකින් අඩු කරන්න</string>
     <string name="vehicle_field_efficiency">ඉන්ධන කාර්යක්ෂමතාව (Fuel efficiency)</string>
     <string name="vehicle_field_efficiency_help">ලීටරයකින් ඔබට කොපමණ කි.මී ප්‍රමාණයක් යා හැකිද.</string>
     <string name="vehicle_field_maintenance">නඩත්තු මුදල</string>

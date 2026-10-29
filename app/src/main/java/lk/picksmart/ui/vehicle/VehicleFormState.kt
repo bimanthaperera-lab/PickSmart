@@ -4,10 +4,12 @@ import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.model.VehicleType
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.parseDecimal
 import lk.picksmart.util.parseRupeesToCents
+import java.math.BigDecimal
 import java.util.Locale
 
 /**
@@ -113,6 +115,21 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
  */
 fun VehicleFormState.withFuelType(type: FuelType, suggestions: Map<FuelType, Long>): VehicleFormState =
     copy(fuelType = type, fuelPrice = priceAfterFuelTypeSwitch(fuelPrice, fuelType, type, suggestions))
+
+/**
+ * The fuel price after a step button: [rupees] more (or less, when negative), shown with two
+ * decimals ("414.00"). An empty price starts from 0. A price that would drop below 0 or grow past
+ * the field's [InputDigits.MONEY] digits, or text that isn't a number, stays as it is.
+ */
+fun VehicleFormState.stepFuelPrice(rupees: Long): VehicleFormState {
+    val current = if (fuelPrice.isBlank()) 0L else parseRupeesToCents(fuelPrice) ?: return this
+    val cents = current + rupees * 100
+    if (cents < 0 || cents >= MAX_PRICE_CENTS) return this
+    return copy(fuelPrice = centsToInput(cents))
+}
+
+/** One more than the largest price the field takes ([InputDigits.MONEY] whole rupees). */
+private val MAX_PRICE_CENTS = BigDecimal.TEN.pow(InputDigits.MONEY).movePointRight(2).toLong()
 
 /** Fills the form from a saved vehicle, for editing. */
 fun Vehicle.toFormState() = VehicleFormState(

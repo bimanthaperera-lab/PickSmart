@@ -386,6 +386,8 @@
     <string name="vehicle_field_fuel_price">எரிபொருள் விலை</string>
     <string name="vehicle_field_fuel_price_placeholder">இன்றைய பம்ப் விலை</string>
     <string name="vehicle_field_fuel_price_help">கடைசியாக நிரப்பிய போது நீங்கள் செலுத்திய விலையைப் பயன்படுத்தவும்.</string>
+    <string name="vehicle_price_up_description">எரிபொருள் விலையை ரூ. %1$d உயர்த்து</string>
+    <string name="vehicle_price_down_description">எரிபொருள் விலையை ரூ. %1$d குறை</string>
     <string name="vehicle_field_efficiency">எரிபொருள் திறன் (Fuel efficiency)</string>
     <string name="vehicle_field_efficiency_help">ஒரு லிட்டரிலிருந்து நீங்கள் வழக்கமாகப் பெறும் கி.மீ.</string>
     <string name="vehicle_field_maintenance">பராமரிப்பு இருப்பு</string>

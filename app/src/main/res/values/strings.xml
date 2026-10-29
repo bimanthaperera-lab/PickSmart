@@ -445,6 +445,9 @@
     <string name="vehicle_field_fuel_price">Fuel price</string>
     <string name="vehicle_field_fuel_price_placeholder">Today\'s pump price</string>
     <string name="vehicle_field_fuel_price_help">Use the price you paid at your last fill-up.</string>
+    <string name="vehicle_price_step_down" translatable="false">−%1$d</string>
+    <string name="vehicle_price_up_description">Raise the fuel price by Rs. %1$d</string>
+    <string name="vehicle_price_down_description">Lower the fuel price by Rs. %1$d</string>
     <string name="vehicle_field_efficiency">Fuel efficiency</string>
     <string name="vehicle_field_efficiency_help">How many km you usually get from one litre.</string>
     <string name="vehicle_field_maintenance">Maintenance reserve</string>

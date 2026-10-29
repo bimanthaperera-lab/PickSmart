@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -41,11 +42,12 @@ import lk.picksmart.ui.theme.Spacing
  * label, at the plain tiles' height (expense category, income type). With [largeIcons] the icon is
  * bigger and sits above the label instead (vehicle type). Either way labels may wrap between words,
  * tiles in a row share one height, and an odd last tile takes the whole row (e.g. "Other" under
- * four expense categories).
+ * four expense categories). With no [label] the grid has no title of its own (a card's title
+ * names it); [tileColor] is the unselected tiles' fill, darker than the card when the grid is on one.
  */
 @Composable
 fun <T> ChoiceGrid(
-    label: String,
+    label: String?,
     options: List<T>,
     selected: T,
     optionLabel: @Composable (T) -> String,
@@ -54,9 +56,10 @@ fun <T> ChoiceGrid(
     columns: Int = 2,
     optionIcon: ((T) -> Int)? = null,
     largeIcons: Boolean = false,
+    tileColor: Color = MaterialTheme.colorScheme.surfaceContainer,
 ) {
     Column(modifier) {
-        FieldLabel(label)
+        if (label != null) FieldLabel(label)
         BoxWithConstraints {
             // Fall back to one column when a label can't fit a tile (large font scales on small
             // phones), rather than breaking words like "Motorcycl-e". Plain tiles keep each label
@@ -80,6 +83,7 @@ fun <T> ChoiceGrid(
                                 icon = optionIcon?.invoke(option),
                                 largeIcon = largeIcons,
                                 selected = option == selected,
+                                color = tileColor,
                                 onClick = { onSelect(option) },
                                 modifier = Modifier
                                     .weight(1f)
@@ -105,6 +109,7 @@ private fun ChoiceTile(
     @DrawableRes icon: Int?,
     largeIcon: Boolean,
     selected: Boolean,
+    color: Color,
     onClick: () -> Unit,
     modifier: Modifier,
 ) {
@@ -113,7 +118,7 @@ private fun ChoiceTile(
     Surface(
         modifier = modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        color = if (selected) colors.secondaryContainer else colors.surfaceContainer,
+        color = if (selected) colors.secondaryContainer else color,
         border = if (selected) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outline),
     ) {
         if (icon != null && largeIcon) {

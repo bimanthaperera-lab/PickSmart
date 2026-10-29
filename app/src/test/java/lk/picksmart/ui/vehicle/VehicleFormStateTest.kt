@@ -104,4 +104,19 @@ class VehicleFormStateTest {
         val vehicle = lk.picksmart.domain.usecase.newVehicle(input, isSample = false, nowMillis = 1_000)
         assertEquals("CAB-1234", vehicle.toFormState().plateNumber)
     }
+
+    @Test
+    fun `the step buttons move the fuel price by whole rupees`() {
+        assertEquals("419.00", filled.copy(fuelPrice = "414").stepFuelPrice(5).fuelPrice)
+        assertEquals("409.50", filled.copy(fuelPrice = "414.5").stepFuelPrice(-5).fuelPrice)
+        assertEquals("5.00", filled.copy(fuelPrice = "").stepFuelPrice(5).fuelPrice)
+    }
+
+    @Test
+    fun `a step never makes the fuel price negative, too long or replaces bad text`() {
+        assertEquals("3", filled.copy(fuelPrice = "3").stepFuelPrice(-5).fuelPrice)
+        assertEquals("", filled.copy(fuelPrice = "").stepFuelPrice(-5).fuelPrice)
+        assertEquals("9999998", filled.copy(fuelPrice = "9999998").stepFuelPrice(5).fuelPrice)
+        assertEquals("12.3.4", filled.copy(fuelPrice = "12.3.4").stepFuelPrice(5).fuelPrice)
+    }
 }

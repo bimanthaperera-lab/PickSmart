@@ -249,7 +249,7 @@ class OfferReaderService : AccessibilityService() {
     companion object {
         private const val SETTLE_MS = 120L
         private const val CLEAR_AFTER_MS = 1_500L
-        private const val SHOW_AT_MOST_MS = 45_000L
+        private const val SHOW_AT_MOST_MS = 15_000L
         private const val RECHECK_MS = 1_000L
         private const val MAX_NODES = 400
         private const val UBER_DRIVER = "com.ubercab.driver"

@@ -9,6 +9,9 @@
     <!-- Android 13+: asked for when the rider turns on the offer reader, for "Save this trip?" (section 9b). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Only for the floating bubble, asked for when the rider turns it on (section 9a). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!--
         Auto Backup is on, limited by explicit rules (CLAUDE.md section 10).
         hasFragileUserData: on Android 10+, uninstalling from the phone's settings or launcher shows a
@@ -63,6 +66,11 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/offer_reader" />
         </service>
+
+        <!-- The floating bubble (CLAUDE.md section 9a): off until the rider turns it on in the app. -->
+        <service
+            android:name=".glance.FloatingBubbleService"
+            android:exported="false" />
 
         <!-- Hands the CSV export to the app the rider picks in the share sheet (Reports). -->
         <provider

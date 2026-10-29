@@ -71,6 +71,18 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
         dataStore.edit { it[Keys.OFFER_SOUND] = on }
     }
 
+    /**
+     * True when the floating bubble shows the minimum fare per km over other apps (section 9a).
+     * Off by default; it also needs Android's "Display over other apps" permission.
+     */
+    val floatingBubble: Flow<Boolean> = dataStore.data
+        .map { it[Keys.FLOATING_BUBBLE] ?: false }
+        .distinctUntilChanged()
+
+    suspend fun setFloatingBubble(on: Boolean) {
+        dataStore.edit { it[Keys.FLOATING_BUBBLE] = on }
+    }
+
     /** The vehicle Check a Ride pre-fills from, or null before setup. */
     val defaultVehicleId: Flow<Long?> = dataStore.data
         .map { it[keys.DEFAULT_VEHICLE_ID] }
@@ -292,6 +304,7 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>, s
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val OFFER_READER_PAUSED = booleanPreferencesKey("offer_reader_paused")
         val OFFER_SOUND = booleanPreferencesKey("offer_sound")
+        val FLOATING_BUBBLE = booleanPreferencesKey("floating_bubble")
 
         // Published fuel prices (CLAUDE.md section 8a). The list is stored as separate keys, one
         // price per fuel type, so adding a fuel type later only adds a key.

@@ -175,6 +175,8 @@ class OfferReaderService : AccessibilityService() {
             return
         }
         badge.show(result, active.name)
+        // The open floating bubble closes, so only the badge shows over the offer.
+        FloatingBubbleService.close()
         if (reading != chimed) {
             chimed = reading
             if (soundOn) offerChime(result.band)?.let { OfferChimes.play(this, it) }

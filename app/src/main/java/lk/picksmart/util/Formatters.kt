@@ -28,6 +28,14 @@ class MoneyFormatter(private val currencyPrefix: String = "Rs.") {
         else -> format(cents)
     }
 
+    /**
+     * Whole rupees rounded up, for a minimum that must be met: `Rs. 91` for Rs. 90.10. Short
+     * enough for the floating bubble.
+     */
+    fun formatWholeUp(cents: Long): String =
+        (if (cents < 0) "-" else "") + currencyPrefix + NBSP +
+            formatDecimal(BigDecimal.valueOf(cents, 2).setScale(0, RoundingMode.CEILING).abs(), 0)
+
     private fun unsigned(cents: Long): String =
         currencyPrefix + NBSP + formatDecimal(BigDecimal.valueOf(cents, 2).abs(), 2)
 }

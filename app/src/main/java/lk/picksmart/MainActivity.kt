@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
 import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.glance.FloatingBubbleService
 import lk.picksmart.ui.account.MoveRecordsDialog
 import lk.picksmart.ui.navigation.PicksmartApp
 import lk.picksmart.ui.notifications.OfferSaveNotification
@@ -77,6 +78,15 @@ class MainActivity : ComponentActivity() {
                     Intent(this@MainActivity, MainActivity::class.java)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
                 )
+            }
+        }
+
+        // The floating bubble, when the rider has turned it on; only an app on screen may start it.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                container.userPreferences.floatingBubble.collect { on ->
+                    if (on) FloatingBubbleService.startIfAllowed(this@MainActivity)
+                }
             }
         }
 

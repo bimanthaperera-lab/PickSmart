@@ -621,6 +621,18 @@
     <string name="offer_badge_hide_hint">Hold to hide</string>
     <string name="offer_badge_tip">Includes %1$s tip</string>
     <string name="offer_badge_powered">Powered by Picksmart</string>
+    <!-- The floating bubble (section 9a) -->
+    <string name="bubble_title">Floating bubble</string>
+    <string name="bubble_body">A small Picksmart button over other apps. Tap it to see your minimum fare per km; hold it to hide.</string>
+    <string name="bubble_permission_needed">Needs \"Display over other apps\" · tap to allow</string>
+    <string name="bubble_warning_title">Show the bubble over other apps?</string>
+    <string name="bubble_warning_body">Picksmart needs Android\'s \"Display over other apps\" permission for this. On the next screen, turn it on for Picksmart, then come back.\n\nSome ride apps ignore taps under another app\'s bubble. Move it aside before you tap Accept, and hold it to hide it at once.</string>
+    <string name="bubble_warning_allow">Open settings</string>
+    <string name="bubble_rate">%1$s/km</string>
+    <string name="bubble_rate_with_fee">%1$s/km + %2$s</string>
+    <string name="bubble_rate_unknown">Set up a vehicle</string>
+    <string name="bubble_description_closed">Picksmart. Tap to show your minimum fare per km</string>
+    <string name="bubble_description_open">Minimum fare %1$s. Hold to hide</string>
     <string name="offer_save_channel_name">Save offers as trips</string>
     <string name="offer_save_channel_description">After the offer reader shows a ride offer, asks whether to save it as a trip.</string>
     <string name="offer_save_title">Took this ride? Save it as a trip</string>

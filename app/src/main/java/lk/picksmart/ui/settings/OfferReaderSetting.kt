@@ -82,7 +82,7 @@ import lk.picksmart.ui.theme.Spacing
  */
 enum class OfferReaderStatus { OFF, ON, PAUSED }
 
-/** The pause flag and the sound switch, kept in DataStore so the service sees them too. */
+/** The pause flag, the sound switch and the floating bubble, kept in DataStore so the services see them too. */
 class OfferReaderViewModel(private val preferences: UserPreferencesRepository) : ViewModel() {
 
     val paused: StateFlow<Boolean> = preferences.offerReaderPaused
@@ -91,12 +91,19 @@ class OfferReaderViewModel(private val preferences: UserPreferencesRepository) :
     val sound: StateFlow<Boolean> = preferences.offerSound
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val bubble: StateFlow<Boolean> = preferences.floatingBubble
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     fun setPaused(paused: Boolean) {
         viewModelScope.launch { preferences.setOfferReaderPaused(paused) }
     }
 
     fun setSound(on: Boolean) {
         viewModelScope.launch { preferences.setOfferSound(on) }
+    }
+
+    fun setBubble(on: Boolean) {
+        viewModelScope.launch { preferences.setFloatingBubble(on) }
     }
 
     companion object {
@@ -231,7 +238,7 @@ fun OfferReaderSwitch(
  * "Read ride offers" on the Account tab: On, Paused or Off. Tapping it shows the disclosure when
  * it is off, and otherwise offers Pause or Resume, and Turn off completely (off in Android too).
  * Below it, "Sound on profit or loss" turns the reader's chimes on, playing the profit one as a
- * sample.
+ * sample, and "Floating bubble" turns the bubble on ([FloatingBubbleRow]).
  */
 @Composable
 fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)) {
@@ -275,6 +282,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
                     },
                 )
             },
+            { FloatingBubbleRow(viewModel) },
         ),
     )
 
@@ -305,7 +313,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
 
 /** A [ListRow]-sized row with a switch at the end. The whole row is the control. */
 @Composable
-private fun SwitchListRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun SwitchListRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()

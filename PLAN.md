@@ -179,12 +179,12 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] One `NotificationChannel` per type; `POST_NOTIFICATIONS` requested in context
 - [ ] Shift reminder: start/stop from Home, ongoing silent notification with the magic number and 5/10/15 km fares, recomputed when inputs change
-- [ ] Magic number in a tested pure function (percentage and fixed commission)
+- [x] Magic number in a tested pure function (percentage and fixed commission): `minimumFarePerKm`, `MinimumFareTest`
 - [ ] Fuel price changed, daily summary (rider-set time), optional unfinished-offer reminder
 - [ ] Daily summary and fuel price check scheduled through WorkManager
 - [ ] Quick Settings tile opening a mini fare check
-- [ ] Floating bubble (off by default, advanced) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it
-- [ ] Bubble obscured-touch safeguards: two states with one visible at a time, auto-collapse on a request, snap out of the bottom-centre region, long-press to hide
+- [x] Floating bubble (off by default) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it. Switch under Account → While riding (2026-10-29). Open: the small calculator inside it.
+- [x] Bubble obscured-touch safeguards: closed pin / open rate pill, one at a time; a `WRAP_CONTENT` window with `FLAG_NOT_TOUCH_MODAL` so only touches on it are taken; auto-close after 5 s, on an outside touch and when the offer badge shows; snaps to a side edge out of the lower quarter; hold to hide. Partly checked on the emulator 2026-10-29 (see `docs/decisions.md`).
 - [ ] No acting inside any other app on any surface; reading only through the opt-in offer reader (N5, Phase 8e)
 - [ ] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header); posting a notification also writes an inbox row; 30-day retention; reads offline
 - [ ] Migration and migration test for the `Alert` table

@@ -32,6 +32,14 @@ class FormattersTest {
     }
 
     @Test
+    fun `whole rupees round up, for a minimum fare`() {
+        assertEquals("Rs. 91", money.formatWholeUp(9_010).spaced())
+        assertEquals("Rs. 91", money.formatWholeUp(9_100).spaced())
+        assertEquals("Rs. 1,251", money.formatWholeUp(125_001).spaced())
+        assertEquals("Rs. 0", money.formatWholeUp(0).spaced())
+    }
+
+    @Test
     fun `prefix and number never split across lines`() {
         assertEquals("Rs. 1.00", money.format(100))
     }

@@ -18,6 +18,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.ui.components.fieldColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -89,6 +102,12 @@ fun HistoryScreen(
     // One row open at a time; not saved, since a swiped row is only a moment's state.
     var revealed by remember { mutableStateOf<Pair<Long, SwipeSide>?>(null) }
     var confirmDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    // Focus goes to the search field only when the rider opens it, not each time it scrolls back in.
+    var focusSearch by remember { mutableStateOf(false) }
+
+    val platformNames = Platform.entries.associateWith { stringResource(it.label) }
+    LaunchedEffect(platformNames) { viewModel.setPlatformNames(platformNames) }
 
     when (val s = state) {
         HistoryUiState.Loading -> TabScreen {
@@ -110,7 +129,34 @@ fun HistoryScreen(
             contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            item { Header(onAddTrip) }
+            item {
+                // While search is open, its own close button replaces the search button.
+                Header(
+                    onAddTrip,
+                    onSearch = if (searchOpen) {
+                        null
+                    } else {
+                        {
+                            searchOpen = true
+                            focusSearch = true
+                        }
+                    },
+                )
+            }
+            if (searchOpen) {
+                item(key = "search") {
+                    SearchField(
+                        query = s.query,
+                        onQueryChange = viewModel::setQuery,
+                        requestFocus = focusSearch,
+                        onFocused = { focusSearch = false },
+                        onClose = {
+                            viewModel.setQuery("")
+                            searchOpen = false
+                        },
+                    )
+                }
+            }
             if (deleteFailed) item { ErrorState(stringResource(R.string.trip_delete_failed)) }
             item {
                 ChoiceChips(
@@ -130,7 +176,15 @@ fun HistoryScreen(
                     )
                 }
             }
-            if (s.days.isEmpty()) {
+            if (s.days.isEmpty() && s.query.isNotBlank()) {
+                item {
+                    EmptyState(
+                        iconRes = R.drawable.ic_search,
+                        title = stringResource(R.string.history_search_empty_title),
+                        body = stringResource(R.string.history_search_empty_body, s.query.trim()),
+                    )
+                }
+            } else if (s.days.isEmpty()) {
                 item {
                     EmptyState(
                         iconRes = R.drawable.ic_nav_history,
@@ -212,8 +266,9 @@ private fun SwipeableTripRow(
     }
 }
 
+/** The title, and on the right the search button (when [onSearch] is given) and Add trip. */
 @Composable
-private fun Header(onAddTrip: () -> Unit) {
+private fun Header(onAddTrip: () -> Unit, onSearch: (() -> Unit)? = null) {
     FlowRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -221,9 +276,57 @@ private fun Header(onAddTrip: () -> Unit) {
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ScreenTitle(stringResource(R.string.history_title))
-        BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onSearch != null) {
+                IconButton(onClick = onSearch) {
+                    Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.history_search))
+                }
+            }
+            BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
+        }
     }
 }
+
+/** Searches the trips as the rider types (note, ride app or fare; see [matchesSearch]). */
+@Composable
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    requestFocus: Boolean,
+    onFocused: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(requestFocus) {
+        if (requestFocus) {
+            focusRequester.requestFocus()
+            onFocused()
+        }
+    }
+    OutlinedTextField(
+        value = query,
+        onValueChange = { onQueryChange(it.take(SEARCH_MAX_LENGTH)) },
+        placeholder = { Text(stringResource(R.string.history_search_hint)) },
+        leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+        trailingIcon = {
+            IconButton(onClick = onClose) {
+                Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.history_search_close))
+            }
+        },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyLarge,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+        shape = MaterialTheme.shapes.medium,
+        colors = fieldColors(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
+    )
+}
+
+private const val SEARCH_MAX_LENGTH = 60
 
 private val HistoryFilter.label: Int
     get() = when (this) {

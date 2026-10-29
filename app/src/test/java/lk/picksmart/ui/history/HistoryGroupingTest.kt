@@ -8,7 +8,9 @@ import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -79,5 +81,31 @@ class HistoryGroupingTest {
     @Test
     fun `no trips gives no days`() {
         assertEquals(emptyList<HistoryDay>(), groupTripsByDay(emptyList(), HistoryFilter.ALL, calculator))
+    }
+
+    private val names = mapOf(Platform.PICKME to "පික්මී")
+
+    @Test
+    fun `search finds a trip by note, ride app or fare`() {
+        val trip = trip(5, "2026-10-21T11:12:00Z").copy(notes = "Airport drop, cash tip", fareCents = 145_050)
+        listOf("", "  ", "airport", "CASH tip", "pickme", "පික්මී", "1450", "1,450.5", "Rs. 1450", "rs1450", "pickme 1450")
+            .forEach { assertTrue(it, trip.matchesSearch(it, names)) }
+        listOf("uber", "450", "1451", "airport uber", "hotel")
+            .forEach { assertFalse(it, trip.matchesSearch(it, names)) }
+    }
+
+    @Test
+    fun `search on a cancelled trip looks at its fee, not the fare`() {
+        val cancelled = trip(6, "2026-10-21T08:00:00Z", TripStatus.CANCELLED)
+        assertTrue(cancelled.matchesSearch("100", names))
+        assertFalse(cancelled.matchesSearch("1000", names))
+    }
+
+    @Test
+    fun `search narrows the days and their totals`() {
+        val days = groupTripsByDay(trips, HistoryFilter.ALL, calculator) { it.matchesSearch("100", names) }
+        // Only the cancelled trip's Rs. 100.00 fee; the Rs. 1,000.00 fares are other amounts.
+        assertEquals(listOf(2L), days.flatMap { it.rows }.map { it.trip.id })
+        assertEquals(8_100L, days.single().estimatedProfitCents)
     }
 }

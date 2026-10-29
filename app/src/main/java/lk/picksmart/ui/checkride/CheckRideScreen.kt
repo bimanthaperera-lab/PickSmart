@@ -394,7 +394,7 @@ private const val SHIELD_ID = "shield"
 
 /** "Total 10.0 km", beside the distance section's title once there is a result. */
 @Composable
-private fun TotalKmPill(totalKm: Double) {
+internal fun TotalKmPill(totalKm: Double) {
     Surface(shape = MaterialTheme.shapes.extraSmall, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
         Text(
             stringResource(R.string.check_total_km, formatDecimal(totalKm, 1)),

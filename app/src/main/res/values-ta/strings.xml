@@ -78,7 +78,6 @@
     <string name="check_pickup">பிக்கப்</string>
     <string name="check_trip">சவாரி</string>
     <string name="check_return">திரும்பச் செல்ல</string>
-    <string name="check_optional">விருப்பப்படி (Optional)</string>
     <string name="check_return_optional">திரும்ப (விருப்பம்)</string>
     <string name="check_total_km">மொத்தம் %1$s கி.மீ</string>
     <string name="check_fare_add_description">கட்டணத்தில் ரூ. %1$d சேர்</string>
@@ -134,6 +133,11 @@
     <string name="history_empty_title">இன்னும் சவாரிகள் இல்லை</string>
     <string name="history_empty_body">சவாரியைச் சேமிக்கவும் அல்லது நீங்கள் ஏற்கனவே முடித்த சவாரியைச் சேர்க்கவும்.</string>
     <string name="history_add_trip">சவாரியைச் சேர்</string>
+    <string name="history_search">பயணங்களைத் தேடு</string>
+    <string name="history_search_close">தேடலை மூடு</string>
+    <string name="history_search_hint">குறிப்பு, செயலி அல்லது கட்டணம்</string>
+    <string name="history_search_empty_title">பொருந்தும் பயணங்கள் இல்லை</string>
+    <string name="history_search_empty_body">“%1$s” உடன் எதுவும் பொருந்தவில்லை. குறிப்பில் உள்ள சொல், செயலி அல்லது கட்டணத்தை முயற்சிக்கவும்.</string>
     <string name="history_filter_all">அனைத்தும்</string>
     <string name="history_filter_completed">முடிக்கப்பட்டவை</string>
     <string name="history_filter_offers">சலுகைகள்</string>

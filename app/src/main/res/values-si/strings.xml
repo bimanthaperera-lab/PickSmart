@@ -78,7 +78,6 @@
     <string name="check_pickup">Pickup</string>
     <string name="check_trip">ගමන</string>
     <string name="check_return">ආපසු</string>
-    <string name="check_optional">විකල්ප</string>
     <string name="check_return_optional">ආපසු (විකල්ප)</string>
     <string name="check_total_km">මුළු කි.මී %1$s</string>
     <string name="check_fare_add_description">ගාස්තුවට රු. %1$d එකතු කරන්න</string>
@@ -134,6 +133,11 @@
     <string name="history_empty_title">තවම ගමන් කිසිවක් නැත</string>
     <string name="history_empty_body">ගමනක් පරීක්ෂා කර එය සුරකින්න, නැතහොත් ඔබ දැනටමත් ගිය ගමනක් ඇතුලත් කරන්න.</string>
     <string name="history_add_trip">ගමනක් එක් කරන්න</string>
+    <string name="history_search">ගමන් සොයන්න</string>
+    <string name="history_search_close">සෙවීම වසන්න</string>
+    <string name="history_search_hint">සටහන, යෙදුම හෝ ගාස්තුව</string>
+    <string name="history_search_empty_title">ගැළපෙන ගමන් නැත</string>
+    <string name="history_search_empty_body">“%1$s” ට ගැළපෙන කිසිවක් නැත. සටහනක වචනයක්, යෙදුමක් හෝ ගාස්තුවක් උත්සාහ කරන්න.</string>
     <string name="history_filter_all">සියල්ල</string>
     <string name="history_filter_completed">සම්පූර්ණ කළ</string>
     <string name="history_filter_offers">දීමනා</string>

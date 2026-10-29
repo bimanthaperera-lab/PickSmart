@@ -93,7 +93,6 @@
     <string name="check_pickup">Pickup</string>
     <string name="check_trip">Trip</string>
     <string name="check_return">Return</string>
-    <string name="check_optional">Optional</string>
     <string name="check_return_optional">Return (optional)</string>
     <string name="check_total_km">Total %1$s km</string>
     <string name="check_fare_add" translatable="false">+%1$d</string>
@@ -161,6 +160,11 @@
     <string name="history_empty_title">No trips yet</string>
     <string name="history_empty_body">Save an offer or a trip from Check a Ride, or add a trip you\'ve already done.</string>
     <string name="history_add_trip">Add trip</string>
+    <string name="history_search">Search trips</string>
+    <string name="history_search_close">Close search</string>
+    <string name="history_search_hint">Note, ride app or fare</string>
+    <string name="history_search_empty_title">No matching trips</string>
+    <string name="history_search_empty_body">Nothing matches “%1$s”. Try a word from a note, a ride app or a fare.</string>
     <string name="history_filter_all">All</string>
     <string name="history_filter_completed">Completed</string>
     <string name="history_filter_offers">Offers</string>

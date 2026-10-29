@@ -518,7 +518,7 @@
     <string name="offer_reader_disclosure_accept">Settings වෙතින් On කරන්න</string>
     <string name="offer_reader_paused">නවත්වා ඇත · දීමනා කියවන්නේ නැත</string>
     <string name="offer_sound_title">ලාභයට හෝ පාඩුවට ශබ්දයක්</string>
-    <string name="offer_sound_body">ලාභයකට නැඟෙන නාදයක්, පාඩුවකට බැසෙන නාදයක්. Notification ශබ්ද මට්ටමින් වාදනය වේ, දුරකථනය silent නම් වාදනය නොවේ.</string>
+    <string name="offer_sound_body">ලාභයකට හෝ පාඩුවකට නාදයක්.</string>
     <string name="offer_reader_switch_label">දීමනා කියවන්න</string>
     <string name="offer_reader_state_on">සක්‍රියයි</string>
     <string name="offer_reader_state_paused">නවත්වා ඇත</string>

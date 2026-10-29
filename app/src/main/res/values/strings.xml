@@ -602,7 +602,7 @@
     <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
     <string name="offer_reader_paused">Paused · not reading offers</string>
     <string name="offer_sound_title">Sound on profit or loss</string>
-    <string name="offer_sound_body">A rising chime for a profit, a falling one for a loss. Plays at the notification volume, and not when the phone is on silent.</string>
+    <string name="offer_sound_body">A chime for a profit or a loss.</string>
     <!-- The switch at the top of Check a Ride -->
     <string name="offer_reader_switch_label">Read offers</string>
     <string name="offer_reader_state_on">Active</string>
@@ -623,7 +623,7 @@
     <string name="offer_badge_powered">Powered by Picksmart</string>
     <!-- The floating bubble (section 9a) -->
     <string name="bubble_title">Floating bubble</string>
-    <string name="bubble_body">A small Picksmart button over other apps. Tap it to see your minimum fare per km; hold it to hide.</string>
+    <string name="bubble_body">Shows your minimum fare per km over other apps.</string>
     <string name="bubble_permission_needed">Needs \"Display over other apps\" · tap to allow</string>
     <string name="bubble_warning_title">Show the bubble over other apps?</string>
     <string name="bubble_warning_body">Picksmart needs Android\'s \"Display over other apps\" permission for this. On the next screen, turn it on for Picksmart, then come back.\n\nSome ride apps ignore taps under another app\'s bubble. Move it aside before you tap Accept, and hold it to hide it at once.</string>

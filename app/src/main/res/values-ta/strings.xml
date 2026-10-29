@@ -517,7 +517,7 @@
     <string name="offer_reader_disclosure_accept">Settings இல் ஆன் செய்யவும்</string>
     <string name="offer_reader_paused">இடைநிறுத்தப்பட்டது (Paused) · சலுகைகளைப் படிக்கவில்லை</string>
     <string name="offer_sound_title">இலாபம் அல்லது நட்டத்திற்கு ஒலி</string>
-    <string name="offer_sound_body">இலாபத்திற்கு ஏறும் ஒலி, நட்டத்திற்கு இறங்கும் ஒலி. அறிவிப்பு (notification) ஒலி அளவில் ஒலிக்கும்; தொலைபேசி silent இல் இருந்தால் ஒலிக்காது.</string>
+    <string name="offer_sound_body">இலாபம் அல்லது நட்டத்திற்கு ஒரு ஒலி.</string>
     <string name="offer_reader_switch_label">சலுகைகளைப் படி</string>
     <string name="offer_reader_state_on">செயலில்</string>
     <string name="offer_reader_state_paused">இடைநிறுத்தப்பட்டது</string>

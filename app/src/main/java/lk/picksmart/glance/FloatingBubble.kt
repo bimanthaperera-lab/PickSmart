@@ -416,9 +416,9 @@ class FloatingBubble(private val context: Context, private val onHidden: () -> U
 
     private companion object {
         const val OPEN_FOR_MS = 5_000L
-        const val GROW_MS = 180L
-        const val SHRINK_MS = 140L
-        const val SHRUNK = 0.6f
+        const val GROW_MS = 110L
+        const val SHRINK_MS = 80L
+        const val SHRUNK = 0.8f
         const val SAFE_AREA = 0.75f
         const val EDGE_DP = 8
         const val TOP_DP = 24

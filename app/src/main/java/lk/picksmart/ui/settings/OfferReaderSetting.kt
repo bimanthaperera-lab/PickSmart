@@ -133,10 +133,14 @@ internal fun rememberTurnOn(viewModel: OfferReaderViewModel = viewModel(factory 
  * (Active in green, Paused in amber, Off) above the label, so it never relies on colour alone.
  * While the reader is on in Android, the switch pauses and resumes it at once. The first time, it
  * shows the disclosure, then opens Android's Accessibility settings, where only the rider can turn
- * it on.
+ * it on. With [fillWidth] it takes the full width, the switch at the far end.
  */
 @Composable
-fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)) {
+fun OfferReaderSwitch(
+    modifier: Modifier = Modifier,
+    fillWidth: Boolean = false,
+    viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory),
+) {
     val (enabled, _) = rememberReaderEnabled()
     val paused by viewModel.paused.collectAsStateWithLifecycle()
     val turnOn = rememberTurnOn(viewModel)
@@ -154,10 +158,11 @@ fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewM
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(1.dp, if (on) stateColor.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
-        modifier = modifier,
+        modifier = if (fillWidth) modifier.fillMaxWidth() else modifier,
     ) {
         Row(
             Modifier
+                .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
                 .heightIn(min = Spacing.touchTarget)
                 .toggleable(
                     value = on,
@@ -182,7 +187,7 @@ fun OfferReaderSwitch(modifier: Modifier = Modifier, viewModel: OfferReaderViewM
                 // Decorative: the state is read out from the text.
                 Icon(painterResource(R.drawable.ic_shield), contentDescription = null, tint = stateColor, modifier = Modifier.size(18.dp))
             }
-            Column {
+            Column(if (fillWidth) Modifier.weight(1f) else Modifier) {
                 Text(
                     stateLabel.uppercase(locale),
                     style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.6.sp),

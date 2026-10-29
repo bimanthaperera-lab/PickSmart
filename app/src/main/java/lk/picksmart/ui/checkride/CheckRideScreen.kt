@@ -240,7 +240,7 @@ private fun CheckRideForm(
     val fareLabel = stringResource(if (payout) R.string.check_fare_payout else R.string.check_fare_gross)
     InputSection(
         title = fareLabel,
-        action = { width -> FareModePills(form.fareMode, width) { onChange(form.copy(fareMode = it)) } },
+        action = { stacked -> FareModePills(form.fareMode, fill = stacked) { onChange(form.copy(fareMode = it)) } },
     ) {
         FareBox(
             value = form.fare,
@@ -423,7 +423,7 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
                     .fillMaxHeight()
                     .defaultMinSize(minHeight = Spacing.touchTarget),
                 label = {
-                    // Two lines at most, without splitting a word ("கட்டணங்களுக்குப்" in Tamil).
+                    // Two lines at most, without splitting a word in a long translation.
                     FitText(
                         stringResource(
                             when (mode) {

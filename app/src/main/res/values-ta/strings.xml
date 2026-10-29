@@ -55,7 +55,7 @@
     <string name="home_net_per_km">ஒரு கி.மீக்கு %1$s · கட்டணங்கள், எரிபொருள் மற்றும் பராமரிப்புச் செலவுகளுக்குப் பின்</string>
     <string name="home_net_basis">கட்டணங்கள், எரிபொருள் மற்றும் பராமரிப்புச் செலவுகளுக்குப் பின்</string>
     <string name="home_net_empty">இன்று எதுவும் பதிவு செய்யப்படவில்லை. சலுகையைச் சரிபார்த்து, அதைக் கணக்கிட "நான் அதை எடுத்தேன்" என்பதைத் தட்டவும்.</string>
-    <string name="home_stat_earned">கட்டணங்களுக்குப் பின் வருமானம்</string>
+    <string name="home_stat_earned">கட்டணம் கழித்த வருமானம்</string>
     <string name="home_stat_expenses">செலவுகள்</string>
     <string name="home_stat_trips">முடிக்கப்பட்ட சவாரிகள்</string>
     <string name="home_stat_distance">தூரம்</string>
@@ -64,7 +64,7 @@
 
     <string name="check_ride_title">சவாரியைச் சரிபார்க்கவும்</string>
     <string name="check_fare_mode_gross">மொத்தக் கட்டணம்</string>
-    <string name="check_fare_mode_payout">கட்டணங்களுக்குப் பின் வருமானம்</string>
+    <string name="check_fare_mode_payout">கட்டணம் கழித்து</string>
     <string name="check_fare_gross">காட்டப்படும் கட்டணம்</string>
     <string name="check_fare_payout">உங்களுக்குக் கிடைக்கும் கட்டணம்</string>
     <string name="check_fare_payout_help">பிளாட்ஃபார்ம் கட்டணம் ஏற்கனவே கழிக்கப்பட்டுள்ளதால் அதைக் கேட்கவில்லை.</string>
@@ -79,7 +79,7 @@
     <string name="check_trip">சவாரி</string>
     <string name="check_return">திரும்பச் செல்ல</string>
     <string name="check_optional">விருப்பப்படி (Optional)</string>
-    <string name="check_return_optional">திரும்பச் செல்ல (விருப்பப்படி)</string>
+    <string name="check_return_optional">திரும்ப (விருப்பம்)</string>
     <string name="check_total_km">மொத்தம் %1$s கி.மீ</string>
     <string name="check_fare_add_description">கட்டணத்தில் ரூ. %1$d சேர்</string>
     <string name="unit_km">கி.மீ</string>
@@ -554,7 +554,7 @@
     <string name="account_not_signed_in">உள்நுழையவில்லை</string>
     <string name="account_benefit">உங்கள் தரவை காப்புப் பிரதி எடுத்து 3 வாகனங்கள் வரை சேர்க்கவும்</string>
     <string name="account_sign_up">Sign up</string>
-    <string name="account_sign_in">உள்நுழைக (Sign in)</string>
+    <string name="account_sign_in">உள்நுழைக</string>
     <string name="account_unavailable">இந்த ஆப்ஸின் பதிப்பில் Sign-in கிடைக்கவில்லை.</string>
     <string name="account_email_not_verified">மின்னஞ்சல் (Email) சரிபார்க்கப்படவில்லை</string>
     <string name="account_open_profile">உங்கள் சுயவிவரத்தைத் (profile) திறக்க</string>

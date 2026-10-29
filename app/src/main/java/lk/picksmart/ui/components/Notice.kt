@@ -14,7 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -73,18 +73,19 @@ private fun NoticeButtons(
     onAction: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    Layout(
-        content = {
-            PrimaryButton(primaryLabel, onPrimary)
-            if (actionLabel != null && onAction != null) SecondaryButton(actionLabel, onAction)
-        },
-        modifier = modifier.fillMaxWidth(),
-    ) { measurables, constraints ->
+    val buttons = @Composable {
+        PrimaryButton(primaryLabel, onPrimary)
+        if (actionLabel != null && onAction != null) SecondaryButton(actionLabel, onAction)
+    }
+    // The buttons are measured at their natural width, not from intrinsic widths: on a Samsung
+    // phone in Sinhala the primary button came out as a thin bar beside the other one, and
+    // measuring them directly doesn't depend on how a font reports its intrinsic width.
+    SubcomposeLayout(modifier.fillMaxWidth()) { constraints ->
         val gap = Spacing.s.roundToPx()
         val width = constraints.maxWidth
-        val widths = measurables.map { it.maxIntrinsicWidth(Constraints.Infinity) }
-        if (widths.sum() + gap * (measurables.size - 1) <= width) {
-            val placeables = measurables.mapIndexed { i, m -> m.measure(Constraints(maxWidth = widths[i])) }
+        val inline = subcompose(NoticeSlot.INLINE, buttons).map { it.measure(Constraints(maxWidth = width)) }
+        if (inline.sumOf { it.width } + gap * (inline.size - 1) <= width) {
+            val placeables = inline
             val height = placeables.maxOf { it.height }
             layout(width, height) {
                 var x = width
@@ -95,7 +96,7 @@ private fun NoticeButtons(
                 }
             }
         } else {
-            val placeables = measurables.map { it.measure(Constraints.fixedWidth(width)) }
+            val placeables = subcompose(NoticeSlot.STACKED, buttons).map { it.measure(Constraints.fixedWidth(width)) }
             layout(width, placeables.sumOf { it.height } + gap * (placeables.size - 1)) {
                 var y = 0
                 placeables.forEach {
@@ -134,3 +135,5 @@ fun InfoNote(
         }
     }
 }
+
+private enum class NoticeSlot { INLINE, STACKED }

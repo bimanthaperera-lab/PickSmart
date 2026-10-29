@@ -32,6 +32,7 @@ import lk.picksmart.R
 import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.FuelPriceState
 import lk.picksmart.domain.usecase.PublishedPriceAction
+import lk.picksmart.ui.components.AdaptiveRow
 import lk.picksmart.ui.components.BrandMark
 import lk.picksmart.ui.components.InfoNote
 import lk.picksmart.ui.components.LoadingState
@@ -143,21 +144,20 @@ private fun HomeHeader() {
     val date = remember(pattern, locale) {
         todayInColombo().format(dateFormatter(pattern, locale))
     }
-    // The offer reader's switch sits on the right; at large font sizes it moves under the title.
-    FlowRow(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            BrandMark()
-            Column {
-                Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                ScreenTitle(stringResource(R.string.home_title))
+    // The offer reader's card sits on the right; when both don't fit (a long translation, a narrow
+    // phone, a large font) it goes under the title at full width.
+    AdaptiveRow(
+        start = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                BrandMark()
+                Column {
+                    Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    ScreenTitle(stringResource(R.string.home_title))
+                }
             }
-        }
-        OfferReaderSwitch()
-    }
+        },
+        end = { stacked -> OfferReaderSwitch(fillWidth = stacked) },
+    )
 }
 
 /**

@@ -64,7 +64,7 @@
 
     <string name="check_ride_title">ගමන පරීක්ෂා කරන්න</string>
     <string name="check_fare_mode_gross">මුළු ගාස්තුව</string>
-    <string name="check_fare_mode_payout">ගාස්තු කැපූ පසු ලැබෙන මුදල</string>
+    <string name="check_fare_mode_payout">ගාස්තු කැපූ පසු</string>
     <string name="check_fare_gross">පෙන්වන ගාස්තුව</string>
     <string name="check_fare_payout">ඔබට ලැබෙන මුදල</string>
     <string name="check_fare_payout_help">Platform ගාස්තුව දැනටමත් අඩු කර ඇති බැවින් එය මෙහි ඇතුලත් කිරීම අවශ්‍ය නැත.</string>

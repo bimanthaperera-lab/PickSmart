@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
@@ -53,11 +51,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import lk.picksmart.R
 import lk.picksmart.domain.model.FareMode
+import lk.picksmart.ui.components.AdaptiveRow
 import lk.picksmart.ui.components.FitText
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.util.InputDigits
@@ -65,14 +63,15 @@ import lk.picksmart.util.limitDecimalInput
 
 /**
  * A group of Check a Ride inputs on its own card: a small upper-case title, an optional item on
- * the right of it (the fare mode, the total distance), then the inputs. The title takes what the
- * item leaves and wraps if it must; at large font sizes the item moves under the title.
+ * the right of it (the fare mode, the total distance), then the inputs. When the title and the
+ * item don't both fit on one line (a long translation, a narrow phone, a large font), the item
+ * goes under the title at full width ([AdaptiveRow]).
  */
 @Composable
 internal fun InputSection(
     title: String,
     modifier: Modifier = Modifier,
-    action: (@Composable (maxWidth: Dp) -> Unit)? = null,
+    action: (@Composable (stacked: Boolean) -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val locale = LocalConfiguration.current.locales[0]
@@ -81,42 +80,31 @@ internal fun InputSection(
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {
-        BoxWithConstraints(Modifier.padding(Spacing.m)) {
-            val width = maxWidth
-            val titleText = @Composable { m: Modifier ->
+        Column(Modifier.padding(Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            val titleText = @Composable {
                 Text(
                     title.uppercase(locale),
                     style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.8.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = m.semantics { heading() },
+                    modifier = Modifier.semantics { heading() },
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
-                    titleText(Modifier)
-                    action?.invoke(width)
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                        titleText(Modifier.weight(1f))
-                        action?.invoke(width)
-                    }
-                }
-                content()
-            }
+            if (action == null) titleText() else AdaptiveRow(start = titleText, end = action)
+            content()
         }
     }
 }
 
 /**
  * Gross fare / Payout after fee as two small pills for the fare card's title row. The row keeps
- * 48 dp of height for touch; the pills inside are drawn smaller. Each label keeps to two lines at
- * most, shrinking a little first ("கட்டணங்களுக்குப் பின் வருமானம்" in Tamil).
+ * 48 dp of height for touch; the pills inside are drawn smaller. With [fill] (under the title,
+ * [AdaptiveRow]) the two share the full width, each label keeping to two lines at most.
  */
 @Composable
-internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode) -> Unit) {
+internal fun FareModePills(selected: FareMode, fill: Boolean, onSelect: (FareMode) -> Unit) {
     Row(
         Modifier
-            .widthIn(max = maxWidth)
+            .then(if (fill) Modifier.fillMaxWidth() else Modifier)
             .minimumInteractiveComponentSize()
             .height(IntrinsicSize.Min)
             .clip(CircleShape)
@@ -129,7 +117,7 @@ internal fun FareModePills(selected: FareMode, maxWidth: Dp, onSelect: (FareMode
             val isSelected = mode == selected
             Box(
                 Modifier
-                    .weight(1f, fill = false)
+                    .then(if (fill) Modifier.weight(1f) else Modifier)
                     .fillMaxHeight()
                     .defaultMinSize(minHeight = 32.dp)
                     .clip(CircleShape)

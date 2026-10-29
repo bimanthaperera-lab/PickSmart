@@ -156,7 +156,7 @@ fun EditTripScreen(
                 )
                 is EditTripUiState.Editing -> {
                     // A saved trip names its vehicle (never editable); a new one goes on the active vehicle.
-                    RecordVehicleField(s.vehicle, onSelect = {})
+                    RecordVehicleField(s.vehicle)
                     TripForm(s, viewModel::updateForm, viewModel::setSaveTip)
                 }
             }

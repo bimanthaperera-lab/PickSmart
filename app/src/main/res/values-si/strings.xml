@@ -247,6 +247,8 @@
     <string name="fuel_price">ලීටරයක මිල</string>
     <string name="fuel_price_help">ඔබේ වාහනයේ සුරැකි මිල මෙහි ඇත. මෙම පිරවුම්හලේ මිල වෙනස් නම් එය වෙනස් කරන්න.</string>
     <string name="fuel_worked_out">මිල අනුව ගණනය කරන ලදී</string>
+    <string name="fuel_litres_and_price">ලීටර් සහ මිල</string>
+    <string name="fuel_auto">ගණනය කළා</string>
     <string name="fuel_full_tank">ෆුල් ටෑන්ක් (Full Tank)</string>
     <string name="fuel_full_tank_body">උඩටම පිරෙව්වා. ෆුල් ටෑන්ක් දෙකක දුර මීටරයේ (odometer) කියවීම් ලබා දීමෙන් සැබෑ කි.මී/ලීටර් අගය දැකගත හැක.</string>
     <string name="fuel_odometer">දුර මීටරය · විකල්ප</string>

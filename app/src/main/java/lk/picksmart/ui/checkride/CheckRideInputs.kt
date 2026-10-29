@@ -338,11 +338,11 @@ internal fun StepButton(text: String, description: String, onClick: () -> Unit) 
 }
 
 /**
- * "Quick add" and buttons that add round amounts to a money field (+100 … +2,000), under its
+ * "Quick add" and buttons that add round [amounts] to a money field (+100 … +2,000), under its
  * [ValueBox]. The buttons wrap to a second line when they don't fit (large fonts).
  */
 @Composable
-internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Modifier) {
+internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Modifier, amounts: List<Long> = QUICK_ADD_AMOUNT_RUPEES) {
     val locale = LocalConfiguration.current.locales[0]
     FlowRow(
         modifier.fillMaxWidth(),
@@ -355,7 +355,7 @@ internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Mod
             style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.8.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        QUICK_ADD_AMOUNT_RUPEES.forEach { rupees ->
+        amounts.forEach { rupees ->
             StepButton(
                 // Western digits with a thousands comma ("+1,000"), as every amount in the app.
                 text = stringResource(R.string.amount_quick_add_button, String.format(Locale.US, "%,d", rupees)),
@@ -367,7 +367,7 @@ internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Mod
 }
 
 /** The quick-add amounts for income and expenses, in rupees. */
-private val QUICK_ADD_AMOUNT_RUPEES = listOf(100L, 500L, 1_000L, 2_000L)
+internal val QUICK_ADD_AMOUNT_RUPEES = listOf(100L, 500L, 1_000L, 2_000L)
 
 /**
  * A small number tile: the label at the top, then the number, as in the fee and distance rows.

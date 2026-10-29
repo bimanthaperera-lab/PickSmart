@@ -372,11 +372,11 @@ On first launch, the splash settles into a welcome screen (the logo stays where 
 ### Vehicles
 
 - A rider can have several vehicles (for example a motorcycle and a three-wheeler). One is the **active vehicle** (`defaultVehicleId`); its rates pre-fill Check a Ride and new trips.
-- **Switching:** the Vehicles list on the Account tab (add, edit, set active, archive). Check a Ride and Add trip have no vehicle switch (owner decision 2026-10-29): they use the active vehicle, and Edit trip only names a saved trip's vehicle. Switching never changes a saved trip, because each trip keeps its own `vehicleId` and rate snapshot (section 8).
+- **Switching:** the Vehicles list on the Account tab (add, edit, set active, archive). Check a Ride, Add trip, Add fill-up and Add expense have no vehicle switch (owner decisions 2026-10-29): they use the active vehicle, and the Edit screens only name a saved record's vehicle. Switching never changes a saved trip, because each trip keeps its own `vehicleId` and rate snapshot (section 8).
 - **Limit:** 1 active (not archived) vehicle on Free (not signed in), up to 3 when signed in, unlimited on Premium (section 15). Archived vehicles don't count, and their trips stay in History and Reports. Archiving the active vehicle asks which one becomes active; the last active vehicle can't be archived.
 - Adding a vehicle past the limit opens an upgrade screen instead of the form: on Free, "Sign in to add up to 3 vehicles" with Sign up and Sign in; when signed in, "More vehicles with Premium".
 - A rider who signs out, or whose Premium lapses, keeps every vehicle they have and can still switch between them and record trips; they just can't add another until they are under their limit. The same holds for a rider who already had more vehicles before the limit shipped. The limit is a feature gate, never a reason to block checking or recording rides on any vehicle the rider already has.
-- Fuel log and expense forms pick a vehicle, defaulting to the active one. Reports combine all vehicles; a per-vehicle filter can come later.
+- New fill-ups and expenses go on the active vehicle. Reports combine all vehicles; a per-vehicle filter can come later.
 - Fuel prices: the Home notice, the prompt and the Fuel price screen follow the active vehicle. Automatic updates apply to every vehicle that has auto-update on.
 
 ## 9a. Glance surfaces and notifications

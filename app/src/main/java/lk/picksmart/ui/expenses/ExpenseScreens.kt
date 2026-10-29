@@ -184,7 +184,7 @@ fun EditExpenseScreen(
                     onAction = onClose,
                 )
                 is EditExpenseUiState.Editing -> {
-                    RecordVehicleField(s.vehicle, viewModel::selectVehicle, card = true)
+                    RecordVehicleField(s.vehicle, card = true)
                     ExpenseForm(s, viewModel::updateForm)
                 }
             }

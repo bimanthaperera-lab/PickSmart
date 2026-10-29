@@ -288,6 +288,9 @@
     <string name="fuel_price">Price per litre</string>
     <string name="fuel_price_help">Starts from your vehicle\'s price. Change it if this station charged differently.</string>
     <string name="fuel_worked_out">Worked out from the price</string>
+    <string name="fuel_litres_and_price">Litres and price</string>
+    <string name="fuel_auto">Worked out</string>
+    <string name="fuel_sum_line" translatable="false">%1$s %2$s × %3$s = %4$s</string>
     <string name="fuel_full_tank">Full tank</string>
     <string name="fuel_full_tank_body">Filled to the top. Two full tanks with odometer readings show your real km per litre.</string>
     <string name="fuel_odometer">Odometer · optional</string>

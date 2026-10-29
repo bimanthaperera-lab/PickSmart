@@ -188,6 +188,11 @@
     <string name="trip_details_more">மேலும் விவரங்கள்</string>
     <string name="trip_details_vehicle">வாகனம்</string>
     <string name="trip_details_note">குறிப்பு</string>
+    <string name="trip_locations_optional">பிக்கப், செல்லும் இடம் · விருப்பப்படி</string>
+    <string name="trip_locations">பிக்கப், செல்லும் இடம்</string>
+    <string name="trip_add_locations">பிக்கப், செல்லும் இடம் சேர்க்க</string>
+    <string name="trip_pickup_location">பிக்கப் இடம்</string>
+    <string name="trip_drop_off_location">செல்லும் இடம்</string>
     <string name="trip_details_cancelled_note">ரத்துசெய்தல் கட்டணத்திலிருந்து, நீங்கள் ஓட்டிய தூரத்திற்கான எரிபொருள் மற்றும் பராமரிப்பு இருப்பைக் கழித்தது.</string>
     <string name="trip_delete_failed">சவாரியை நீக்க முடியவில்லை. மீண்டும் முயல்க.</string>
 

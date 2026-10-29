@@ -100,7 +100,16 @@ object CloudRecords {
         "fuelEfficiencyKmPerLitre" to row.fuelEfficiencySnapshot,
         "maintenanceReservePerKmCents" to row.maintenanceReservePerKmCentsSnapshot,
         "targetProfitPerKmCents" to row.targetProfitPerKmCentsSnapshot,
-    )
+    ) + locations(row)
+
+    /**
+     * The trip's pickup and "Where to" locations, only those it has. Leaving the key out (rather
+     * than sending null) lets trips without locations back up under rules that predate them.
+     */
+    private fun locations(row: TripEntity): Map<String, Any?> = buildMap {
+        row.pickupLocation?.let { put("pickupLocation", it) }
+        row.dropOffLocation?.let { put("dropOffLocation", it) }
+    }
 
     /** [vehicleIdFor] turns a vehicle's sync id into its id on this phone, or null if it isn't here. */
     fun trip(syncId: String, data: Map<String, Any?>, localId: Long, vehicleIdFor: (String) -> Long?): TripEntity? = read {
@@ -126,6 +135,8 @@ object CloudRecords {
             fuelEfficiencySnapshot = data.positive("fuelEfficiencyKmPerLitre"),
             maintenanceReservePerKmCentsSnapshot = data.cents("maintenanceReservePerKmCents"),
             targetProfitPerKmCentsSnapshot = data.optionalCents("targetProfitPerKmCents"),
+            pickupLocation = data.optionalText("pickupLocation"),
+            dropOffLocation = data.optionalText("dropOffLocation"),
             syncId = syncId,
             syncPending = false,
         )

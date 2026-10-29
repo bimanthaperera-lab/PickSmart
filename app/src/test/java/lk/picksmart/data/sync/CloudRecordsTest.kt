@@ -87,6 +87,18 @@ class CloudRecordsTest {
     }
 
     @Test
+    fun `trip locations are sent only when set and read back`() {
+        assertFalse(CloudRecords.trip(trip, "v1").containsKey("pickupLocation"))
+        assertFalse(CloudRecords.trip(trip, "v1").containsKey("dropOffLocation"))
+
+        // Sample places, made up.
+        val located = trip.copy(pickupLocation = "Sample Road", dropOffLocation = "Example Mawatha")
+        val data = CloudRecords.trip(located, "v1")
+        assertEquals("Sample Road", data["pickupLocation"])
+        assertEquals(located.copy(syncPending = false), CloudRecords.trip("t1", data, localId = 3) { 7 })
+    }
+
+    @Test
     fun `a trip whose vehicle isn't here is skipped`() {
         val data = CloudRecords.trip(trip, vehicleSyncId = "v1")
         assertNull(CloudRecords.trip("t1", data, localId = 0) { null })

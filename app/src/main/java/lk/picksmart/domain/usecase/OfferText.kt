@@ -21,8 +21,18 @@ import java.time.Instant
  * @property tripKm Distance of the trip itself.
  * @property tipCents A tip shown on the offer ("+ LKR 200" on PickMe's card), paid on top of the
  *   fare; 0 when there is none.
+ * @property pickupLocation The place shown under the pickup distance, or null. Only ever used to
+ *   fill Add trip, where the rider checks it (N6); never logged.
+ * @property dropOffLocation The place shown under the trip distance ("Where to"), or null.
  */
-data class OfferReading(val fareCents: Long, val pickupKm: Double?, val tripKm: Double?, val tipCents: Long = 0) {
+data class OfferReading(
+    val fareCents: Long,
+    val pickupKm: Double?,
+    val tripKm: Double?,
+    val tipCents: Long = 0,
+    val pickupLocation: String? = null,
+    val dropOffLocation: String? = null,
+) {
     val totalKm: Double get() = (pickupKm ?: 0.0) + (tripKm ?: 0.0)
 }
 
@@ -42,6 +52,15 @@ private val TRIP_WORDS = Regex("""(?i)\b(trip|ride|drop ?-?off|journey|destinati
 /** A fare drawn as two texts, the amount in a large font and the currency beside it ("299.50", "LKR"). */
 private val BARE_AMOUNT = Regex("""[0-9][0-9,]*(?:\.[0-9]{1,2})?""")
 private val CURRENCY_ONLY = Regex("""(?i)lkr|rs\.?|රු\.?""")
+
+/** At least three letters, in any script: what a place name has and a time or a rating doesn't. */
+private val THREE_LETTERS = Regex("""\p{L}.*\p{L}.*\p{L}""")
+
+/** The card's buttons and chips, which can sit under a distance line but are never a place. */
+private val CONTROL_WORDS = Regex("""(?i)^(tap to |swipe to )?(accept|decline|reject|ignore|skip|cancel|confirm|pass|match)(?!\p{L})""")
+
+/** A line that starts with a time ("12 min", "1 hr 5 mins away"), not a place. */
+private val DURATION = Regex("""(?i)^[0-9]+\s*(?:min|mins|minutes?|h|hr|hrs|hours?)(?!\p{L})""")
 
 /** Nine or more digits in a row, with single spaces or dashes allowed between them: a phone number or an id. */
 private val LONG_NUMBER = Regex("""[0-9](?:[ -]?[0-9]){8,}""")
@@ -65,6 +84,10 @@ private const val MAX_KM = 500.0
  *   up to the distances either side of it, so a whole card read as one text still splits up.
  *   Unlabelled distances fill the pickup, then the trip, in reading order; a single unlabelled
  *   distance is the trip. "4,2 km" reads as 4.2.
+ * - **Locations:** the line just under a distance line that holds only that one distance, as on
+ *   PickMe's card (the pickup line over its address, the trip line over its address), when it
+ *   looks like a place: three letters or more, no amount or distance, not a time ("12 min"), not
+ *   a button ("Accept") and not a tip chip. A card read as one text gives no locations.
  * - Lines with nine or more digits in a row (phone numbers, ids) are ignored.
  */
 fun parseOfferText(lines: List<String>): OfferReading? {
@@ -73,10 +96,10 @@ fun parseOfferText(lines: List<String>): OfferReading? {
     val fare = amounts.firstOrNull { !it.afterPlus }?.cents ?: return null
     val tip = amounts.firstOrNull { it.afterPlus }?.cents ?: 0L
 
-    var pickup: Double? = null
-    var trip: Double? = null
-    val unlabelled = mutableListOf<Double>()
-    for (line in usable) {
+    var pickup: Distance? = null
+    var trip: Distance? = null
+    val unlabelled = mutableListOf<Distance>()
+    usable.forEachIndexed { lineIndex, line ->
         val matches = DISTANCE.findAll(line).toList()
         matches.forEachIndexed { i, match ->
             val km = match.groupValues[1].replace(',', '.').toBigDecimalOrNull()?.toDouble() ?: return@forEachIndexed
@@ -84,39 +107,67 @@ fun parseOfferText(lines: List<String>): OfferReading? {
             val from = matches.getOrNull(i - 1)?.range?.last?.plus(1) ?: 0
             val to = matches.getOrNull(i + 1)?.range?.first ?: line.length
             val words = line.substring(from, to)
+            val distance = Distance(km, lineIndex.takeIf { matches.size == 1 })
             when {
-                PICKUP_WORDS.containsMatchIn(words) && pickup == null -> pickup = km
-                TRIP_WORDS.containsMatchIn(words) && trip == null -> trip = km
-                else -> unlabelled += km
+                PICKUP_WORDS.containsMatchIn(words) && pickup == null -> pickup = distance
+                TRIP_WORDS.containsMatchIn(words) && trip == null -> trip = distance
+                else -> unlabelled += distance
             }
         }
     }
     if (unlabelled.size == 1 && trip == null) {
         trip = unlabelled.single()
     } else {
-        for (km in unlabelled) {
+        for (distance in unlabelled) {
             when {
-                pickup == null -> pickup = km
-                trip == null -> trip = km
+                pickup == null -> pickup = distance
+                trip == null -> trip = distance
             }
         }
     }
     if (pickup == null && trip == null) return null
-    return OfferReading(fare, pickup, trip, tip)
+    return OfferReading(
+        fareCents = fare,
+        pickupKm = pickup?.km,
+        tripKm = trip?.km,
+        tipCents = tip,
+        pickupLocation = pickup?.let { placeUnder(usable, it) },
+        dropOffLocation = trip?.let { placeUnder(usable, it) },
+    )
+}
+
+/** A distance on the card, and its line when that line holds no other distance. */
+private class Distance(val km: Double, val aloneOnLine: Int?)
+
+/** The place on the line under [distance]'s line, or null when that line doesn't look like one. */
+private fun placeUnder(lines: List<String>, distance: Distance): String? {
+    val line = lines.getOrNull((distance.aloneOnLine ?: return null) + 1) ?: return null
+    if (!THREE_LETTERS.containsMatchIn(line) || CONTROL_WORDS.containsMatchIn(line)) return null
+    if (line.startsWith('+') || DISTANCE.containsMatchIn(line) || DURATION.containsMatchIn(line)) return null
+    if (MONEY_BEFORE.containsMatchIn(line) || MONEY_AFTER.containsMatchIn(line) || CURRENCY_ONLY.matches(line)) return null
+    return cleanLocation(line)
 }
 
 /**
  * An [OfferReading] from numbers handed between parts of the app (the "Save this trip?"
  * notification, the Add trip route), or null unless [parseOfferText] could have found them: a
  * fare above 0 up to Rs. 1,000,000, and at least one distance, each finite and 0 to [MAX_KM]. A NaN,
- * infinite or huge value would otherwise reach the trip form and break it.
+ * infinite or huge value would otherwise reach the trip form and break it. Locations are cleaned
+ * and cut to [LOCATION_MAX_LENGTH] ([cleanLocation]); a blank one is none.
  */
-fun offerReadingOrNull(fareCents: Long, pickupKm: Double?, tripKm: Double?, tipCents: Long = 0): OfferReading? {
+fun offerReadingOrNull(
+    fareCents: Long,
+    pickupKm: Double?,
+    tripKm: Double?,
+    tipCents: Long = 0,
+    pickupLocation: String? = null,
+    dropOffLocation: String? = null,
+): OfferReading? {
     if (fareCents !in 1..MAX_FARE_CENTS) return null
     if (tipCents !in 0..MAX_FARE_CENTS) return null
     if (pickupKm == null && tripKm == null) return null
     if (listOfNotNull(pickupKm, tripKm).any { !it.isFinite() || it !in 0.0..MAX_KM }) return null
-    return OfferReading(fareCents, pickupKm, tripKm, tipCents)
+    return OfferReading(fareCents, pickupKm, tripKm, tipCents, cleanLocation(pickupLocation), cleanLocation(dropOffLocation))
 }
 
 /** An amount marked with a currency, and whether a "+" comes just before it (a tip, not the fare). */

@@ -330,6 +330,14 @@ private fun CheckRideForm(
         )
     }
 
+    LocationFields(
+        pickup = form.pickupLocation,
+        dropOff = form.dropOffLocation,
+        onPickupChange = { onChange(form.copy(pickupLocation = it)) },
+        onDropOffChange = { onChange(form.copy(dropOffLocation = it)) },
+        collapsible = true,
+    )
+
     val overrides = form.overrides
     if (overrides == null) {
         VehicleRatesLine(state.vehicle, onChangeRates)

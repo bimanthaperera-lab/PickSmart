@@ -11,6 +11,7 @@ import lk.picksmart.data.local.migrations.MIGRATION_1_2
 import lk.picksmart.data.local.migrations.MIGRATION_2_3
 import lk.picksmart.data.local.migrations.MIGRATION_3_4
 import lk.picksmart.data.local.migrations.MIGRATION_4_5
+import lk.picksmart.data.local.migrations.MIGRATION_5_6
 import lk.picksmart.domain.model.IncomeType
 import lk.picksmart.domain.model.TripStatus
 import org.junit.Assert.assertEquals
@@ -243,6 +244,46 @@ class MigrationTest {
             // Everything the rider had is waiting to be backed up when they sign in.
             assertEquals(6, db.syncDao().observePendingCount().first())
             assertTrue(db.syncDao().pendingTombstones().isEmpty())
+        } finally {
+            db.close()
+            context.deleteDatabase(dbName)
+        }
+    }
+
+    @Test
+    fun migrate5To6KeepsTripsAndAddsEmptyLocations() = runTest {
+        helper.createDatabase(dbName, 5).apply {
+            execSQL(
+                """
+                INSERT INTO trips (id, vehicle_id, created_at, updated_at, trip_date_time, platform, status,
+                    fare_cents, fare_mode, commission_type, commission_hundredths, pickup_km, trip_km, return_km,
+                    other_costs_cents, cancellation_fee_cents, notes, fuel_price_per_litre_cents_snapshot,
+                    fuel_efficiency_snapshot, maintenance_reserve_per_km_cents_snapshot,
+                    target_profit_per_km_cents_snapshot, sync_id, sync_pending)
+                VALUES (3, 1, 5000, 6000, 1761000000000, 'PICKME', 'COMPLETED', 100000, 'GROSS_BEFORE_COMMISSION',
+                    'PERCENT', 2000, 2.0, 8.0, 0.0, 0, NULL, 'Sample note', 30000, 40.0, 200, NULL, 'abc123', 0)
+                """.trimIndent(),
+            )
+            close()
+        }
+
+        // Validates the migrated schema against 6.json.
+        helper.runMigrationsAndValidate(dbName, 6, true, MIGRATION_5_6).close()
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.databaseBuilder(context, PicksmartDatabase::class.java, dbName)
+            .addMigrations(*ALL_MIGRATIONS)
+            .build()
+        try {
+            val trip = db.tripDao().get(3)!!
+            assertEquals(100_000L, trip.fareCents)
+            assertEquals("Sample note", trip.notes)
+            assertEquals("abc123", trip.syncId)
+            assertEquals(6_000L, trip.updatedAtMillis)
+            assertNull(trip.pickupLocation)
+            assertNull(trip.dropOffLocation)
+            // Nothing changed, so nothing is uploaded again.
+            assertEquals(0, db.syncDao().observePendingCount().first())
         } finally {
             db.close()
             context.deleteDatabase(dbName)

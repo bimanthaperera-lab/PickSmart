@@ -5,8 +5,8 @@ rules_version = '2';
 //
 // Writes are checked against what the app sends (data/sync/CloudRecords.kt): only known fields,
 // each of the right type, and text kept short, so a modified app can't fill a rider's space with
-// large documents. The text limits sit well above the app's own (plate 15, notes 200; vehicle
-// names have no limit in the app), because one refused record fails a whole backup batch. A new
+// large documents. The text limits sit well above the app's own (plate 15, notes 200, trip
+// locations 120; vehicle names have no limit in the app), because one refused record fails a whole backup batch. A new
 // field in CloudRecords needs adding here, and publishing, before that app version ships.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -49,13 +49,16 @@ service cloud.firestore {
       return d.keys().hasOnly(baseFields().concat(['vehicleSyncId', 'tripDateTime', 'platform', 'status', 'fareCents',
           'fareMode', 'commissionType', 'commissionHundredths', 'pickupKm', 'tripKm', 'returnKm', 'otherCostsCents',
           'cancellationFeeCents', 'notes', 'fuelPricePerLitreCents', 'fuelEfficiencyKmPerLitre',
-          'maintenanceReservePerKmCents', 'targetProfitPerKmCents']))
+          'maintenanceReservePerKmCents', 'targetProfitPerKmCents', 'pickupLocation', 'dropOffLocation']))
         && d.createdAt is int
         && text(d, 'vehicleSyncId', 64) && num(d, 'tripDateTime') && text(d, 'platform', 40) && text(d, 'status', 40)
         && num(d, 'fareCents') && text(d, 'fareMode', 40) && text(d, 'commissionType', 40) && num(d, 'commissionHundredths')
         && num(d, 'pickupKm') && num(d, 'tripKm') && num(d, 'returnKm') && num(d, 'otherCostsCents')
         && optNum(d, 'cancellationFeeCents') && optText(d, 'notes', 1000) && num(d, 'fuelPricePerLitreCents')
-        && num(d, 'fuelEfficiencyKmPerLitre') && num(d, 'maintenanceReservePerKmCents') && optNum(d, 'targetProfitPerKmCents');
+        && num(d, 'fuelEfficiencyKmPerLitre') && num(d, 'maintenanceReservePerKmCents') && optNum(d, 'targetProfitPerKmCents')
+        // Sent only when the trip has them (app version with database v6 and later).
+        && (!('pickupLocation' in d) || text(d, 'pickupLocation', 500))
+        && (!('dropOffLocation' in d) || text(d, 'dropOffLocation', 500));
     }
 
     function validOtherIncome(d) {

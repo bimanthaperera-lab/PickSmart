@@ -72,6 +72,7 @@ import lk.picksmart.ui.checkride.FareBox
 import lk.picksmart.ui.checkride.FareModeSelector
 import lk.picksmart.ui.checkride.FeeUnitToggle
 import lk.picksmart.ui.checkride.InputSection
+import lk.picksmart.ui.checkride.LocationFields
 import lk.picksmart.ui.checkride.NumberTile
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.checkride.TileRow
@@ -198,7 +199,8 @@ fun EditTripScreen(
 
 /**
  * The trip's fields in the same cards and tiles as Check a Ride: date and time tiles, the fare
- * card (fare box, fee and other costs), the distance card, then the note.
+ * card (fare box, fee and other costs), the distance card, the pickup and "Where to" places, then
+ * the note.
  */
 @Composable
 private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -> Unit, onSaveTip: (Boolean) -> Unit) {
@@ -409,6 +411,13 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
             )
         }
     }
+
+    LocationFields(
+        pickup = ride.pickupLocation,
+        dropOff = ride.dropOffLocation,
+        onPickupChange = { onChange(form.copy(ride = ride.copy(pickupLocation = it))) },
+        onDropOffChange = { onChange(form.copy(ride = ride.copy(dropOffLocation = it))) },
+    )
 
     val notesLabel = stringResource(R.string.trip_notes)
     InputSection(title = notesLabel) {

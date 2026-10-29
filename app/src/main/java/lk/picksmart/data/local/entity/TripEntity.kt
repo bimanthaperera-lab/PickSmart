@@ -46,6 +46,8 @@ data class TripEntity(
     @ColumnInfo(name = "fuel_efficiency_snapshot") val fuelEfficiencySnapshot: Double,
     @ColumnInfo(name = "maintenance_reserve_per_km_cents_snapshot") val maintenanceReservePerKmCentsSnapshot: Long,
     @ColumnInfo(name = "target_profit_per_km_cents_snapshot") val targetProfitPerKmCentsSnapshot: Long?,
+    @ColumnInfo(name = "pickup_location") val pickupLocation: String? = null,
+    @ColumnInfo(name = "dropoff_location") val dropOffLocation: String? = null,
     @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String,
     /** True until cloud backup has this version of the row; every local save sets it. */
     @ColumnInfo(name = "sync_pending", defaultValue = "1") val syncPending: Boolean = true,
@@ -75,6 +77,8 @@ fun TripEntity.toDomain() = Trip(
         maintenanceReservePerKmCents = maintenanceReservePerKmCentsSnapshot,
         targetProfitPerKmCents = targetProfitPerKmCentsSnapshot,
     ),
+    pickupLocation = pickupLocation,
+    dropOffLocation = dropOffLocation,
     syncId = syncId,
 )
 
@@ -100,5 +104,7 @@ fun Trip.toEntity() = TripEntity(
     fuelEfficiencySnapshot = rates.fuelEfficiencyKmPerLitre,
     maintenanceReservePerKmCentsSnapshot = rates.maintenanceReservePerKmCents,
     targetProfitPerKmCentsSnapshot = rates.targetProfitPerKmCents,
+    pickupLocation = pickupLocation,
+    dropOffLocation = dropOffLocation,
     syncId = syncId,
 )

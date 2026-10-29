@@ -1,5 +1,18 @@
 package lk.picksmart.ui.checkride
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
+import lk.picksmart.domain.usecase.LOCATION_MAX_LENGTH
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -390,3 +403,81 @@ private fun NumberInput(
 
 /** The fare buttons, in rupees. */
 private val QUICK_ADD_RUPEES = listOf(50L, 100L)
+
+/**
+ * The trip's optional pickup and "Where to" places, as two one-line text boxes marked with a pin
+ * and a flag. They never change the result; they are saved with the trip and shown in History.
+ * With [collapsible] (Check a Ride, where speed comes first) the card starts as one "Add pickup
+ * and where to" button and opens on a tap, or at once when a place is already filled.
+ */
+@Composable
+internal fun LocationFields(
+    pickup: String,
+    dropOff: String,
+    onPickupChange: (String) -> Unit,
+    onDropOffChange: (String) -> Unit,
+    collapsible: Boolean = false,
+) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    if (collapsible && !open && pickup.isEmpty() && dropOff.isEmpty()) {
+        TextButton(onClick = { open = true }, modifier = Modifier.minimumInteractiveComponentSize()) {
+            Icon(painterResource(R.drawable.ic_pin), contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Spacing.s))
+            Text(stringResource(R.string.trip_add_locations))
+        }
+        return
+    }
+    InputSection(title = stringResource(R.string.trip_locations_optional)) {
+        LocationBox(pickup, onPickupChange, stringResource(R.string.trip_pickup_location), R.drawable.ic_pin, ImeAction.Next)
+        LocationBox(dropOff, onDropOffChange, stringResource(R.string.trip_drop_off_location), R.drawable.ic_flag, ImeAction.Done)
+    }
+}
+
+/** One place: an icon, then the text, with the label as its placeholder and the brand outline while focused. */
+@Composable
+private fun LocationBox(value: String, onValueChange: (String) -> Unit, label: String, @DrawableRes iconRes: Int, imeAction: ImeAction) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val colors = MaterialTheme.colorScheme
+    val shape = MaterialTheme.shapes.medium
+    val border = if (focused) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outlineVariant)
+    val textStyle = MaterialTheme.typography.bodyLarge
+    BasicTextField(
+        value = value,
+        onValueChange = { onValueChange(it.replace('\n', ' ').take(LOCATION_MAX_LENGTH)) },
+        singleLine = true,
+        textStyle = textStyle.copy(color = colors.onSurface),
+        cursorBrush = SolidColor(colors.primary),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = imeAction),
+        interactionSource = interaction,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = label },
+        decorationBox = { field ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = Spacing.touchTarget)
+                    .clip(shape)
+                    .background(colors.surface)
+                    .border(border, shape)
+                    .padding(horizontal = Spacing.m, vertical = Spacing.s),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
+                Icon(
+                    painterResource(iconRes),
+                    contentDescription = null,
+                    tint = if (focused) colors.primary else colors.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    if (value.isEmpty()) {
+                        Text(label, style = textStyle, color = colors.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    field()
+                }
+            }
+        },
+    )
+}

@@ -111,8 +111,8 @@ class CheckRideViewModel(
 
     /**
      * Saves the current result as an [TripStatus.OFFER_CHECK] ("Save offer") or a
-     * [TripStatus.COMPLETED] trip ("I took it"), timed now, then starts a new check: the fare and
-     * any rate overrides clear, everything else stays.
+     * [TripStatus.COMPLETED] trip ("I took it"), timed now, then starts a new check: the fare, the
+     * locations and any rate overrides clear, everything else stays.
      */
     fun save(status: TripStatus) {
         val ready = state.value as? CheckRideUiState.Ready ?: return
@@ -123,9 +123,16 @@ class CheckRideViewModel(
             val message = try {
                 trips.create(
                     ready.vehicle.id,
-                    tripInputFromCheck(calculated.input, ready.form.platform, status, clock.instant()),
+                    tripInputFromCheck(
+                        calculated.input,
+                        ready.form.platform,
+                        status,
+                        clock.instant(),
+                        pickupLocation = ready.form.pickupLocation,
+                        dropOffLocation = ready.form.dropOffLocation,
+                    ),
                 )
-                form.update { it?.copy(fare = "", overrides = null) }
+                form.update { it?.copy(fare = "", overrides = null, pickupLocation = "", dropOffLocation = "") }
                 if (status == TripStatus.OFFER_CHECK) CheckRideMessage.OFFER_SAVED else CheckRideMessage.TRIP_SAVED
             } catch (e: CancellationException) {
                 throw e

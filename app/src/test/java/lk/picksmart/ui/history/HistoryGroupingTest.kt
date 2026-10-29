@@ -95,6 +95,13 @@ class HistoryGroupingTest {
     }
 
     @Test
+    fun `search finds a trip by its pickup or where to`() {
+        val trip = trip(7, "2026-10-21T11:12:00Z").copy(pickupLocation = "Sample Road", dropOffLocation = "Example Mawatha")
+        listOf("sample", "MAWATHA", "sample example").forEach { assertTrue(it, trip.matchesSearch(it, names)) }
+        assertFalse(trip.matchesSearch("hotel", names))
+    }
+
+    @Test
     fun `search on a cancelled trip looks at its fee, not the fare`() {
         val cancelled = trip(6, "2026-10-21T08:00:00Z", TripStatus.CANCELLED)
         assertTrue(cancelled.matchesSearch("100", names))

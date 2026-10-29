@@ -188,6 +188,11 @@
     <string name="trip_details_more">වෙනත් විස්තර</string>
     <string name="trip_details_vehicle">වාහනය</string>
     <string name="trip_details_note">සටහන</string>
+    <string name="trip_locations_optional">Pickup සහ යන තැන · විකල්ප</string>
+    <string name="trip_locations">Pickup සහ යන තැන</string>
+    <string name="trip_add_locations">Pickup සහ යන තැන එක් කරන්න</string>
+    <string name="trip_pickup_location">Pickup ස්ථානය</string>
+    <string name="trip_drop_off_location">යන තැන</string>
     <string name="trip_details_cancelled_note">අවලංගු කිරීමේ ගාස්තුවෙන්, ඔබ ධාවනය කළ දුරට ඉන්ධන සහ නඩත්තු වියදම් අඩු කළ විට.</string>
     <string name="trip_delete_failed">ගමන මැකීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.</string>
 

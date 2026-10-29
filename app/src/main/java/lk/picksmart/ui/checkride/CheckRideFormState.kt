@@ -25,6 +25,9 @@ import lk.picksmart.util.parseRupeesToCents
  * never lost. Empty optional fields (commission, other costs, distances) count as 0.
  *
  * @property overrides Rates typed for this check only, or null to use the vehicle's rates.
+ * @property pickupLocation Optional free text, saved with the trip; it never affects the result
+ *   and isn't remembered for the next check.
+ * @property dropOffLocation The optional "Where to", as [pickupLocation].
  */
 data class CheckRideFormState(
     val platform: Platform = Platform.UBER,
@@ -37,6 +40,8 @@ data class CheckRideFormState(
     val tripKm: String = "",
     val returnKm: String = "",
     val overrides: RateOverrides? = null,
+    val pickupLocation: String = "",
+    val dropOffLocation: String = "",
 )
 
 /** Per-check replacements for the vehicle's rates. They never change the saved vehicle. */

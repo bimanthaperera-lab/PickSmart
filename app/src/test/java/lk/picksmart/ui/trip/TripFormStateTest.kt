@@ -164,10 +164,34 @@ class TripFormStateTest {
     }
 
     @Test
+    fun `places from an offer fill the form and are saved`() {
+        // Sample places, made up.
+        val reading = OfferReading(100_000, 2.0, 8.0, pickupLocation = "Sample Road", dropOffLocation = "Example Mawatha")
+        val form = offerTripForm(LastCheckInputs(), g1Offer.copy(reading = reading))
+        assertEquals("Sample Road", form.ride.pickupLocation)
+        assertEquals("Example Mawatha", form.ride.dropOffLocation)
+        val trip = newTrip(valid(form), 1, 1)
+        assertEquals("Sample Road", trip.pickupLocation)
+        assertEquals("Example Mawatha", trip.dropOffLocation)
+        assertEquals(form.ride.pickupLocation, trip.toFormState().ride.pickupLocation)
+    }
+
+    @Test
+    fun `typed places are trimmed and blank ones are not saved`() {
+        val form = g1.copy(ride = g1.ride.copy(pickupLocation = "  Sample   Road ", dropOffLocation = "   "))
+        val trip = newTrip(valid(form), 1, 1)
+        assertEquals("Sample Road", trip.pickupLocation)
+        assertNull(trip.dropOffLocation)
+        assertEquals("", trip.toFormState().ride.dropOffLocation)
+    }
+
+    @Test
     fun `the Add trip route carries an offer and back`() {
         assertEquals(g1Offer, EditTripRoute.forOffer(g1Offer).offer())
         val noPickup = g1Offer.copy(reading = OfferReading(85_000, null, 6.5))
         assertEquals(noPickup, EditTripRoute.forOffer(noPickup).offer())
+        val placed = g1Offer.copy(reading = OfferReading(85_000, 1.0, 6.5, pickupLocation = "Sample Road", dropOffLocation = "Example Mawatha"))
+        assertEquals(placed, EditTripRoute.forOffer(placed).offer())
         assertNull(EditTripRoute(EditTripRoute.NEW).offer())
         assertNull(EditTripRoute(5).offer())
     }

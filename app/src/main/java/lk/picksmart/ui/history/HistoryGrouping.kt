@@ -58,7 +58,8 @@ fun groupTripsByDay(
         }
 
 /**
- * True when every word of [query] is found in the trip: in its note, in its ride app's name (as
+ * True when every word of [query] is found in the trip: in its note, its pickup or "Where to"
+ * place, in its ride app's name (as
  * shown, from [platformNames], or in English), or as its fare or cancellation fee in rupees
  * ("1450", "1,450", "Rs. 1450.50"). A number matches the whole rupees, so "100" doesn't find
  * Rs. 1,000.00; cents, when typed, match from the start ("1450.5" finds Rs. 1,450.50). Case
@@ -67,7 +68,7 @@ fun groupTripsByDay(
 fun Trip.matchesSearch(query: String, platformNames: Map<Platform, String>): Boolean {
     val words = query.lowercase(Locale.ROOT).split(WHITESPACE).filter { it.isNotEmpty() }
     if (words.isEmpty()) return true
-    val texts = listOfNotNull(notes, platformNames[platform], platform.name.replace('_', ' '))
+    val texts = listOfNotNull(notes, pickupLocation, dropOffLocation, platformNames[platform], platform.name.replace('_', ' '))
         .map { it.lowercase(Locale.ROOT) }
     val amounts = listOfNotNull(fareCents.takeIf { status != TripStatus.CANCELLED }, cancellationFeeCents)
         .map { "%d.%02d".format(Locale.ROOT, it / 100, it % 100) }

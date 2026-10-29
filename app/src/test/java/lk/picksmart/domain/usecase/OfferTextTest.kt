@@ -114,7 +114,14 @@ class OfferTextTest {
         "+ LKR 150",
         "Accept trip",
     )
-    private val pickMeStyleReading = OfferReading(45_075, 5.0, 3.4, tipCents = 15_000)
+    private val pickMeStyleReading = OfferReading(
+        45_075,
+        5.0,
+        3.4,
+        tipCents = 15_000,
+        pickupLocation = "Sample Road, Sampletown",
+        dropOffLocation = "Example Mawatha, Exampleville",
+    )
 
     @Test
     fun `PickMe style card with the fare in one text`() {
@@ -129,9 +136,33 @@ class OfferTextTest {
     }
 
     @Test
-    fun `PickMe style card read as one text`() {
+    fun `PickMe style card read as one text gives no places`() {
         val merged = (listOf("450.75 LKR") + pickMeStyleCard).joinToString(" ")
-        assertEquals(pickMeStyleReading, parseOfferText(listOf(merged)))
+        assertEquals(pickMeStyleReading.copy(pickupLocation = null, dropOffLocation = null), parseOfferText(listOf(merged)))
+    }
+
+    @Test
+    fun `a line under a distance is a place only when it looks like one`() {
+        fun dropOffUnder(line: String) = parseOfferText(listOf("LKR 700", "9 min (3.4 km) trip", line))?.dropOffLocation
+        assertEquals("Example Mawatha", dropOffUnder("Example Mawatha"))
+        assertEquals("Passara Road", dropOffUnder("Passara Road"))
+        assertEquals("ගාල්ල පාර", dropOffUnder("ගාල්ල පාර"))
+        listOf("Accept", "Accept trip", "Tap to accept", "+ LKR 200", "LKR 50", "4.9", "12 min", "2 km", "Ok")
+            .forEach { assertNull(it, dropOffUnder(it)) }
+    }
+
+    @Test
+    fun `an Uber style card gives the pickup place under the pickup line`() {
+        val reading = parseOfferText(listOf("UberX", "LKR 850.00", "4 min (1.2 km) away", "Sample Road", "18 min (7.5 km) trip", "Accept"))
+        assertEquals(OfferReading(85_000, 1.2, 7.5, pickupLocation = "Sample Road"), reading)
+    }
+
+    @Test
+    fun `places handed between screens are cleaned`() {
+        val reading = offerReadingOrNull(85_000, 1.0, 5.0, pickupLocation = "  Sample\n Road ", dropOffLocation = " ")!!
+        assertEquals("Sample Road", reading.pickupLocation)
+        assertNull(reading.dropOffLocation)
+        assertEquals(LOCATION_MAX_LENGTH, offerReadingOrNull(85_000, 1.0, 5.0, pickupLocation = "a".repeat(500))!!.pickupLocation!!.length)
     }
 
     @Test

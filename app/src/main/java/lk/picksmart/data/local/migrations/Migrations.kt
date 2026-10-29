@@ -86,7 +86,18 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
 }
 
 /**
+ * Version 6 adds the optional pickup and drop-off ("Where to") locations to trips. Existing trips
+ * get NULL, which shows as no location.
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `trips` ADD COLUMN `pickup_location` TEXT")
+        db.execSQL("ALTER TABLE `trips` ADD COLUMN `dropoff_location` TEXT")
+    }
+}
+
+/**
  * Every schema change after version 1 adds an explicit [Migration] here, plus a
  * `MigrationTestHelper` test. Destructive fallback is never used (CLAUDE.md N7).
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)

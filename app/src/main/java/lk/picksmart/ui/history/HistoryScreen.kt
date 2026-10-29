@@ -58,6 +58,7 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -447,6 +448,7 @@ internal fun TripRow(
                     if (trip.status != TripStatus.COMPLETED) StatusTag(trip.status)
                     Text(detail, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
+                RouteLine(trip.pickupLocation, trip.dropOffLocation)
                 if (amountBelow) Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
             }
             if (!amountBelow) {
@@ -460,6 +462,35 @@ internal fun TripRow(
                 )
             }
         }
+    }
+}
+
+/**
+ * The trip's places in small type, "Pickup → Where to", on one line that ends in "…" when it is
+ * too long. Nothing when the trip has neither; one alone shows with its own icon.
+ */
+@Composable
+private fun RouteLine(pickup: String?, dropOff: String?) {
+    if (pickup == null && dropOff == null) return
+    val text = when {
+        pickup != null && dropOff != null -> stringResource(R.string.history_row_route, pickup, dropOff)
+        pickup != null -> pickup
+        else -> stringResource(R.string.history_row_route_to, dropOff.orEmpty())
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Icon(
+            painterResource(if (pickup != null) R.drawable.ic_pin else R.drawable.ic_flag),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp),
+        )
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 

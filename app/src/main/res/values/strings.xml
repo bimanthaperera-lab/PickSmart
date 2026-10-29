@@ -224,6 +224,13 @@
     <string name="trip_details_more">More details</string>
     <string name="trip_details_vehicle">Vehicle</string>
     <string name="trip_details_note">Note</string>
+    <string name="trip_locations_optional">Pickup and where to · optional</string>
+    <string name="trip_locations">Pickup and where to</string>
+    <string name="trip_add_locations">Add pickup and where to</string>
+    <string name="trip_pickup_location">Pickup location</string>
+    <string name="trip_drop_off_location">Where to</string>
+    <string name="history_row_route" translatable="false">%1$s → %2$s</string>
+    <string name="history_row_route_to" translatable="false">→ %1$s</string>
     <string name="trip_details_cancelled_note">The cancellation fee, minus fuel and reserve for the distance you drove.</string>
     <string name="trip_delete_failed">Couldn\'t delete the trip. Please try again.</string>
 

@@ -24,7 +24,8 @@ import java.time.Instant
  * (CLAUDE.md section 9b). Picksmart can't tell whether the rider accepted it, so it only asks.
  * Tapping it opens Add trip filled with the offer's numbers, where the rider checks them and saves
  * (N6). Only the latest offer is offered: a new one replaces it. It is silent, since the rider may
- * be riding, and on the lock screen it doesn't show the amounts.
+ * be riding, and on the lock screen it doesn't show the amounts. The offer's pickup and "Where to"
+ * places ride along in the tap's intent to fill the form, but the notification never shows them.
  */
 object OfferSaveNotification {
 
@@ -44,6 +45,8 @@ object OfferSaveNotification {
     private const val EXTRA_TIP_CENTS = "offer_tip_cents"
     private const val EXTRA_PLATFORM = "offer_platform"
     private const val EXTRA_READ_AT = "offer_read_at"
+    private const val EXTRA_PICKUP_LOCATION = "offer_pickup_location"
+    private const val EXTRA_DROP_OFF_LOCATION = "offer_drop_off_location"
 
     fun post(context: Context, offer: OfferToSave) {
         // Android 13+: asked for when the rider turns the reader on; without it, nothing is posted.
@@ -100,6 +103,8 @@ object OfferSaveNotification {
         .putExtra(EXTRA_TIP_CENTS, offer.reading.tipCents)
         .putExtra(EXTRA_PLATFORM, offer.platform.name)
         .putExtra(EXTRA_READ_AT, offer.readAt.toEpochMilli())
+        .putExtra(EXTRA_PICKUP_LOCATION, offer.reading.pickupLocation)
+        .putExtra(EXTRA_DROP_OFF_LOCATION, offer.reading.dropOffLocation)
 
     /**
      * The offer in a tap on this notification, or null for any other intent. MainActivity is
@@ -114,6 +119,8 @@ object OfferSaveNotification {
             pickupKm = intent.getDoubleExtra(EXTRA_PICKUP_KM, -1.0).takeIf { it >= 0 },
             tripKm = intent.getDoubleExtra(EXTRA_TRIP_KM, -1.0).takeIf { it >= 0 },
             tipCents = intent.getLongExtra(EXTRA_TIP_CENTS, 0),
+            pickupLocation = intent.getStringExtra(EXTRA_PICKUP_LOCATION),
+            dropOffLocation = intent.getStringExtra(EXTRA_DROP_OFF_LOCATION),
         ) ?: return null
         val platform = Platform.entries.firstOrNull { it.name == intent.getStringExtra(EXTRA_PLATFORM) } ?: Platform.OTHER
         return OfferToSave(reading, platform, Instant.ofEpochMilli(intent.getLongExtra(EXTRA_READ_AT, System.currentTimeMillis())))

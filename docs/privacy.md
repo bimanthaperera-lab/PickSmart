@@ -9,7 +9,7 @@ Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are
 - Everything the rider enters (vehicles, trips, offers, fuel log, expenses, other income, settings) is stored on the phone, in the app's own database and settings files. The app works fully without an account or internet.
 - **Optional account (Firebase Authentication).** A rider may create an account with email and password, or sign in with Google. Firebase then holds the account identifier, email address, name and, for Google sign-in, the profile photo link. Email verification and password reset emails are sent by Firebase.
 - **Cloud backup (Cloud Firestore), only while signed in.** The rider's records are copied to their own space in Firestore (`users/{uid}`) so they can sign in on another phone and get them back: vehicles, trips and checked offers, other income, fuel log, expenses, which vehicle is active, and the optional personal details the rider added: mobile number, gender, date of birth and the profile photo they chose (a 512 px JPEG). Removing a detail or the photo in the app removes it from the backup too. Firestore security rules let only that rider read or write it. A deleted record keeps only its id and time in the cloud, so other phones delete it too. Data is encrypted in transit (HTTPS).
-- **Not backed up:** app settings such as theme and language, and the text the offer reader sees on screen (never stored anywhere).
+- **Not backed up:** app settings such as theme and language, and the text the offer reader sees on screen (never stored anywhere, except the pickup and "Where to" places when the rider keeps them in Add trip and saves the trip; those are part of the trip).
 - **Signing out** stops backup and keeps everything on the phone. **Delete account** (Profile) warns first and asks the rider to confirm it's them, then deletes the cloud backup, the account, and every record and setting on the phone (the theme, app language and published fuel prices stay).
 - Android Auto Backup is on. If the rider has Google backup turned on, Android may copy the app's database and settings to the rider's own Google account, as it does for other apps. Caches are never included. Picksmart's developer can't see these backups.
 - **CSV export (Reports).** The rider can export their records as CSV files and choose, in Android's share sheet, which app receives them (email, Drive, WhatsApp and so on). Picksmart sends them nowhere itself. The files are written to the app's cache, which is never backed up, and each export deletes the previous one. Under Play's Data safety rules, data the user chooses to send with the share sheet is not "shared" by the app.
@@ -26,7 +26,7 @@ Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are
 
 > **Picksmart privacy policy**
 >
-> Picksmart works on your phone and without internet. The trips, fuel, expenses, income and settings you enter stay on your phone unless you choose to back them up. We don't use analytics, advertising or location.
+> Picksmart works on your phone and without internet. The trips (including any pickup and "Where to" places you add), fuel, expenses, income and settings you enter stay on your phone unless you choose to back them up. We don't use analytics, advertising or location.
 >
 > **Account and backup (optional).** You can use Picksmart without an account. If you create one (with email or Google), we use Google Firebase to keep your account (your email, name and an account ID) and, while you're signed in, a backup of your vehicles, trips, offers you checked, fuel log, expenses, other income, which vehicle you use, and the details you chose to add to your profile (mobile number, gender, date of birth and profile photo). Only you can access your backup; it's used only so you can restore your records and profile on another phone. If you remove a detail or your photo, it's removed from the backup too. Signing out stops the backup and keeps your records on your phone.
 >
@@ -58,6 +58,6 @@ Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are
 Notes for the form:
 
 - Google's definition of "collect" is data sent off the device. A rider without an account sends no user data; the fuel price request isn't collection.
-- Data processed only on the device (offer reader text) isn't collected. The profile photo, gender and date of birth are collected only for a rider with an account who adds them (backed up since 2026-10-27).
+- Data processed only on the device (offer reader text) isn't collected. A trip's optional pickup and "Where to" places are rider-entered text saved with the trip and backed up with it; they are not device location. *Owner: check whether Play wants them declared under Location (approximate) or as App activity / Other user-generated content.* The profile photo, gender and date of birth are collected only for a rider with an account who adds them (backed up since 2026-10-27).
 - Play requires a deletion route outside the app as well (a web page or email). The owner needs to add one before upload.
 - Re-answer the form when ads (Phase 9) ship.

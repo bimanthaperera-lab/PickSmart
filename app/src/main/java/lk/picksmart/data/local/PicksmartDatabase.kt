@@ -30,7 +30,7 @@ import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
         SyncTombstoneEntity::class,
         SyncStateEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

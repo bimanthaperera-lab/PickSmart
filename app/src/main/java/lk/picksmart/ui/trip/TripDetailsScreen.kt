@@ -165,6 +165,20 @@ private fun TripDetails(state: TripDetailsUiState.Loaded) {
     SectionLabel(stringResource(R.string.trip_details_money))
     ListGroup(rows = moneyRows(trip, state.estimate, money))
 
+    if (trip.pickupLocation != null || trip.dropOffLocation != null) {
+        SectionLabel(stringResource(R.string.trip_locations))
+        ListGroup(
+            rows = buildList {
+                trip.pickupLocation?.let { place ->
+                    add { ListRow(stringResource(R.string.trip_pickup_location), subtitle = place, iconRes = R.drawable.ic_pin) }
+                }
+                trip.dropOffLocation?.let { place ->
+                    add { ListRow(stringResource(R.string.trip_drop_off_location), subtitle = place, iconRes = R.drawable.ic_flag) }
+                }
+            },
+        )
+    }
+
     SectionLabel(stringResource(R.string.check_result_distance))
     ListGroup(
         rows = buildList {

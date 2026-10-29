@@ -29,7 +29,7 @@ data class EditVehicleRoute(val vehicleId: Long) {
 /**
  * Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History, and from the offer
  * reader's "Save this trip?" notification, which fills the new trip with the offer's numbers
- * ([forOffer]). An offer fare of 0 means the trip isn't from an offer.
+ * ([forOffer]). An offer fare of 0 means the trip isn't from an offer; an empty location wasn't read.
  */
 @Serializable
 data class EditTripRoute(
@@ -40,11 +40,20 @@ data class EditTripRoute(
     val offerTipCents: Long = 0,
     val offerPlatform: Platform = Platform.OTHER,
     val offerReadAtMillis: Long = 0,
+    val offerPickupLocation: String = "",
+    val offerDropOffLocation: String = "",
 ) {
     /** The offer to fill a new trip with, or null for a blank one. Distances below 0 weren't read. */
     fun offer(): OfferToSave? {
         if (tripId != NEW) return null
-        val reading = offerReadingOrNull(offerFareCents, offerPickupKm.takeIf { it >= 0 }, offerTripKm.takeIf { it >= 0 }, offerTipCents) ?: return null
+        val reading = offerReadingOrNull(
+            fareCents = offerFareCents,
+            pickupKm = offerPickupKm.takeIf { it >= 0 },
+            tripKm = offerTripKm.takeIf { it >= 0 },
+            tipCents = offerTipCents,
+            pickupLocation = offerPickupLocation,
+            dropOffLocation = offerDropOffLocation,
+        ) ?: return null
         return OfferToSave(reading, offerPlatform, Instant.ofEpochMilli(offerReadAtMillis))
     }
 
@@ -59,6 +68,8 @@ data class EditTripRoute(
             offerTipCents = offer.reading.tipCents,
             offerPlatform = offer.platform,
             offerReadAtMillis = offer.readAt.toEpochMilli(),
+            offerPickupLocation = offer.reading.pickupLocation.orEmpty(),
+            offerDropOffLocation = offer.reading.dropOffLocation.orEmpty(),
         )
     }
 }

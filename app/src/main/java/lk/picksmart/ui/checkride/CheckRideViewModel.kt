@@ -40,10 +40,9 @@ sealed interface CheckRideUiState {
     /** No default vehicle (its row is missing). Check a Ride needs one for its rates. */
     data object NoVehicle : CheckRideUiState
 
-    /** @property vehicles Every vehicle that isn't archived, for the switch; [vehicle] is the active one. */
+    /** @property vehicle The active vehicle, whose rates the check uses. It is switched from the Account tab. */
     data class Ready(
         val vehicle: Vehicle,
-        val vehicles: List<Vehicle>,
         val form: CheckRideFormState,
         val outcome: CheckRideOutcome,
         val saving: Boolean = false,
@@ -76,14 +75,13 @@ class CheckRideViewModel(
 
     val state: StateFlow<CheckRideUiState> = combine(
         vehicles.defaultVehicle,
-        vehicles.activeVehicles,
         form,
         saving,
-    ) { vehicle, list, form, saving ->
+    ) { vehicle, form, saving ->
         when {
             form == null -> CheckRideUiState.Loading
             vehicle == null -> CheckRideUiState.NoVehicle
-            else -> CheckRideUiState.Ready(vehicle, list, form, form.evaluate(vehicle.rates(), calculator), saving)
+            else -> CheckRideUiState.Ready(vehicle, form, form.evaluate(vehicle.rates(), calculator), saving)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CheckRideUiState.Loading)
 
@@ -103,16 +101,6 @@ class CheckRideViewModel(
 
     fun updateForm(newForm: CheckRideFormState) {
         form.value = newForm
-    }
-
-    /**
-     * Makes [vehicleId] the active vehicle in one tap. Its rates replace the old ones (any rates
-     * typed for this check are dropped); the fare, fee and distances the rider typed stay. Saved
-     * trips keep their own vehicle and rates.
-     */
-    fun switchVehicle(vehicleId: Long) {
-        form.update { it?.copy(overrides = null) }
-        viewModelScope.launch { vehicles.setActive(vehicleId) }
     }
 
     /** Opens the per-check rate fields, starting from the vehicle's current rates. */

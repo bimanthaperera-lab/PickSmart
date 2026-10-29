@@ -103,8 +103,8 @@ class EditTripViewModel(
                 if (vehicle == null) {
                     EditTripUiState.NoVehicle
                 } else {
+                    // A new trip goes on the active vehicle; the rider switches it from the Account tab.
                     vehicleId = vehicle.id
-                    recordVehicle = RecordVehicle(vehicles.activeVehicles.first(), vehicle.id, vehicle.name, editable = true)
                     val last = preferences.lastCheckInputs.first()
                     val form = offer?.let { offerTripForm(last, it) } ?: newTripForm(last, now.toLocalDate(), now.toLocalTime())
                     editing(form, vehicle.rates(), isNew = true, listOf(TripStatus.COMPLETED, TripStatus.CANCELLED), now.toLocalDate())
@@ -128,16 +128,6 @@ class EditTripViewModel(
         } else {
             current
         }
-    }
-
-    /** While adding: the trip goes on [id], and is calculated and saved with that vehicle's rates. */
-    fun selectVehicle(id: Long) {
-        val current = _state.value as? EditTripUiState.Editing ?: return
-        if (!current.isNew || current.saving) return
-        val vehicle = recordVehicle.choices.firstOrNull { it.id == id } ?: return
-        vehicleId = vehicle.id
-        recordVehicle = recordVehicle.copy(selectedId = vehicle.id, selectedName = vehicle.name)
-        _state.value = editing(current.form, vehicle.rates(), current.isNew, current.statuses, current.today).copy(saveTip = current.saveTip)
     }
 
     fun setSaveTip(on: Boolean) = _state.update { current ->

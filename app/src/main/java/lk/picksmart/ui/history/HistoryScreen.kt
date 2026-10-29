@@ -266,7 +266,7 @@ private fun SwipeableTripRow(
     }
 }
 
-/** The title, and on the right the search button (when [onSearch] is given) and Add trip. */
+/** The title, and on the right Add trip and the search button (when [onSearch] is given). */
 @Composable
 private fun Header(onAddTrip: () -> Unit, onSearch: (() -> Unit)? = null) {
     FlowRow(
@@ -277,12 +277,12 @@ private fun Header(onAddTrip: () -> Unit, onSearch: (() -> Unit)? = null) {
     ) {
         ScreenTitle(stringResource(R.string.history_title))
         Row(verticalAlignment = Alignment.CenterVertically) {
+            BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
             if (onSearch != null) {
                 IconButton(onClick = onSearch) {
                     Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.history_search))
                 }
             }
-            BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
         }
     }
 }

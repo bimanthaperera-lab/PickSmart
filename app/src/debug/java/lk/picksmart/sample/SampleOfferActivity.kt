@@ -61,7 +61,9 @@ class SampleOfferActivity : ComponentActivity() {
                         if (offer == null || asPopup) {
                             Text("You're online", style = MaterialTheme.typography.headlineSmall)
                         } else {
-                            offer.forEach { Text(it, style = MaterialTheme.typography.headlineSmall) }
+                            // Long lists use a smaller font so every line stays on screen and is read.
+                            val style = if (offer.size > 10) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.headlineSmall
+                            offer.forEach { Text(it, style = style) }
                         }
                         if (offer != null && asPopup) {
                             Popup(
@@ -99,6 +101,17 @@ class SampleOfferActivity : ComponentActivity() {
             listOf("UberX", "LKR 300.00", "9 min (3.0 km) away", "35 min (15.0 km) trip"),
             listOf("Tuk", "LKR 1,450.00", "6 min (2.1 km) away", "24 min (9.8 km) trip"),
             listOf("UberX", "LKR 150.00", "12 min (4.0 km) away", "40 min (16.0 km) trip"),
+            // A trip scanner with two cards: a long, high fare trip with a "+ LKR" surge chip, then a short one.
+            listOf(
+                "Trip scanner (2)", "10,250.40", "LKR", "TUK", "1 min away (0.2 km)", "Sample Road",
+                "3 hr 40 min  (131.75 km)", "Example Town", "+ LKR 100", "Accept trip",
+                "480.25", "LKR", "TUK", "2 min away (0.3 km)", "Example Mawatha", "11 min  (4.8 km)", "Sample Lane",
+            ),
+            // The same list scrolled so the first card's fare is off screen.
+            listOf(
+                "TUK", "1 min away (0.2 km)", "Sample Road", "3 hr 40 min  (131.75 km)", "Example Town", "+ LKR 100",
+                "Accept trip", "480.25", "LKR", "TUK", "2 min away (0.3 km)", "Example Mawatha", "11 min  (4.8 km)", "Sample Lane",
+            ),
         )
     }
 }

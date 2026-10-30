@@ -150,7 +150,7 @@
     <string name="check_target_change">Change</string>
     <string name="check_target_change_description">Change your profit target per km</string>
     <string name="target_dialog_title">Profit target per km</string>
-    <string name="target_dialog_body">The least you want to earn for each km you drive. Rides that earn less show as “Below target”. Leave it empty to turn it off.</string>
+    <string name="target_dialog_body">The least you want to earn for each km you drive. Rides that earn less show as “Below target”.</string>
     <string name="target_dialog_field">Target per km</string>
     <string name="target_dialog_failed">Couldn\'t save. Try again.</string>
     <!-- Screen reader text for the result: "Estimated net profit Rs. 705.00, Rs. 70.50/km" -->
@@ -447,7 +447,7 @@
     <string name="vehicle_field_type">Vehicle type</string>
     <string name="vehicle_field_name">Vehicle name</string>
     <string name="vehicle_field_name_placeholder">e.g. Honda Dio</string>
-    <string name="vehicle_field_plate">Vehicle number (optional)</string>
+    <string name="vehicle_field_plate">Vehicle number</string>
     <string name="vehicle_field_plate_placeholder">e.g. WP CAB-1234</string>
     <string name="vehicle_field_plate_help">Helps you tell your vehicles apart</string>
     <!-- "Motorcycle · WP CAB-1234" -->
@@ -468,9 +468,12 @@
     <string name="vehicle_field_efficiency_help">How many km you usually get from one litre.</string>
     <string name="vehicle_field_maintenance">Maintenance reserve</string>
     <string name="vehicle_field_maintenance_help">Money to set aside per km for servicing, tyres and repairs. Leave empty for none.</string>
-    <string name="vehicle_field_target">Profit target · optional</string>
+    <string name="vehicle_field_target">Profit target</string>
     <string name="vehicle_field_target_placeholder">Minimum you want</string>
     <string name="vehicle_field_target_help">Rides below this show as “Below target”.</string>
+    <string name="vehicle_error_name_required">Enter a name for the vehicle</string>
+    <string name="vehicle_error_plate_required">Enter the vehicle number</string>
+    <string name="vehicle_error_target_required">Enter your profit target per km</string>
     <string name="vehicle_error_fuel_price_required">Enter the fuel price</string>
     <string name="vehicle_error_efficiency_required">Enter how many km you get per litre</string>
     <string name="vehicle_error_above_zero">Must be more than 0</string>

@@ -30,13 +30,13 @@ data class VehicleFormState(
 /** Longest number plate the form accepts, e.g. "WP CAB-1234" is 11. */
 const val PLATE_NUMBER_MAX_LENGTH = 15
 
-enum class VehicleField { FUEL_PRICE, EFFICIENCY, MAINTENANCE, TARGET }
+enum class VehicleField { NAME, PLATE, FUEL_PRICE, EFFICIENCY, MAINTENANCE, TARGET }
 
 enum class FieldError {
     /** Left empty but needed. */
     REQUIRED,
 
-    /** Must be more than zero (fuel efficiency). */
+    /** Must be more than zero (fuel efficiency, profit target). */
     MUST_BE_ABOVE_ZERO,
 
     /** Not a usable number. */
@@ -49,11 +49,18 @@ sealed interface VehicleFormResult {
 }
 
 /**
- * Checks the form. Fuel price and efficiency are required; maintenance may be left empty (0);
- * the target and number plate are optional (null when empty). A blank name becomes [defaultName].
+ * Checks the form. The name, number plate, fuel price, efficiency and profit target are required
+ * (owner request 2026-10-30); efficiency and the target must be more than 0. Maintenance may be
+ * left empty (0).
  */
-fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
+fun VehicleFormState.validate(): VehicleFormResult {
     val errors = mutableMapOf<VehicleField, FieldError>()
+
+    val vehicleName = name.trim().ifEmpty { null }
+    if (vehicleName == null) errors[VehicleField.NAME] = FieldError.REQUIRED
+
+    val plate = normalizePlateNumber(plateNumber)
+    if (plate == null) errors[VehicleField.PLATE] = FieldError.REQUIRED
 
     val price = if (fuelPrice.isBlank()) {
         errors[VehicleField.FUEL_PRICE] = FieldError.REQUIRED
@@ -87,24 +94,38 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
     }
 
     val targetCents = if (target.isBlank()) {
+        errors[VehicleField.TARGET] = FieldError.REQUIRED
         null
     } else {
-        parseRupeesToCents(target).also { if (it == null) errors[VehicleField.TARGET] = FieldError.INVALID }
+        val parsed = parseRupeesToCents(target)
+        when {
+            parsed == null -> {
+                errors[VehicleField.TARGET] = FieldError.INVALID
+                null
+            }
+            parsed <= 0 -> {
+                errors[VehicleField.TARGET] = FieldError.MUST_BE_ABOVE_ZERO
+                null
+            }
+            else -> parsed
+        }
     }
 
-    if (errors.isNotEmpty() || price == null || kmPerLitre == null || reserve == null) {
+    if (errors.isNotEmpty() || vehicleName == null || plate == null || price == null || kmPerLitre == null ||
+        reserve == null || targetCents == null
+    ) {
         return VehicleFormResult.Invalid(errors)
     }
     return VehicleFormResult.Valid(
         VehicleInput(
-            name = name.trim().ifEmpty { defaultName },
+            name = vehicleName,
             type = type,
             fuelType = fuelType,
             fuelPricePerLitreCents = price,
             fuelEfficiencyKmPerLitre = kmPerLitre,
             maintenanceReservePerKmCents = reserve,
             targetProfitPerKmCents = targetCents,
-            plateNumber = normalizePlateNumber(plateNumber),
+            plateNumber = plate,
         ),
     )
 }

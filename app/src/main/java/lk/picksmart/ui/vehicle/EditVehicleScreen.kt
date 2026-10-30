@@ -110,10 +110,9 @@ fun EditVehicleScreen(
                     fuelPriceSuggestions = s.fuelPriceSuggestions,
                 )
                 if (s.saveFailed) ErrorState(stringResource(R.string.vehicle_save_failed))
-                val defaultName = stringResource(s.form.type.label)
                 PrimaryButton(
                     stringResource(R.string.vehicle_save),
-                    { viewModel.save(defaultName) },
+                    viewModel::save,
                     Modifier.fillMaxWidth(),
                     enabled = !s.saving,
                 )

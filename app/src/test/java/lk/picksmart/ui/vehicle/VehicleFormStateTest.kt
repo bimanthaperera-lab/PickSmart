@@ -16,13 +16,14 @@ class VehicleFormStateTest {
         efficiency = "40",
         maintenance = "2",
         target = "60",
+        plateNumber = "WP CAB-1234",
     )
 
     private fun valid(state: VehicleFormState): VehicleInput =
-        (state.validate("Motorcycle") as VehicleFormResult.Valid).input
+        (state.validate() as VehicleFormResult.Valid).input
 
     private fun errors(state: VehicleFormState): Map<VehicleField, FieldError> =
-        (state.validate("Motorcycle") as VehicleFormResult.Invalid).errors
+        (state.validate() as VehicleFormResult.Invalid).errors
 
     @Test
     fun `a filled form becomes a vehicle input in cents`() {
@@ -35,25 +36,35 @@ class VehicleFormStateTest {
                 fuelEfficiencyKmPerLitre = 40.0,
                 maintenanceReservePerKmCents = 200,
                 targetProfitPerKmCents = 6_000,
+                plateNumber = "WP CAB-1234",
             ),
             valid(filled),
         )
     }
 
     @Test
-    fun `optional fields can be left empty`() {
-        val input = valid(filled.copy(name = "  ", maintenance = "", target = ""))
-        assertEquals("Motorcycle", input.name)
-        assertEquals(0L, input.maintenanceReservePerKmCents)
-        assertEquals(null, input.targetProfitPerKmCents)
+    fun `maintenance can be left empty`() {
+        assertEquals(0L, valid(filled.copy(maintenance = "")).maintenanceReservePerKmCents)
     }
 
     @Test
-    fun `fuel price and efficiency are required`() {
+    fun `name, plate, fuel price, efficiency and target are required`() {
         assertEquals(
-            mapOf(VehicleField.FUEL_PRICE to FieldError.REQUIRED, VehicleField.EFFICIENCY to FieldError.REQUIRED),
-            errors(filled.copy(fuelPrice = "", efficiency = "")),
+            mapOf(
+                VehicleField.NAME to FieldError.REQUIRED,
+                VehicleField.PLATE to FieldError.REQUIRED,
+                VehicleField.FUEL_PRICE to FieldError.REQUIRED,
+                VehicleField.EFFICIENCY to FieldError.REQUIRED,
+                VehicleField.TARGET to FieldError.REQUIRED,
+            ),
+            errors(filled.copy(name = "  ", plateNumber = "   ", fuelPrice = "", efficiency = "", target = "")),
         )
+    }
+
+    @Test
+    fun `a zero target is rejected`() {
+        assertEquals(mapOf(VehicleField.TARGET to FieldError.MUST_BE_ABOVE_ZERO), errors(filled.copy(target = "0")))
+        assertEquals(mapOf(VehicleField.TARGET to FieldError.MUST_BE_ABOVE_ZERO), errors(filled.copy(target = "0.00")))
     }
 
     @Test
@@ -85,8 +96,7 @@ class VehicleFormStateTest {
     }
 
     @Test
-    fun `the number plate is optional and tidied`() {
-        assertEquals(null, valid(filled.copy(plateNumber = "   ")).plateNumber)
+    fun `the number plate is tidied`() {
         assertEquals("WP CAB-1234", valid(filled.copy(plateNumber = " wp  cab-1234 ")).plateNumber)
     }
 

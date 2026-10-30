@@ -746,3 +746,10 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Reading:** opening the inbox marks every alert read; the ones that were unread keep a "New" label while it stays open. Tapping a fuel price alert opens Fuel price.
 - **Not yet:** no system notification is posted with these alerts (there is no fuel price notification channel yet). When the fuel price notification and the daily summary are built, each posts its notification and writes its inbox row together.
 - **Offer saves stay out of the inbox:** "Took this ride?" keeps its offer numbers only in the notification's tap (CLAUDE.md N5), so it isn't copied into the alerts table.
+
+## 2026-10-30 — Vehicle name, number plate and profit target are required
+
+- **Owner request:** onboarding and Edit vehicle no longer save a vehicle without a name, a number plate or a profit target per km. Each empty field gets a red outline and a message under it ("Enter a name for the vehicle", "Enter the vehicle number", "Enter your profit target per km"). A target of 0 is refused like fuel efficiency of 0, since it would mark every ride as meeting the target.
+- **No more default name:** a blank name used to become the vehicle type ("Motorcycle"); now the rider types one.
+- **Check a Ride's target dialog** can change the target but no longer clears it; its text no longer says "Leave it empty to turn it off".
+- **Vehicles saved before (N7):** nothing changes in the database. A vehicle with no plate or target keeps working everywhere (the bubble still says "No target set"); the rider is asked for them the next time they save its form.

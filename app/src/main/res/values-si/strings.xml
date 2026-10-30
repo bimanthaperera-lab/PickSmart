@@ -127,7 +127,7 @@
     <string name="check_target_change">වෙනස් කරන්න</string>
     <string name="check_target_change_description">km එකකට ඔබේ ලාභ ඉලක්කය වෙනස් කරන්න</string>
     <string name="target_dialog_title">km එකකට ලාභ ඉලක්කය</string>
-    <string name="target_dialog_body">ඔබ ධාවනය කරන සෑම km එකක් සඳහාම උපයා ගැනීමට අවශ්‍ය අවම මුදල. අඩුවෙන් උපයන ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි. මෙය අක්‍රිය කිරීමට හිස්ව තබන්න.</string>
+    <string name="target_dialog_body">ඔබ ධාවනය කරන සෑම km එකක් සඳහාම උපයා ගැනීමට අවශ්‍ය අවම මුදල. අඩුවෙන් උපයන ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි.</string>
     <string name="target_dialog_field">km එකකට ඉලක්කය</string>
     <string name="target_dialog_failed">සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.</string>
     <string name="check_net_profit_description">ඇස්තමේන්තුගත ශුද්ධ ලාභය %1$s, %2$s</string>
@@ -389,7 +389,7 @@
     <string name="vehicle_field_type">වාහනයේ වර්ගය</string>
     <string name="vehicle_field_name">වාහනයේ නම</string>
     <string name="vehicle_field_name_placeholder">උදා: Honda Dio</string>
-    <string name="vehicle_field_plate">වාහන අංකය (විකල්ප)</string>
+    <string name="vehicle_field_plate">වාහන අංකය</string>
     <string name="vehicle_field_plate_placeholder">උදා: WP CAB-1234</string>
     <string name="vehicle_field_plate_help">ඔබේ වාහන වෙන්කර හඳුනා ගැනීමට උපකාරී වේ</string>
     <string name="vehicle_type_and_plate">%1$s · %2$s</string>
@@ -406,9 +406,12 @@
     <string name="vehicle_field_efficiency_help">ලීටරයකින් ඔබට කොපමණ km ප්‍රමාණයක් යා හැකිද.</string>
     <string name="vehicle_field_maintenance">නඩත්තු මුදල</string>
     <string name="vehicle_field_maintenance_help">සර්විස්, ටයර් සහ අලුත්වැඩියාවන් සඳහා km එකකට වෙන් කළ යුතු මුදල. අවශ්‍ය නැත්නම් හිස්ව තබන්න.</string>
-    <string name="vehicle_field_target">ලාභ ඉලක්කය · විකල්ප</string>
+    <string name="vehicle_field_target">ලාභ ඉලක්කය</string>
     <string name="vehicle_field_target_placeholder">ඔබට අවශ්‍ය අවම මුදල</string>
     <string name="vehicle_field_target_help">මෙයට වඩා අඩු ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි.</string>
+    <string name="vehicle_error_name_required">වාහනයට නමක් ඇතුලත් කරන්න</string>
+    <string name="vehicle_error_plate_required">වාහන අංකය ඇතුලත් කරන්න</string>
+    <string name="vehicle_error_target_required">km එකකට ඔබේ ලාභ ඉලක්කය ඇතුලත් කරන්න</string>
     <string name="vehicle_error_fuel_price_required">ඉන්ධන මිල ඇතුලත් කරන්න</string>
     <string name="vehicle_error_efficiency_required">ලීටරයකට වැඩ කරන km ගණන ඇතුලත් කරන්න</string>
     <string name="vehicle_error_above_zero">0 ට වඩා වැඩි විය යුතුය</string>

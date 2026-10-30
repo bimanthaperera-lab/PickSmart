@@ -588,7 +588,8 @@ private fun LocationBox(value: String, onValueChange: (String) -> Unit, label: S
 /**
  * One line of text in the same box as [ValueBox], with the brand outline while it has focus: an
  * optional icon, then the text, with [placeholder] (the label unless given) while it is empty.
- * Line breaks become spaces and the text stops at [maxLength] characters.
+ * Line breaks become spaces and the text stops at [maxLength] characters. An [error] draws the
+ * outline in the error colour and is read out; the caller shows its text under the box.
  */
 @Composable
 internal fun TextBox(
@@ -601,12 +602,17 @@ internal fun TextBox(
     @DrawableRes iconRes: Int? = null,
     capitalization: KeyboardCapitalization = KeyboardCapitalization.Words,
     imeAction: ImeAction = ImeAction.Next,
+    error: String? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val colors = MaterialTheme.colorScheme
     val shape = MaterialTheme.shapes.medium
-    val border = if (focused) BorderStroke(2.dp, colors.primary) else BorderStroke(1.dp, colors.outlineVariant)
+    val border = when {
+        error != null -> BorderStroke(2.dp, colors.error)
+        focused -> BorderStroke(2.dp, colors.primary)
+        else -> BorderStroke(1.dp, colors.outlineVariant)
+    }
     val textStyle = MaterialTheme.typography.bodyLarge
     BasicTextField(
         value = value,
@@ -618,7 +624,10 @@ internal fun TextBox(
         interactionSource = interaction,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = label },
+            .semantics {
+                contentDescription = label
+                if (error != null) error(error)
+            },
         decorationBox = { field ->
             Row(
                 Modifier

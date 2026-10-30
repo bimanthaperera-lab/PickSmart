@@ -760,11 +760,14 @@ private fun TargetLine(targetCents: Long, color: Color, onEdit: () -> Unit) {
     }
 }
 
-/** Sets the profit target per km. Empty turns it off; it is saved on the vehicle. */
+/**
+ * Sets the profit target per km, saved on the vehicle. It is required (owner request 2026-10-30),
+ * so an empty or zero target isn't saved.
+ */
 @Composable
 private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss: () -> Unit) {
     var text by rememberSaveable { mutableStateOf(currentCents?.let(::centsToInput).orEmpty()) }
-    var invalid by rememberSaveable { mutableStateOf(false) }
+    var error by rememberSaveable { mutableStateOf<Int?>(null) }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
@@ -777,13 +780,13 @@ private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss
                     value = text,
                     onValueChange = {
                         text = it
-                        invalid = false
+                        error = null
                     },
                     label = stringResource(R.string.target_dialog_field),
                     placeholder = stringResource(R.string.placeholder_zero),
                     prefix = stringResource(R.string.currency_prefix),
                     suffix = stringResource(R.string.unit_per_km),
-                    error = if (invalid) stringResource(R.string.vehicle_error_invalid) else null,
+                    error = error?.let { stringResource(it) },
                     imeAction = ImeAction.Done,
                     modifier = Modifier.focusRequester(focus),
                 )
@@ -791,10 +794,12 @@ private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss
         },
         confirmButton = {
             TextButton(onClick = {
-                if (text.isBlank()) {
-                    onSave(null)
-                } else {
-                    parseRupeesToCents(text)?.let(onSave) ?: run { invalid = true }
+                val cents = parseRupeesToCents(text)
+                when {
+                    text.isBlank() -> error = R.string.vehicle_error_target_required
+                    cents == null -> error = R.string.vehicle_error_invalid
+                    cents <= 0 -> error = R.string.vehicle_error_above_zero
+                    else -> onSave(cents)
                 }
             }) { Text(stringResource(R.string.action_save)) }
         },

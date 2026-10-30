@@ -72,7 +72,6 @@ import lk.picksmart.ui.splash.WelcomeScreen
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.VehicleFormFields
 import lk.picksmart.ui.vehicle.VehicleFormState
-import lk.picksmart.ui.vehicle.label
 
 /** The setup steps (welcome, intro, vehicle, permissions, safety); the sign-in screens open on top of it. */
 @Serializable private data object SetupRoute
@@ -165,12 +164,11 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
                 onNext = viewModel::continueWithoutBackup,
             )
         OnboardingStep.VEHICLE -> {
-            val defaultName = stringResource(state.form.type.label)
             VehicleStep(
                 state = state,
                 fuelPriceSuggestions = fuelPriceSuggestions,
                 onChange = viewModel::updateForm,
-                onContinue = { viewModel.continueWithForm(defaultName) },
+                onContinue = viewModel::continueWithForm,
             )
         }
         OnboardingStep.PERMISSIONS -> StepScaffold(stepNumber = 2) { PermissionsStep(onContinue = viewModel::finishPermissions) }

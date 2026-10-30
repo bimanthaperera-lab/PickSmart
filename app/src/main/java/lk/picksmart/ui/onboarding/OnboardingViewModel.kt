@@ -222,9 +222,9 @@ class OnboardingViewModel(
         it.copy(form = form, errors = it.errors.filterKeys { field -> fieldValue(it.form, field) == fieldValue(form, field) })
     }
 
-    /** Validates the form; moves on only when it's complete. [defaultName] fills a blank name. */
-    fun continueWithForm(defaultName: String) {
-        when (val result = _state.value.form.validate(defaultName)) {
+    /** Validates the form; moves on only when it's complete. */
+    fun continueWithForm() {
+        when (val result = _state.value.form.validate()) {
             is VehicleFormResult.Invalid -> _state.update { it.copy(errors = result.errors) }
             is VehicleFormResult.Valid -> if (quickSetup) {
                 _state.update { it.copy(errors = emptyMap(), pending = result.input) }
@@ -283,6 +283,8 @@ class OnboardingViewModel(
     }
 
     private fun fieldValue(form: VehicleFormState, field: VehicleField): String = when (field) {
+        VehicleField.NAME -> form.name
+        VehicleField.PLATE -> form.plateNumber
         VehicleField.FUEL_PRICE -> form.fuelPrice
         VehicleField.EFFICIENCY -> form.efficiency
         VehicleField.MAINTENANCE -> form.maintenance

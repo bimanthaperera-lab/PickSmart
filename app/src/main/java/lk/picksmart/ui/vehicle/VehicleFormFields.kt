@@ -28,7 +28,7 @@ import lk.picksmart.util.InputDigits
  * The vehicle fields shared by onboarding and Edit vehicle, each on its own card in the style of
  * Check a Ride: a small upper-case title (with the unit on the right), the box, then a hint.
  * Picking a fuel type fills in its price from [fuelPriceSuggestions] (`fuelPriceSuggestions`);
- * the "−5" / "+5" buttons move the price by Rs. 5. The number plate is optional.
+ * the "−5" / "+5" buttons move the price by Rs. 5. Every field but maintenance is required.
  */
 @Composable
 fun VehicleFormFields(
@@ -57,6 +57,7 @@ fun VehicleFormFields(
         }
 
         val nameLabel = stringResource(R.string.vehicle_field_name)
+        val nameError = errors[VehicleField.NAME]?.let { fieldErrorText(it, R.string.vehicle_error_name_required) }
         InputSection(title = nameLabel) {
             TextBox(
                 value = state.name,
@@ -64,10 +65,13 @@ fun VehicleFormFields(
                 label = nameLabel,
                 placeholder = stringResource(R.string.vehicle_field_name_placeholder),
                 maxLength = VEHICLE_NAME_MAX_LENGTH,
+                error = nameError,
             )
+            if (nameError != null) ErrorText(nameError)
         }
 
         val plateLabel = stringResource(R.string.vehicle_field_plate)
+        val plateError = errors[VehicleField.PLATE]?.let { fieldErrorText(it, R.string.vehicle_error_plate_required) }
         InputSection(title = plateLabel) {
             TextBox(
                 value = state.plateNumber,
@@ -76,7 +80,9 @@ fun VehicleFormFields(
                 placeholder = stringResource(R.string.vehicle_field_plate_placeholder),
                 maxLength = PLATE_NUMBER_MAX_LENGTH,
                 capitalization = KeyboardCapitalization.Characters,
+                error = plateError,
             )
+            if (plateError != null) ErrorText(plateError)
             HelpText(stringResource(R.string.vehicle_field_plate_help))
         }
 
@@ -153,7 +159,7 @@ fun VehicleFormFields(
         }
 
         val targetLabel = stringResource(R.string.vehicle_field_target)
-        val targetError = errors[VehicleField.TARGET]?.let { fieldErrorText(it, R.string.vehicle_error_invalid) }
+        val targetError = errors[VehicleField.TARGET]?.let { fieldErrorText(it, R.string.vehicle_error_target_required) }
         InputSection(title = targetLabel, action = { UnitLabel(perKm) }) {
             ValueBox(
                 value = state.target,

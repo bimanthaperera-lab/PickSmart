@@ -127,7 +127,7 @@
     <string name="check_target_change">மாற்று</string>
     <string name="check_target_change_description">ஒரு km-க்கான உங்கள் இலாப இலக்கை மாற்று</string>
     <string name="target_dialog_title">ஒரு km-க்கான இலாப இலக்கு</string>
-    <string name="target_dialog_body">நீங்கள் ஓட்டும் ஒவ்வொரு km-க்கும் நீங்கள் சம்பாதிக்க விரும்பும் குறைந்தபட்ச தொகை. குறைவான சவாரிகள் “இலக்குக்குக் கீழ்” எனக் காட்டப்படும். இதை அணைக்க காலியாக விடவும்.</string>
+    <string name="target_dialog_body">நீங்கள் ஓட்டும் ஒவ்வொரு km-க்கும் நீங்கள் சம்பாதிக்க விரும்பும் குறைந்தபட்ச தொகை. குறைவான சவாரிகள் “இலக்குக்குக் கீழ்” எனக் காட்டப்படும்.</string>
     <string name="target_dialog_field">ஒரு km-க்கான இலக்கு</string>
     <string name="target_dialog_failed">சேமிக்க முடியவில்லை. மீண்டும் முயல்க.</string>
     <string name="check_net_profit_description">மதிப்பிடப்பட்ட நிகர இலாபம் %1$s, %2$s</string>
@@ -388,7 +388,7 @@
     <string name="vehicle_field_type">வாகன வகை</string>
     <string name="vehicle_field_name">வாகனத்தின் பெயர்</string>
     <string name="vehicle_field_name_placeholder">உதா: Honda Dio</string>
-    <string name="vehicle_field_plate">வாகன எண் (விருப்பப்படி)</string>
+    <string name="vehicle_field_plate">வாகன எண்</string>
     <string name="vehicle_field_plate_placeholder">உதா: WP CAB-1234</string>
     <string name="vehicle_field_plate_help">உங்கள் வாகனங்களை வேறுபடுத்துவதற்கு உதவுகிறது</string>
     <string name="vehicle_type_and_plate">%1$s · %2$s</string>
@@ -405,9 +405,12 @@
     <string name="vehicle_field_efficiency_help">ஒரு லிட்டரிலிருந்து நீங்கள் வழக்கமாகப் பெறும் km.</string>
     <string name="vehicle_field_maintenance">பராமரிப்பு இருப்பு</string>
     <string name="vehicle_field_maintenance_help">சர்வீஸ், டயர்கள் மற்றும் பழுதுபார்ப்புகளுக்கு ஒரு km-க்கு ஒதுக்க வேண்டிய பணம். இல்லையெனில் காலியாக விடவும்.</string>
-    <string name="vehicle_field_target">இலாப இலக்கு · விருப்பப்படி</string>
+    <string name="vehicle_field_target">இலாப இலக்கு</string>
     <string name="vehicle_field_target_placeholder">உங்களுக்குத் தேவையான குறைந்தபட்சம்</string>
     <string name="vehicle_field_target_help">இதற்குக் கீழான சவாரிகள் “இலக்குக்குக் கீழ்” எனக் காட்டப்படும்.</string>
+    <string name="vehicle_error_name_required">வாகனத்தின் பெயரை உள்ளிடவும்</string>
+    <string name="vehicle_error_plate_required">வாகன எண்ணை உள்ளிடவும்</string>
+    <string name="vehicle_error_target_required">ஒரு km-க்கான உங்கள் இலாப இலக்கை உள்ளிடவும்</string>
     <string name="vehicle_error_fuel_price_required">எரிபொருள் விலையை உள்ளிடவும்</string>
     <string name="vehicle_error_efficiency_required">ஒரு லிட்டருக்கு எத்தனை km கிடைக்கும் என்பதை உள்ளிடவும்</string>
     <string name="vehicle_error_above_zero">0க்கு மேல் இருக்க வேண்டும்</string>

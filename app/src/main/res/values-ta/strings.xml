@@ -250,7 +250,7 @@
     <string name="fuel_litres_and_price">லிட்டர் மற்றும் விலை</string>
     <string name="fuel_auto">கணக்கிடப்பட்டது</string>
     <string name="fuel_full_tank">ஃபுல் டேங்க் (Full tank)</string>
-    <string name="fuel_full_tank_body">மேல்வரை நிரப்பப்பட்டது. ஓடோமீட்டர் அளவீடுகளுடன் இரண்டு ஃபுல் டேங்க்கள் உங்கள் உண்மையான km/L-ஐக் காட்டுகின்றன.</string>
+    <string name="fuel_full_tank_body">சரியான km/L மதிப்பை அறிய இரண்டு ஃபுல் டேங்க் ஓடோமீட்டர் அளவீடுகளை வழங்கவும்.</string>
     <string name="fuel_odometer">ஓடோமீட்டர் · விருப்பப்படி</string>
     <string name="fuel_odometer_help">நீங்கள் நிரப்பிய போது இருந்த அளவீடு</string>
     <string name="fuel_date">தேதி</string>

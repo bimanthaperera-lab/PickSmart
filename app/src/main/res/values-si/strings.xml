@@ -441,11 +441,10 @@
     <string name="onboarding_vehicle_title">ඔබේ වාහනය සකසන්න</string>
     <string name="onboarding_vehicle_body">මෙම සංඛ්‍යා සෑම ගමනක් සඳහාම ඉන්ධන සහ නඩත්තුව ඇස්තමේන්තු කරයි. ඔබට ඒවා ඕනෑම වේලාවක වෙනස් කළ හැක.</string>
     <string name="onboarding_permissions_title">අවසර</string>
-    <string name="onboarding_permissions_body">තුනම අනිවාර්ය නැත. ඒවා නැතිවත් Picksmart ක්‍රියා කරයි. පසුව Android settings හෝ ගිණුම ටැබයෙන් ඒවා වෙනස් කළ හැක.</string>
+    <string name="onboarding_permissions_body">දෙකම අනිවාර්ය නැත. ඒවා නැතිවත් Picksmart ක්‍රියා කරයි. පසුව Android settings හෝ ගිණුම ටැබයෙන් ඒවා වෙනස් කළ හැක.</string>
     <string name="permission_notifications_title">දැනුම්දීම්</string>
     <string name="permission_notifications_body">ගමන් දීමනාවක් ගමනක් ලෙස සුරකින්නද කියා අසන්නත්, ඔබ On කරන මතක් කිරීම් යවන්නත් Picksmart හට ඉඩ දෙයි.</string>
     <string name="permission_reader_body">Uber Driver දීමනා වල ඇස්තමේන්තුගත ලාභය හෝ පාඩුව පෙන්වයි. ඔබ On කරන තුරු Off වේ.</string>
-    <string name="permission_bubble_body">km එකකට ඔබේ ලාභ ඉලක්කය වෙනත් ඇප් මතින් පෙන්වයි. \"Display over other apps\" අවසරය අවශ්‍යයි. ඔබ On කරන තුරු Off වේ.</string>
     <string name="permission_allow">ඉඩ දෙන්න</string>
     <string name="permission_allowed">ඉඩ දී ඇත</string>
     <string name="permission_turn_on">On කරන්න</string>

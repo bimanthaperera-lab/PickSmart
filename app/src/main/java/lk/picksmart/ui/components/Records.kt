@@ -173,7 +173,7 @@ fun SwitchRow(title: String, body: String, checked: Boolean, onCheckedChange: (B
         ) {
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.width(Spacing.m))
             // The row handles the toggle, so the switch itself takes no clicks.

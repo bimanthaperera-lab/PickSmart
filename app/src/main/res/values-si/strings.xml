@@ -250,7 +250,7 @@
     <string name="fuel_litres_and_price">ලීටර් සහ මිල</string>
     <string name="fuel_auto">ගණනය කළා</string>
     <string name="fuel_full_tank">ෆුල් ටෑන්ක් (Full Tank)</string>
-    <string name="fuel_full_tank_body">උඩටම පිරෙව්වා. ෆුල් ටෑන්ක් දෙකක දුර මීටරයේ (odometer) කියවීම් ලබා දීමෙන් සැබෑ km/L අගය දැකගත හැක.</string>
+    <string name="fuel_full_tank_body">නිවැරදි km/L අගය සෙවීමට ෆුල් ටෑන්ක් දෙකක odometer සටහන් ලබා දෙන්න.</string>
     <string name="fuel_odometer">දුර මීටරය · විකල්ප</string>
     <string name="fuel_odometer_help">ඔබ තෙල් ගසන විට මීටරයේ තිබූ කියවීම</string>
     <string name="fuel_date">දිනය</string>

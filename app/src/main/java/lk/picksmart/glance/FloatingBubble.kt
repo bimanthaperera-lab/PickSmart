@@ -313,18 +313,19 @@ class FloatingBubble(private val context: Context, private val onHidden: () -> U
             shown == Look.OFFER && shownOffer != null ->
                 card.showOfferResult(words, shownOffer.result, shownOffer.vehicleName) + ". " +
                     words.getString(R.string.offer_badge_hide_hint)
-            shown == Look.OPEN -> words.getString(R.string.bubble_description_open, rate)
+            shown == Look.OPEN -> words.getString(R.string.bubble_description_open, rateText(words, spoken = true))
             else -> words.getString(R.string.bubble_description_closed)
         }
         params.gravity = Gravity.TOP or edge
         update()
     }
 
-    private fun rateText(words: Context): String = when (val shown = target) {
+    /** The pill shows only the amount ("Rs. 50/km"); [spoken] adds "Target" for screen readers. */
+    private fun rateText(words: Context, spoken: Boolean = false): String = when (val shown = target) {
         BubbleTarget.NoVehicle -> words.getString(R.string.bubble_rate_unknown)
         BubbleTarget.NotSet -> words.getString(R.string.bubble_target_not_set)
         is BubbleTarget.PerKm -> words.getString(
-            R.string.bubble_rate,
+            if (spoken) R.string.bubble_rate_description else R.string.check_per_km_value,
             MoneyFormatter(words.getString(R.string.currency_prefix)).formatShort(shown.cents),
         )
     }

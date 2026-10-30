@@ -724,7 +724,7 @@
     <string name="bubble_warning_title">බුබුල වෙනත් ඇප් මතින් පෙන්වන්නද?</string>
     <string name="bubble_warning_body">මේ සඳහා Picksmart හට Android හි \"Display over other apps\" අවසරය අවශ්‍යයි. ඊළඟ තිරයේ Picksmart සඳහා එය On කර, නැවත මෙහි එන්න.\n\nසමහර ගමන් ඇප්, වෙනත් ඇප් එකක බුබුලක් යටින් කරන tap නොසලකා හරියි. Accept tap කිරීමට පෙර බුබුල පැත්තකට කරන්න. එය වහාම සැඟවීමට ඔබාගෙන සිටින්න.</string>
     <string name="bubble_warning_allow">Settings විවෘත කරන්න</string>
-    <string name="bubble_rate">ඉලක්කය %1$s/km</string>
+    <string name="bubble_rate_description">ඉලක්කය %1$s/km</string>
     <string name="bubble_target_not_set">ඉලක්කයක් සකසා නැත</string>
     <string name="bubble_rate_unknown">වාහනයක් සකසන්න</string>
     <string name="bubble_description_closed">Picksmart. km එකකට ඔබේ ලාභ ඉලක්කය බැලීමට තට්ටු කරන්න</string>

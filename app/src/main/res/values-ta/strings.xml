@@ -723,7 +723,7 @@
     <string name="bubble_warning_title">குமிழை மற்ற ஆப்ஸின் மேல் காட்டவா?</string>
     <string name="bubble_warning_body">இதற்கு Picksmart-க்கு Android-இன் \"Display over other apps\" அனுமதி தேவை. அடுத்த திரையில் Picksmart-க்கு அதை On செய்து, பின்னர் இங்கே திரும்பி வாருங்கள்.\n\nசில சவாரி ஆப்ஸ், வேறொரு ஆப்பின் குமிழின் கீழ் உள்ள தட்டல்களைப் புறக்கணிக்கின்றன. Accept-ஐத் தட்டும் முன் குமிழை ஓரமாக நகர்த்துங்கள். உடனே மறைக்க அதை அழுத்திப் பிடியுங்கள்.</string>
     <string name="bubble_warning_allow">Settings-ஐத் திற</string>
-    <string name="bubble_rate">இலக்கு %1$s/km</string>
+    <string name="bubble_rate_description">இலக்கு %1$s/km</string>
     <string name="bubble_target_not_set">இலக்கு அமைக்கப்படவில்லை</string>
     <string name="bubble_rate_unknown">ஒரு வாகனத்தை அமைக்கவும்</string>
     <string name="bubble_description_closed">Picksmart. ஒரு km-க்கான உங்கள் இலாப இலக்கைக் காட்டத் தட்டவும்</string>

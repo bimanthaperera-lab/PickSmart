@@ -627,7 +627,7 @@
     <string name="bubble_warning_title">Show the bubble over other apps?</string>
     <string name="bubble_warning_body">Picksmart needs Android\'s \"Display over other apps\" permission for this. On the next screen, turn it on for Picksmart, then come back.\n\nSome ride apps ignore taps under another app\'s bubble. Move it aside before you tap Accept, and hold it to hide it at once.</string>
     <string name="bubble_warning_allow">Open settings</string>
-    <string name="bubble_rate">Target %1$s/km</string>
+    <string name="bubble_rate_description">Target %1$s/km</string>
     <string name="bubble_target_not_set">No target set</string>
     <string name="bubble_rate_unknown">Set up a vehicle</string>
     <string name="bubble_description_closed">Picksmart. Tap to show your profit target per km</string>

@@ -259,6 +259,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Check the current Play target API and policy requirements
 - [ ] Protection check: release build has R8 minify and resource shrinking on; the R8 mapping file is uploaded to Play Console; no keys, credentials or service-account files in the APK or repository
 - [ ] Owner: register the "Picksmart" name and logo as a trademark in Sri Lanka (NIPO), and confirm the app's source repository is private
+- [x] Security review (2026-10-30): release APK and code checked; Delete account ignores touches through other apps' overlays; release signing reads the git-ignored `keystore.properties`; privacy text on uninstalling corrected
+- [ ] Owner: the console steps in `docs/release-security.md` (publish rules, enforce App Check, delete debug tokens, restrict the API key, email enumeration protection, budget alerts, web deletion page, upload key, GitHub 2FA)
 - [ ] App icon, store screenshots, store description
 - [ ] Release checklist run on a low-end device: offline use, small screen, large fonts, back navigation, ad failure
 

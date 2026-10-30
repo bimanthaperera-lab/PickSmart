@@ -28,6 +28,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -452,7 +454,8 @@ private fun ConfirmDialog(
  * The warning before deleting the account (CLAUDE.md section 14): it lists everything that goes,
  * the cloud backup and every record on this phone included, and asks the rider to confirm it's
  * them (their password, or Google's account picker) before anything is deleted. It stays open on
- * an error, so a wrong password can be typed again.
+ * an error, so a wrong password can be typed again. It ignores touches that pass through another
+ * app's window drawn over it, so an overlay can't trick the rider into tapping Delete.
  */
 @Composable
 private fun DeleteAccountDialog(
@@ -473,6 +476,12 @@ private fun DeleteAccountDialog(
         onDismissRequest = { if (!status.busy) onDismiss() },
         title = { Text(stringResource(R.string.profile_delete_title)) },
         text = {
+            // The dialog's own window: its buttons are inside it.
+            val dialogView = LocalView.current
+            DisposableEffect(dialogView) {
+                dialogView.rootView.filterTouchesWhenObscured = true
+                onDispose {}
+            }
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(Spacing.s),

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -24,6 +26,11 @@ fun googleWebClientId(): String {
         ?.get("client_id") as? String ?: ""
 }
 
+// Release signing (the Play upload key). keystore.properties and the keystore are git-ignored and
+// stay on the owner's computer; without them the release build is unsigned. See docs/release-security.md.
+val keystoreFile = rootProject.file("keystore.properties")
+val uploadKey = Properties().apply { if (keystoreFile.exists()) keystoreFile.inputStream().use { load(it) } }
+
 android {
     namespace = "lk.picksmart"
     compileSdk = 37
@@ -46,8 +53,20 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${googleWebClientId()}\"")
     }
 
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            create("upload") {
+                storeFile = rootProject.file(uploadKey.getProperty("storeFile"))
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

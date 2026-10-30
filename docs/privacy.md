@@ -40,7 +40,7 @@ Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are
 >
 > **Backups by Android.** If Google backup is on for your phone, Android may back up Picksmart's data to your own Google account. You control this in your phone's settings.
 >
-> **Deleting your data.** Uninstalling Picksmart, or clearing its storage in Android settings, removes all of its data from your phone. To remove your cloud backup, delete your account in the app first.
+> **Deleting your data.** Clearing Picksmart's storage in Android settings removes all of its data from your phone. When you uninstall it, Android 10 and later may offer "Keep app data"; leave that unticked to remove everything. A copy Android made in your Google backup (see above) stays until you delete it there or it expires. To remove your Picksmart cloud backup, delete your account in the app first.
 >
 > **Contact.** [owner to add a contact email]
 

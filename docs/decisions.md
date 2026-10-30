@@ -722,3 +722,11 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 
 - **Owner request:** the open bubble now shows the active vehicle's profit target per km as the rider set it ("Target Rs. 100/km", `MoneyFormatter.formatShort`: no ".00", never rounded), or "No target set". Before, it showed the minimum fare per km (target + fuel + maintenance, raised for a percentage fee, e.g. Rs. 128/km for a Rs. 100 target), which had no label, so the owner read it as a wrong target. The minimum fare (`minimumFarePerKm`) stays for the shift reminder (section 9a).
 - **Edit vehicle and the keyboard:** the form had no `imePadding()`, so the keyboard covered the maintenance and target fields and Save. Fixed like the other form screens.
+
+## 2026-10-30 — Security review before release
+
+- **Review:** release APK and code checked for the first Play upload; findings and the owner's console steps are in `docs/release-security.md`. No code issue above low severity. The main risks are console settings: App Check not enforced yet (the rules cap each document's size, not how many a signed-in account writes), App Check debug tokens, an unrestricted Android API key, the web deletion page Play requires, and no upload key yet.
+- **Delete account ignores obscured touches:** the dialog's window sets `filterTouchesWhenObscured`, so another app's overlay can't trick the rider into tapping Delete. Picksmart's own floating bubble doesn't count as obscuring (same app). *Default.*
+- **Release signing:** `app/build.gradle.kts` signs the release build with the upload key named in `keystore.properties` (repository root, git-ignored, like the keystore) when that file exists; without it the release build is unsigned as before. *Default.*
+- **Privacy text:** the draft no longer says uninstalling removes all data, since Android 10+ may offer "Keep app data" (`hasFragileUserData`) and Android's own Google backup keeps a copy.
+- **Not done in the app, on purpose:** `FLAG_SECURE` (riders may want screenshots of their own reports) and database encryption (Android's file encryption already covers it; a key on the same phone adds little).

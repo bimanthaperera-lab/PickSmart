@@ -717,3 +717,8 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Owner request:** the offer result (badge or floating bubble) now clears after 15 s on screen instead of 45 s (`SHOW_AT_MOST_MS`), and does not come back until a different offer appears. As before, when the limit ends the "Save this trip?" notification is posted, so it can now come while the offer card is still on screen.
 
 - **Faster animation (owner request, same day):** the first version felt slow. Grow is now 110 ms (was 180), shrink 80 ms (was 140), from 80% of full size (was 60%), so a change of state takes about 0.2 s in all.
+
+## 2026-10-30 — The floating bubble shows the profit target, not the minimum fare
+
+- **Owner request:** the open bubble now shows the active vehicle's profit target per km as the rider set it ("Target Rs. 100/km", `MoneyFormatter.formatShort`: no ".00", never rounded), or "No target set". Before, it showed the minimum fare per km (target + fuel + maintenance, raised for a percentage fee, e.g. Rs. 128/km for a Rs. 100 target), which had no label, so the owner read it as a wrong target. The minimum fare (`minimumFarePerKm`) stays for the shift reminder (section 9a).
+- **Edit vehicle and the keyboard:** the form had no `imePadding()`, so the keyboard covered the maintenance and target fields and Save. Fixed like the other form screens.

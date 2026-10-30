@@ -21,16 +21,27 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import lk.picksmart.R
 import lk.picksmart.data.preferences.AppLanguageStore
-import lk.picksmart.domain.calculator.MinimumFare
 import lk.picksmart.domain.calculator.ProfitResult
 import lk.picksmart.util.MoneyFormatter
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
+/** What the open bubble shows: the active vehicle's profit target per km, exactly as the rider set it. */
+sealed interface BubbleTarget {
+    /** No active vehicle yet. */
+    data object NoVehicle : BubbleTarget
+
+    /** The vehicle has no profit target. */
+    data object NotSet : BubbleTarget
+
+    data class PerKm(val cents: Long) : BubbleTarget
+}
+
 /**
  * The floating bubble (CLAUDE.md sections 9a and 9b), drawn over other apps in its own small
- * window. Closed, it is only the pin; a tap opens it to the minimum fare per km ("Rs. 91/km") with
- * "Hold to hide" under it, and another tap closes it. Holding it hides it at once ([onHidden]).
+ * window. Closed, it is only the pin; a tap opens it to the active vehicle's profit target per km
+ * ("Target Rs. 100/km", owner request 2026-10-30) with "Hold to hide" under it, and another tap
+ * closes it. Holding it hides it at once ([onHidden]).
  * While the offer reader shows an offer, the bubble itself is the offer badge: the pin gives way to
  * the result card ([showOffer]) until the offer goes ([clearOffer]); holding the card hides it
  * until the next offer, as on the badge.
@@ -63,7 +74,7 @@ class FloatingBubble(private val context: Context, private val onHidden: () -> U
     private val density = context.resources.displayMetrics.density
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var root: View? = null
-    private var minimum: MinimumFare? = null
+    private var target: BubbleTarget = BubbleTarget.NoVehicle
     private var open = false
     private var offer: Offer? = null
 
@@ -125,9 +136,9 @@ class FloatingBubble(private val context: Context, private val onHidden: () -> U
         }
     }
 
-    /** The rate the open bubble shows; null when there is no vehicle or its rates can't give one. */
-    fun setMinimum(value: MinimumFare?) {
-        minimum = value
+    /** The target the open bubble shows. */
+    fun setTarget(value: BubbleTarget) {
+        target = value
         if (drawn == look) apply(look)
     }
 
@@ -309,15 +320,13 @@ class FloatingBubble(private val context: Context, private val onHidden: () -> U
         update()
     }
 
-    private fun rateText(words: Context): String {
-        val fare = minimum ?: return words.getString(R.string.bubble_rate_unknown)
-        val money = MoneyFormatter(words.getString(R.string.currency_prefix))
-        val perKm = money.formatWholeUp(fare.perKmCents)
-        return if (fare.fixedFeeCents > 0) {
-            words.getString(R.string.bubble_rate_with_fee, perKm, money.formatWholeUp(fare.fixedFeeCents))
-        } else {
-            words.getString(R.string.bubble_rate, perKm)
-        }
+    private fun rateText(words: Context): String = when (val shown = target) {
+        BubbleTarget.NoVehicle -> words.getString(R.string.bubble_rate_unknown)
+        BubbleTarget.NotSet -> words.getString(R.string.bubble_target_not_set)
+        is BubbleTarget.PerKm -> words.getString(
+            R.string.bubble_rate,
+            MoneyFormatter(words.getString(R.string.currency_prefix)).formatShort(shown.cents),
+        )
     }
 
     private fun pillDrawable(): Drawable? = ContextCompat.getDrawable(context, R.drawable.bg_bubble_pill)?.mutate()

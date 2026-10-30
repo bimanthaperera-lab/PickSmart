@@ -40,6 +40,16 @@ class FormattersTest {
     }
 
     @Test
+    fun `short format drops empty cents but never rounds`() {
+        assertEquals("Rs. 100", money.formatShort(10_000).spaced())
+        assertEquals("Rs. 87.50", money.formatShort(8_750).spaced())
+        assertEquals("Rs. 1,250", money.formatShort(125_000).spaced())
+        assertEquals("Rs. 0.05", money.formatShort(5).spaced())
+        assertEquals("Rs. 0", money.formatShort(0).spaced())
+        assertEquals("-Rs. 50", money.formatShort(-5_000).spaced())
+    }
+
+    @Test
     fun `prefix and number never split across lines`() {
         assertEquals("Rs. 1.00", money.format(100))
     }

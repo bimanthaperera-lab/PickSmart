@@ -11,19 +11,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
 import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.calculator.ProfitResult
-import lk.picksmart.domain.calculator.minimumFarePerKm
 import java.lang.ref.WeakReference
 
 /**
  * Keeps the [FloatingBubble] on screen while the rider has it turned on (CLAUDE.md section 9a)
- * and Android allows Picksmart to draw over other apps. The rate follows the active vehicle and
- * the last-used fee settings, like the offer reader's badge. It isn't a foreground service: the
+ * and Android allows Picksmart to draw over other apps. It shows the active vehicle's profit
+ * target per km, and follows it when the rider changes it. It isn't a foreground service: the
  * visible bubble keeps the app alive, and Android restarts it if it is stopped ([START_STICKY]).
  *
  * Turning the switch off, or holding the bubble to hide it, stops it.
@@ -51,21 +50,16 @@ class FloatingBubbleService : Service() {
         bubble = shown
         running = WeakReference(this)
         scope.launch {
-            container.space.flatMapLatest { space ->
-                combine(space.vehicles.defaultVehicle, space.userPreferences.lastCheckInputs) { vehicle, last ->
-                    vehicle?.let {
-                        minimumFarePerKm(
-                            fuelPricePerLitreCents = it.fuelPricePerLitreCents,
-                            fuelEfficiencyKmPerLitre = it.fuelEfficiencyKmPerLitre,
-                            maintenanceReservePerKmCents = it.maintenanceReservePerKmCents,
-                            targetProfitPerKmCents = it.targetProfitPerKmCents,
-                            fareMode = last.fareMode,
-                            commissionType = last.commissionType,
-                            commissionHundredths = last.commissionHundredths,
-                        )
+            container.space.flatMapLatest { it.vehicles.defaultVehicle }
+                .map { vehicle ->
+                    val target = vehicle?.targetProfitPerKmCents
+                    when {
+                        vehicle == null -> BubbleTarget.NoVehicle
+                        target == null -> BubbleTarget.NotSet
+                        else -> BubbleTarget.PerKm(target)
                     }
                 }
-            }.collect { shown.setMinimum(it) }
+                .collect { shown.setTarget(it) }
         }
         scope.launch {
             container.userPreferences.floatingBubble.collect { on -> if (!on) stopSelf() }

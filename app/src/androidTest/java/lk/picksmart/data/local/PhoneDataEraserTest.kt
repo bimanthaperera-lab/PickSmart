@@ -74,8 +74,9 @@ class PhoneDataEraserTest {
         prefs.setMobileNumber("rider-1", "077 123 4567")
         prefs.setMobileNumber("rider-2", "071 000 0000")
         photoDir.mkdirs()
-        File(photoDir, "rider-1.own.jpg").writeText("sample")
-        File(photoDir, "rider-2.own.jpg").writeText("sample")
+        // ProfilePhotoCache names a photo by the letters and digits of the account id.
+        File(photoDir, "rider1.own.jpg").writeText("sample")
+        File(photoDir, "rider2.own.jpg").writeText("sample")
         exportDir.mkdirs()
         File(exportDir, "picksmart-trips.csv").writeText("sample")
 
@@ -90,8 +91,8 @@ class PhoneDataEraserTest {
         assertNull(prefs.defaultVehicleId.first())
         assertNull(prefs.personalDetails("rider-1").first().mobile)
         assertEquals(ThemeMode.DARK, prefs.themeMode.first())
-        assertFalse(File(photoDir, "rider-1.own.jpg").exists())
-        assertTrue(File(photoDir, "rider-2.own.jpg").exists())
+        assertFalse(File(photoDir, "rider1.own.jpg").exists())
+        assertTrue(File(photoDir, "rider2.own.jpg").exists())
         assertEquals("071 000 0000", prefs.personalDetails("rider-2").first().mobile)
         assertFalse(exportDir.exists())
     }

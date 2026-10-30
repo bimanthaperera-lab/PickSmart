@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -45,6 +46,7 @@ import lk.picksmart.data.local.dao.SyncDao
 import lk.picksmart.data.preferences.UserPreferencesRepository
 import lk.picksmart.data.remote.FuelPriceSource
 import lk.picksmart.data.remote.HttpsFuelPriceFetcher
+import lk.picksmart.data.repository.AlertRepository
 import lk.picksmart.data.repository.ExpenseRepository
 import lk.picksmart.data.repository.FuelLogRepository
 import lk.picksmart.data.repository.OtherIncomeRepository
@@ -67,8 +69,10 @@ import lk.picksmart.domain.usecase.SpaceRegistry
 import lk.picksmart.domain.usecase.afterAccountDeleted
 import lk.picksmart.domain.usecase.asksToMoveRecords
 import lk.picksmart.domain.usecase.databaseName
+import lk.picksmart.domain.usecase.fuelPriceNews
 import lk.picksmart.domain.usecase.signInSpace
 import lk.picksmart.domain.usecase.signOutSpace
+import lk.picksmart.ui.notifications.fuelPriceAlert
 
 // One DataStore per process. The file lives under files/datastore/, which Auto Backup includes.
 private val Context.userPreferencesStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
@@ -132,6 +136,7 @@ class AppContainer(context: Context) {
     val completeOnboarding: CompleteOnboarding get() = space.value.completeOnboarding
     val csvExporter: CsvExporter get() = space.value.csvExporter
     val fuelPriceUpdates: FuelPriceUpdates get() = space.value.fuelPriceUpdates
+    val alerts: AlertRepository get() = space.value.alerts
 
     /**
      * Optional cloud backup (CLAUDE.md section 14) of the space on screen: only with an account,
@@ -210,6 +215,9 @@ class AppContainer(context: Context) {
         applicationScope.launch {
             fuelPriceSource.refreshIfDue()
             fuelPriceUpdates.applyAutomatic()
+            // The inbox keeps the news Home shows, once per price list, and 30 days of alerts.
+            fuelPriceNews(fuelPriceUpdates.state.first())?.let { alerts.add(fuelPriceAlert(appContext, it, clock.millis())) }
+            alerts.deleteOld()
         }
     }
 
@@ -322,6 +330,8 @@ class AppContainer(context: Context) {
         }
 
         val fuelPriceUpdates: FuelPriceUpdates by lazy { FuelPriceUpdates(vehicles, userPreferences, clock) }
+
+        val alerts: AlertRepository by lazy { AlertRepository(database.alertDao(), clock) }
 
         val sync: SyncProvider by lazy {
             if (!account.isAvailable) return@lazy NoOpSyncProvider

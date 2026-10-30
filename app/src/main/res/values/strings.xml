@@ -366,7 +366,6 @@
 
     <!-- Reports -->
     <string name="reports_title">Reports</string>
-    <string name="home_more_options">More options</string>
     <string name="reports_empty_title">No reports yet</string>
     <string name="reports_empty_body">Your daily, weekly and monthly profit will appear here once you record trips.</string>
     <string name="reports_period_day">Day</string>
@@ -854,4 +853,16 @@
     <string name="profile_delete_cloud_error">Couldn\'t delete your cloud backup, so nothing was deleted. Try again.</string>
     <string name="profile_delete_confirm">Delete everything</string>
     <string name="profile_records_stay">Signing out keeps your trips and records on this phone. Deleting your account removes them from this phone and from the cloud.</string>
+
+    <!-- The alerts inbox (section 9a) -->
+    <string name="alerts_title">Alerts</string>
+    <string name="alerts_empty_title">No alerts yet</string>
+    <string name="alerts_empty_body">Fuel price changes will show here, even with no internet.</string>
+    <string name="alerts_kept_note">Alerts are kept for 30 days.</string>
+    <string name="alerts_new">New</string>
+    <string name="alerts_badge_many" translatable="false">9+</string>
+    <plurals name="home_alerts_unread">
+        <item quantity="one">Alerts, %d unread</item>
+        <item quantity="other">Alerts, %d unread</item>
+    </plurals>
 </resources>

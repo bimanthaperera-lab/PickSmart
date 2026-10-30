@@ -128,6 +128,9 @@ data class EditExpenseRoute(val expenseId: Long) {
 /** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
 @Serializable data object FuelPriceRoute
 
+/** The in-app alerts inbox (CLAUDE.md section 9a). Opened from the bell on Home. */
+@Serializable data object AlertsRoute
+
 /**
  * The four bottom-bar tabs, in display order. Reports moved from the bar into the Account tab
  * (docs/decisions.md, 2026-10-25). The selected tab shows

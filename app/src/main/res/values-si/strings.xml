@@ -313,7 +313,6 @@
     <string name="expense_save_failed">සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.</string>
 
     <string name="reports_title">වාර්තා</string>
-    <string name="home_more_options">තවත් විකල්ප</string>
     <string name="reports_empty_title">තවම වාර්තා නැත</string>
     <string name="reports_empty_body">ඔබ ගමන් වාර්තා කළ පසු ඔබේ දෛනික, සතිපතා සහ මාසික ලාභය මෙහි දිස්වනු ඇත.</string>
     <string name="reports_period_day">දින</string>
@@ -747,5 +746,16 @@
     <plurals name="backup_pending">
         <item quantity="one">backup වීමට වෙනස්කම් %d ක් ඉතිරියි</item>
         <item quantity="other">backup වීමට වෙනස්කම් %d ක් ඉතිරියි</item>
+    </plurals>
+
+    <!-- The alerts inbox (section 9a) -->
+    <string name="alerts_title">දැනුම්දීම්</string>
+    <string name="alerts_empty_title">තවම දැනුම්දීම් නැත</string>
+    <string name="alerts_empty_body">ඉන්ධන මිල වෙනස්වීම් අන්තර්ජාලය නැතිවත් මෙහි පෙන්වයි.</string>
+    <string name="alerts_kept_note">දැනුම්දීම් දින 30ක් තබා ගනී.</string>
+    <string name="alerts_new">නව</string>
+    <plurals name="home_alerts_unread">
+        <item quantity="one">දැනුම්දීම්, නොකියවූ %d</item>
+        <item quantity="other">දැනුම්දීම්, නොකියවූ %d</item>
     </plurals>
 </resources>

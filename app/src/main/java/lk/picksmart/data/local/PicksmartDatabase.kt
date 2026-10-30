@@ -5,12 +5,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import lk.picksmart.data.local.dao.AlertDao
 import lk.picksmart.data.local.dao.ExpenseDao
 import lk.picksmart.data.local.dao.FuelLogDao
 import lk.picksmart.data.local.dao.OtherIncomeDao
 import lk.picksmart.data.local.dao.TripDao
 import lk.picksmart.data.local.dao.VehicleDao
 import lk.picksmart.data.local.dao.SyncDao
+import lk.picksmart.data.local.entity.AlertEntity
 import lk.picksmart.data.local.entity.ExpenseEntity
 import lk.picksmart.data.local.entity.SyncStateEntity
 import lk.picksmart.data.local.entity.SyncTombstoneEntity
@@ -29,8 +31,9 @@ import lk.picksmart.data.local.migrations.ALL_MIGRATIONS
         ExpenseEntity::class,
         SyncTombstoneEntity::class,
         SyncStateEntity::class,
+        AlertEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -47,6 +50,8 @@ abstract class PicksmartDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
 
     abstract fun syncDao(): SyncDao
+
+    abstract fun alertDao(): AlertDao
 
     companion object {
         /**

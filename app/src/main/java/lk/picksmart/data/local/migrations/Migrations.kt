@@ -97,7 +97,23 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
 }
 
 /**
+ * Version 7 adds the in-app alerts inbox (CLAUDE.md section 9a). It starts empty, and no existing
+ * row changes. Alerts aren't backed up, so the table has no sync columns.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `alerts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`type` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `created_at` INTEGER NOT NULL, " +
+                "`read` INTEGER NOT NULL, `deep_link` TEXT, `alert_key` TEXT)",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_alerts_created_at` ON `alerts` (`created_at`)")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_alerts_alert_key` ON `alerts` (`alert_key`)")
+    }
+}
+
+/**
  * Every schema change after version 1 adds an explicit [Migration] here, plus a
  * `MigrationTestHelper` test. Destructive fallback is never used (CLAUDE.md N7).
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)

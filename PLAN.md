@@ -186,8 +186,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [x] Floating bubble (off by default) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it. Switch under Account → While riding (2026-10-29). Open: the small calculator inside it.
 - [x] Bubble obscured-touch safeguards: closed pin / open rate pill, one at a time; a `WRAP_CONTENT` window with `FLAG_NOT_TOUCH_MODAL` so only touches on it are taken; auto-close after 5 s, on an outside touch and when the offer badge shows; snaps to a side edge out of the lower quarter; hold to hide. Partly checked on the emulator 2026-10-29 (see `docs/decisions.md`).
 - [ ] No acting inside any other app on any surface; reading only through the opt-in offer reader (N5, Phase 8e)
-- [ ] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header); posting a notification also writes an inbox row; 30-day retention; reads offline
-- [ ] Migration and migration test for the `Alert` table
+- [x] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header, replacing the three-dot menu); 30-day retention; reads offline (2026-10-30). Fuel price news writes an alert once per price list. Open: posting a system notification together with its inbox row, when the fuel price notification and daily summary are built.
+- [x] Migration and migration test for the `Alert` table (version 7, `MIGRATION_6_7`, `MigrationTest`, `AlertDaoTest`; 2026-10-30)
 
 **Done when:** a rider sees their minimum fare per km at a glance while riding, and can check a fare from the tile, with no notification sound while riding and no access to the ride app.
 

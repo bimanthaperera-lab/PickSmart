@@ -737,3 +737,12 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Quick-add buttons:** "Quick add" sits on its own line and its buttons share one row equally, two to a row when their text can't fit (large fonts), so +2,000 no longer drops to a line of its own on narrow phones. Same day, owner request.
 - **Translations (owner request):** Sinhala and Tamil write distances as "km" and "km/L", never කි.මී / கி.மீ. The floating bubble strings are translated, and the sound switch has no subtitle (it repeated the title).
 - **Bubble pill (owner request):** the open pill shows only the target, "Rs. 50/km", without the word "Target"; "No target set" stays when there is none. Screen readers still hear "Target Rs. 50/km" (`bubble_rate_description`).
+
+## 2026-10-30 — Alerts inbox and the Home bell
+
+- **Owner request:** the Home header's three-dot menu becomes a bell that opens the alerts inbox (CLAUDE.md section 9a), with the unread count as a badge ("9+" above nine). The menu held only Reports, which stays on the Account tab and behind "This month's profit".
+- **Table:** `alerts` (database version 7, `MIGRATION_6_7`), one per data space, like the records. It has no sync columns, so alerts stay on the phone and aren't backed up. `alert_key` is unique, so the same news is written once.
+- **What writes alerts:** each fuel price check (app start, Check a Ride) writes the news Home's notice shows for the active vehicle (`fuelPriceNews`): a new CPC price waiting for Update or Keep, or one applied automatically, once per vehicle and price list. The text is written in the app's language at that time, like a notification. Alerts older than 30 days are deleted on each check.
+- **Reading:** opening the inbox marks every alert read; the ones that were unread keep a "New" label while it stays open. Tapping a fuel price alert opens Fuel price.
+- **Not yet:** no system notification is posted with these alerts (there is no fuel price notification channel yet). When the fuel price notification and the daily summary are built, each posts its notification and writes its inbox row together.
+- **Offer saves stay out of the inbox:** "Took this ride?" keeps its offer numbers only in the notification's tap (CLAUDE.md N5), so it isn't copied into the alerts table.

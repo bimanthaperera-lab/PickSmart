@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lk.picksmart.PicksmartApplication
+import lk.picksmart.data.repository.AlertRepository
 import lk.picksmart.data.repository.ExpenseRepository
 import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
@@ -67,6 +68,7 @@ class HomeViewModel(
     calculator: ProfitCalculator,
     clock: Clock,
     private val fuelPriceUpdates: FuelPriceUpdates,
+    alerts: AlertRepository,
 ) : ViewModel() {
 
     // Home's day is the estimated view, which uses no fill-ups.
@@ -91,6 +93,10 @@ class HomeViewModel(
     val fuelPrices: StateFlow<FuelPriceState?> = fuelPriceUpdates.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    /** Unread alerts, for the bell's badge. */
+    val unreadAlerts: StateFlow<Int> = alerts.unreadCount
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     fun dismissFuelPriceNotice() {
         viewModelScope.launch { fuelPriceUpdates.dismissAutoNotice() }
     }
@@ -101,7 +107,7 @@ class HomeViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = (this[APPLICATION_KEY] as PicksmartApplication).container
-                HomeViewModel(c.trips, c.otherIncome, c.expenses, c.vehicles, c.profitCalculator, c.clock, c.fuelPriceUpdates)
+                HomeViewModel(c.trips, c.otherIncome, c.expenses, c.vehicles, c.profitCalculator, c.clock, c.fuelPriceUpdates, c.alerts)
             }
         }
     }

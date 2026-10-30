@@ -13,7 +13,6 @@ import lk.picksmart.ui.history.RouteLine
 import lk.picksmart.util.ColomboZone
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -22,9 +21,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,9 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -86,12 +83,14 @@ fun HomeScreen(
     onOpenExpenses: () -> Unit,
     onOpenFuelPrice: () -> Unit,
     onOpenReports: () -> Unit,
+    onOpenAlerts: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
+    val unreadAlerts by viewModel.unreadAlerts.collectAsStateWithLifecycle()
     TabScreen {
-        HomeHeader(onOpenReports)
+        HomeHeader(unreadAlerts, onOpenAlerts)
         when (val s = state) {
             HomeUiState.Loading -> LoadingState()
             is HomeUiState.Loaded -> {
@@ -157,14 +156,14 @@ private fun FuelPriceNotice(prices: FuelPriceState, onReview: () -> Unit, onDism
 }
 
 @Composable
-private fun HomeHeader(onOpenReports: () -> Unit) {
+private fun HomeHeader(unreadAlerts: Int, onOpenAlerts: () -> Unit) {
     val pattern = stringResource(R.string.home_date_pattern)
     val locale = LocalConfiguration.current.locales[0]
     val date = remember(pattern, locale) {
         todayInColombo().format(dateFormatter(pattern, locale))
     }
     // The offer reader's card always goes under the title at full width, in every language, so the
-    // top-right corner holds the menu.
+    // top-right corner holds the alerts bell.
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             BrandMark()
@@ -172,32 +171,40 @@ private fun HomeHeader(onOpenReports: () -> Unit) {
                 Text(date, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 ScreenTitle(stringResource(R.string.home_title))
             }
-            HomeMenu(onOpenReports)
+            AlertsBell(unreadAlerts, onOpenAlerts)
         }
         OfferReaderSwitch(fillWidth = true)
     }
 }
 
-/** The three-dot menu in the header's top-right corner. */
+/**
+ * The bell in the header's top-right corner: opens the alerts inbox, with the number of unread
+ * alerts on it (CLAUDE.md section 9a). Screen readers hear the count too.
+ */
 @Composable
-private fun HomeMenu(onOpenReports: () -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(painterResource(R.drawable.ic_more_vert), contentDescription = stringResource(R.string.home_more_options))
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.reports_title)) },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_nav_reports), contentDescription = null) },
-                onClick = {
-                    expanded = false
-                    onOpenReports()
-                },
-            )
+private fun AlertsBell(unread: Int, onClick: () -> Unit) {
+    val description = if (unread > 0) {
+        pluralStringResource(R.plurals.home_alerts_unread, unread, unread)
+    } else {
+        stringResource(R.string.alerts_title)
+    }
+    IconButton(onClick = onClick) {
+        BadgedBox(
+            badge = {
+                if (unread > 0) {
+                    Badge {
+                        Text(if (unread > MAX_BADGE_COUNT) stringResource(R.string.alerts_badge_many) else unread.toString())
+                    }
+                }
+            },
+        ) {
+            Icon(painterResource(R.drawable.ic_bell), contentDescription = description)
         }
     }
 }
+
+/** Above this, the bell's badge shows "9+". */
+private const val MAX_BADGE_COUNT = 9
 
 /**
  * The day's estimated net profit, large, with an arrow and sign so it never relies on colour. It

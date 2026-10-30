@@ -38,12 +38,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import lk.picksmart.domain.model.AlertLink
 import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.ui.account.AccountScreen
 import lk.picksmart.ui.account.ForgotPasswordScreen
 import lk.picksmart.ui.account.LoginScreen
 import lk.picksmart.ui.account.ProfileScreen
 import lk.picksmart.ui.account.RegisterScreen
+import lk.picksmart.ui.alerts.AlertsScreen
 import lk.picksmart.ui.checkride.CheckRideScreen
 import lk.picksmart.ui.expenses.EditExpenseScreen
 import lk.picksmart.ui.expenses.ExpenseListScreen
@@ -187,6 +189,7 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier) {
                 onOpenExpenses = openExpenses,
                 onOpenFuelPrice = openFuelPrice,
                 onOpenReports = { navController.navigate(ReportsRoute) },
+                onOpenAlerts = { navController.navigate(AlertsRoute) },
             )
         }
         composable<CheckRideRoute> {
@@ -295,6 +298,18 @@ private fun AppNavHost(navController: NavHostController, modifier: Modifier) {
         }
         composable<ProfileRoute> {
             ProfileScreen(onBack = { navController.popIfOn(ProfileRoute::class) })
+        }
+        composable<AlertsRoute> {
+            AlertsScreen(
+                onBack = { navController.popIfOn(AlertsRoute::class) },
+                onOpenLink = { link ->
+                    when (link) {
+                        AlertLink.FUEL_PRICE -> openFuelPrice()
+                        AlertLink.REPORTS -> navController.navigate(ReportsRoute)
+                        AlertLink.HISTORY -> navController.navigateToTopLevel(TopLevelDestination.HISTORY)
+                    }
+                },
+            )
         }
         composable<FuelPriceRoute> {
             FuelPriceScreen(onBack = { navController.popIfOn(FuelPriceRoute::class) }, onAddVehicle = addVehicle)

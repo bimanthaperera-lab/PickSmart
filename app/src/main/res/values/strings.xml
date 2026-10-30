@@ -509,10 +509,11 @@
     <string name="onboarding_vehicle_title">Set up your vehicle</string>
     <string name="onboarding_vehicle_body">These numbers estimate fuel and maintenance for every ride. You can change them any time.</string>
     <string name="onboarding_permissions_title">Permissions</string>
-    <string name="onboarding_permissions_body">Both are optional. Picksmart works without them, and you can change them later in Android settings or on the Account tab.</string>
+    <string name="onboarding_permissions_body">All three are optional. Picksmart works without them, and you can change them later in Android settings or on the Account tab.</string>
     <string name="permission_notifications_title">Notifications</string>
     <string name="permission_notifications_body">Lets Picksmart ask whether to save a ride offer as a trip, and send reminders you turn on.</string>
     <string name="permission_reader_body">Shows the estimated profit or loss on Uber Driver offers. Off unless you turn it on.</string>
+    <string name="permission_bubble_body">Shows your profit target per km over other apps. Needs \"Display over other apps\". Off unless you turn it on.</string>
     <string name="permission_allow">Allow</string>
     <string name="permission_allowed">Allowed</string>
     <string name="permission_turn_on">Turn on</string>

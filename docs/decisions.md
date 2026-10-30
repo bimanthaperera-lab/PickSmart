@@ -730,3 +730,9 @@ Found by the owner on a 384 dp-wide phone. *Owner asked for each fix; how is the
 - **Release signing:** `app/build.gradle.kts` signs the release build with the upload key named in `keystore.properties` (repository root, git-ignored, like the keystore) when that file exists; without it the release build is unsigned as before. *Default.*
 - **Privacy text:** the draft no longer says uninstalling removes all data, since Android 10+ may offer "Keep app data" (`hasFragileUserData`) and Android's own Google backup keeps a copy.
 - **Not done in the app, on purpose:** `FLAG_SECURE` (riders may want screenshots of their own reports) and database encryption (Android's file encryption already covers it; a key on the same phone adds little).
+
+## 2026-10-30 — Setup offers the floating bubble
+
+- **Owner decision:** the onboarding Permissions step has a third card, **Floating bubble**, after notifications and Read ride offers. Turn on shows the same overlay warning as Account → While riding (some ride apps ignore taps under another app's bubble), then Android's "Display over other apps" page; coming back with it allowed turns the bubble on and the card shows "On". Like the others it is optional, and the bubble stays off by default. Both places use `rememberBubbleSwitch` (`ui/settings/FloatingBubbleSetting.kt`).
+- **Quick-add buttons:** "Quick add" sits on its own line and its buttons share one row equally, two to a row when their text can't fit (large fonts), so +2,000 no longer drops to a line of its own on narrow phones. Same day, owner request.
+- **Translations (owner request):** Sinhala and Tamil write distances as "km" and "km/L", never කි.මී / கி.மீ. The floating bubble strings are translated, and the sound switch has no subtitle (it repeated the title).

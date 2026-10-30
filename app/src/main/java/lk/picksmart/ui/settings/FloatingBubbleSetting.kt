@@ -23,18 +23,39 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
 import lk.picksmart.glance.FloatingBubbleService
 import lk.picksmart.ui.theme.Spacing
 
 /**
- * "Floating bubble" under While riding (CLAUDE.md section 9a). Off by default. Turning it on the
- * first time explains the "Display over other apps" permission and warns that some ride apps
- * ignore taps under an overlay, then opens Android's page for that permission; coming back with it
- * allowed turns the bubble on. Turning it off, or holding the bubble, hides it.
+ * "Floating bubble" under While riding (CLAUDE.md section 9a). Off by default. Turning it on is
+ * [rememberBubbleSwitch]; turning it off, or holding the bubble, hides it.
  */
 @Composable
 internal fun FloatingBubbleRow(viewModel: OfferReaderViewModel) {
+    val bubble = rememberBubbleSwitch(viewModel)
+    SwitchListRow(
+        title = stringResource(R.string.bubble_title),
+        subtitle = stringResource(if (bubble.on && !bubble.allowed) R.string.bubble_permission_needed else R.string.bubble_body),
+        checked = bubble.isShowing,
+        onCheckedChange = { turnOn -> if (turnOn) bubble.turnOn() else bubble.turnOff() },
+    )
+}
+
+/** The bubble's switch: [on] is the rider's choice, [allowed] Android's "Display over other apps". */
+internal class BubbleSwitch(val on: Boolean, val allowed: Boolean, val turnOn: () -> Unit, val turnOff: () -> Unit) {
+    val isShowing: Boolean get() = on && allowed
+}
+
+/**
+ * The floating bubble's state and the way to turn it on, for While riding and setup's Permissions
+ * step. Without the permission, [BubbleSwitch.turnOn] first explains "Display over other apps" and
+ * warns that some ride apps ignore taps under an overlay, then opens Android's page for it; coming
+ * back with it allowed turns the bubble on.
+ */
+@Composable
+internal fun rememberBubbleSwitch(viewModel: OfferReaderViewModel = viewModel(factory = OfferReaderViewModel.Factory)): BubbleSwitch {
     val context = LocalContext.current
     val on by viewModel.bubble.collectAsStateWithLifecycle()
     var allowed by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
@@ -50,22 +71,6 @@ internal fun FloatingBubbleRow(viewModel: OfferReaderViewModel) {
         }
         onPauseOrDispose { }
     }
-
-    SwitchListRow(
-        title = stringResource(R.string.bubble_title),
-        subtitle = stringResource(if (on && !allowed) R.string.bubble_permission_needed else R.string.bubble_body),
-        checked = on && allowed,
-        onCheckedChange = { turnOn ->
-            when {
-                !turnOn -> viewModel.setBubble(false)
-                allowed -> {
-                    viewModel.setBubble(true)
-                    FloatingBubbleService.startIfAllowed(context)
-                }
-                else -> showWarning = true
-            }
-        },
-    )
 
     if (showWarning) {
         AlertDialog(
@@ -88,6 +93,20 @@ internal fun FloatingBubbleRow(viewModel: OfferReaderViewModel) {
             dismissButton = { TextButton(onClick = { showWarning = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
+
+    return BubbleSwitch(
+        on = on,
+        allowed = allowed,
+        turnOn = {
+            if (allowed) {
+                viewModel.setBubble(true)
+                FloatingBubbleService.startIfAllowed(context)
+            } else {
+                showWarning = true
+            }
+        },
+        turnOff = { viewModel.setBubble(false) },
+    )
 }
 
 private fun Context.openOverlaySettings() {

@@ -38,15 +38,16 @@ import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.settings.DisclosureDialog
+import lk.picksmart.ui.settings.rememberBubbleSwitch
 import lk.picksmart.ui.settings.rememberReaderEnabled
 import lk.picksmart.ui.settings.rememberTurnOn
 import lk.picksmart.ui.theme.Spacing
 
 /**
- * The optional permissions, asked during setup (owner decision 2026-10-26): notifications, for
- * "Save this trip?" and reminders, and Read ride offers, which only the rider can turn on in
- * Android's Accessibility settings, after the disclosure (CLAUDE.md section 9b). Both can be
- * skipped; the app works without them. Each row shows its state again when the rider comes back
+ * The optional permissions, asked during setup (owner decisions 2026-10-26 and 2026-10-30):
+ * notifications, for "Save this trip?" and reminders; Read ride offers, which only the rider can
+ * turn on in Android's Accessibility settings, after the disclosure (CLAUDE.md section 9b); and the
+ * floating bubble, after its overlay warning (section 9a). All can be skipped; the app works without them. Each row shows its state again when the rider comes back
  * from Android's settings.
  */
 @Composable
@@ -59,6 +60,7 @@ internal fun PermissionsStep(onContinue: () -> Unit) {
     )
     NotificationsRow()
     ReaderRow()
+    BubbleRow()
     PrimaryButton(stringResource(R.string.action_continue), onContinue, Modifier.fillMaxWidth())
 }
 
@@ -116,6 +118,21 @@ private fun ReaderRow() {
             onDismiss = { showDisclosure = false },
         )
     }
+}
+
+/** The floating bubble, which needs "Display over other apps" (owner decision 2026-10-30). */
+@Composable
+private fun BubbleRow() {
+    val bubble = rememberBubbleSwitch()
+    PermissionCard(
+        iconRes = R.drawable.ic_pin,
+        title = stringResource(R.string.bubble_title),
+        body = stringResource(R.string.permission_bubble_body),
+        granted = bubble.isShowing,
+        grantedLabel = stringResource(R.string.permission_on),
+        actionLabel = stringResource(R.string.permission_turn_on),
+        onAction = bubble.turnOn,
+    )
 }
 
 @Composable

@@ -273,7 +273,6 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
             {
                 SwitchListRow(
                     title = stringResource(R.string.offer_sound_title),
-                    subtitle = stringResource(R.string.offer_sound_body),
                     checked = sound,
                     onCheckedChange = { on ->
                         viewModel.setSound(on)
@@ -313,7 +312,7 @@ fun OfferReaderSetting(viewModel: OfferReaderViewModel = viewModel(factory = Off
 
 /** A [ListRow]-sized row with a switch at the end. The whole row is the control. */
 @Composable
-internal fun SwitchListRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun SwitchListRow(title: String, subtitle: String? = null, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -324,7 +323,9 @@ internal fun SwitchListRow(title: String, subtitle: String, checked: Boolean, on
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (subtitle != null) {
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         Spacer(Modifier.width(Spacing.m))
         // The row handles the toggle, so the switch itself takes no clicks.

@@ -56,7 +56,7 @@
     <string name="home_net_title">අද ශුද්ධ ලාභය</string>
     <string name="home_net_title_vehicle">අද ශුද්ධ ලාභය · %1$s</string>
     <string name="home_estimated_tag">ඇස්තමේන්තු කළ</string>
-    <string name="home_net_per_km">කි.මී එකකට %1$s · ගාස්තු, ඉන්ධන සහ නඩත්තු වියදම් කැපූ පසු</string>
+    <string name="home_net_per_km">km එකකට %1$s · ගාස්තු, ඉන්ධන සහ නඩත්තු වියදම් කැපූ පසු</string>
     <string name="home_net_basis">ගාස්තු, ඉන්ධන සහ නඩත්තු වියදම් කැපූ පසු</string>
     <string name="home_net_empty">අද කිසිවක් සටහන් කර නැත. ගමනක් පරීක්ෂා කර, එය ගණනය කිරීමට "මම එය ගත්තා" තෝරන්න.</string>
     <string name="home_stat_earned">ගාස්තු කැපූ පසු ආදායම</string>
@@ -65,7 +65,7 @@
     <string name="home_stat_distance">දුර</string>
     <string name="home_recent">මෑත ගමන්</string>
     <string name="home_month_profit">මේ මාසයේ ලාභය</string>
-    <string name="home_month_detail">%1$s · කි.මී එකකට %2$s</string>
+    <string name="home_month_detail">%1$s · km එකකට %2$s</string>
     <string name="home_month_empty">මේ මාසයේ තවම ගමන් නැත</string>
     <string name="home_all_time">මුළු කාලයම</string>
     <string name="home_total_distance">මුළු දුර</string>
@@ -90,9 +90,9 @@
     <string name="check_trip">ගමන</string>
     <string name="check_return">ආපසු</string>
     <string name="check_return_optional">ආපසු (විකල්ප)</string>
-    <string name="check_total_km">මුළු කි.මී %1$s</string>
+    <string name="check_total_km">මුළු %1$s km</string>
     <string name="check_fare_add_description">ගාස්තුවට රු. %1$d එකතු කරන්න</string>
-    <string name="unit_km">කි.මී</string>
+    <string name="unit_km">km</string>
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
     <string name="check_rate_reserve">%1$s/km</string>
@@ -117,28 +117,28 @@
     <string name="check_result_needs_fare_body">ඔබ ටයිප් කරන විට ඇස්තමේන්තුගත ලාභය මෙහි දිස්වේ.</string>
     <string name="check_result_invalid_title">හයිලයිට් කර ඇති කොටස් පරීක්ෂා කරන්න</string>
     <string name="check_result_too_large">ගණනය කිරීමට තරම් මෙම අගයන් විශාල වැඩිය.</string>
-    <string name="check_band_good">හොඳයි · කි.මී එකකට ඔබේ %1$s ඉලක්කය සපුරයි</string>
-    <string name="check_band_below_target">ඉලක්කයට අඩුයි · කි.මී එකකට ඔබේ %1$s ඉලක්කයට වඩා අඩුයි</string>
+    <string name="check_band_good">හොඳයි · km එකකට ඔබේ %1$s ඉලක්කය සපුරයි</string>
+    <string name="check_band_below_target">ඉලක්කයට අඩුයි · km එකකට ඔබේ %1$s ඉලක්කයට වඩා අඩුයි</string>
     <string name="check_band_profit">ලාභයි</string>
     <string name="check_band_break_even">ලාභ/පාඩු නැත · ලාභයක් හෝ පාඩුවක් නැත</string>
     <string name="check_band_loss">පාඩුයි · ගෙවන ගාස්තුවට වඩා වියදම වැඩිය</string>
-    <string name="check_target_value">ඔබේ ඉලක්කය: කි.මී එකකට %1$s</string>
+    <string name="check_target_value">ඔබේ ඉලක්කය: km එකකට %1$s</string>
     <string name="check_target_set">ඉලක්කයක් දෙන්න</string>
     <string name="check_target_change">වෙනස් කරන්න</string>
-    <string name="check_target_change_description">කිලෝමීටරයකට ඔබේ ලාභ ඉලක්කය වෙනස් කරන්න</string>
-    <string name="target_dialog_title">කිලෝමීටරයකට ලාභ ඉලක්කය</string>
-    <string name="target_dialog_body">ඔබ ධාවනය කරන සෑම කිලෝමීටරයක් ​​සඳහාම උපයා ගැනීමට අවශ්‍ය අවම මුදල. අඩුවෙන් උපයන ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි. මෙය අක්‍රිය කිරීමට හිස්ව තබන්න.</string>
-    <string name="target_dialog_field">කිලෝමීටරයකට ඉලක්කය</string>
+    <string name="check_target_change_description">km එකකට ඔබේ ලාභ ඉලක්කය වෙනස් කරන්න</string>
+    <string name="target_dialog_title">km එකකට ලාභ ඉලක්කය</string>
+    <string name="target_dialog_body">ඔබ ධාවනය කරන සෑම km එකක් සඳහාම උපයා ගැනීමට අවශ්‍ය අවම මුදල. අඩුවෙන් උපයන ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි. මෙය අක්‍රිය කිරීමට හිස්ව තබන්න.</string>
+    <string name="target_dialog_field">km එකකට ඉලක්කය</string>
     <string name="target_dialog_failed">සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.</string>
     <string name="check_net_profit_description">ඇස්තමේන්තුගත ශුද්ධ ලාභය %1$s, %2$s</string>
     <string name="check_per_km_value">%1$s/km</string>
-    <string name="check_per_km_none">කිලෝමීටරයකට ලාභය බැලීමට දුරක් ඇතුලත් කරන්න</string>
+    <string name="check_per_km_none">km එකකට ලාභය බැලීමට දුරක් ඇතුලත් කරන්න</string>
     <string name="check_result_distance">දුර</string>
     <string name="check_result_fee">ගාස්තුව</string>
     <string name="check_result_fuel">ඉන්ධන</string>
     <string name="check_result_reserve">නඩත්තු</string>
     <string name="check_result_other">වෙනත්</string>
-    <string name="check_km_value">කි.මී %1$s</string>
+    <string name="check_km_value">%1$s km</string>
 
     <string name="history_title">ඉතිහාසය</string>
     <string name="history_empty_title">තවම ගමන් කිසිවක් නැත</string>
@@ -160,9 +160,9 @@
     <string name="history_yesterday">ඊයේ · %1$s</string>
     <string name="history_day_total">ඇස්ත. ලාභය %1$s</string>
     <string name="history_row_title">%1$s · %2$s</string>
-    <string name="history_row_trip">කි.මී %1$s · ගාස්තුව %2$s</string>
-    <string name="history_row_cancelled_fee">කි.මී %1$s · කැන්සල් ගාස්තුව %2$s</string>
-    <string name="history_row_cancelled_no_fee">කි.මී %1$s · ගාස්තු නැත</string>
+    <string name="history_row_trip">%1$s km · ගාස්තුව %2$s</string>
+    <string name="history_row_cancelled_fee">%1$s km · කැන්සල් ගාස්තුව %2$s</string>
+    <string name="history_row_cancelled_no_fee">%1$s km · ගාස්තු නැත</string>
     <string name="history_row_offer_note">ආදායමක් ලෙස ගණන් නොගනී</string>
     <string name="history_offer_estimate">%1$s ඇස්ත.</string>
     <string name="history_row_unavailable">ගණනය කළ නොහැක</string>
@@ -250,7 +250,7 @@
     <string name="fuel_litres_and_price">ලීටර් සහ මිල</string>
     <string name="fuel_auto">ගණනය කළා</string>
     <string name="fuel_full_tank">ෆුල් ටෑන්ක් (Full Tank)</string>
-    <string name="fuel_full_tank_body">උඩටම පිරෙව්වා. ෆුල් ටෑන්ක් දෙකක දුර මීටරයේ (odometer) කියවීම් ලබා දීමෙන් සැබෑ කි.මී/ලීටර් අගය දැකගත හැක.</string>
+    <string name="fuel_full_tank_body">උඩටම පිරෙව්වා. ෆුල් ටෑන්ක් දෙකක දුර මීටරයේ (odometer) කියවීම් ලබා දීමෙන් සැබෑ km/L අගය දැකගත හැක.</string>
     <string name="fuel_odometer">දුර මීටරය · විකල්ප</string>
     <string name="fuel_odometer_help">ඔබ තෙල් ගසන විට මීටරයේ තිබූ කියවීම</string>
     <string name="fuel_date">දිනය</string>
@@ -266,15 +266,15 @@
     <string name="fuel_no_vehicle_body">මිලක් ලබා ගැනීමට පළමුව වාහනයක් එක් කරන්න.</string>
     <string name="fuel_save_failed">සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.</string>
     <string name="fuel_row_title">ලී. %1$s · %2$s/L</string>
-    <string name="fuel_row_subtitle_odometer">%1$s · කි.මී %2$s</string>
+    <string name="fuel_row_subtitle_odometer">%1$s · %2$s km</string>
     <string name="fuel_row_subtitle_partial">%1$s · කොටසක්</string>
     <string name="efficiency_title">සැබෑ ඉන්ධන කාර්යක්ෂමතාව</string>
     <string name="efficiency_unknown">තවම නැත</string>
-    <string name="efficiency_value">කි.මී/ලී. %1$s</string>
-    <string name="efficiency_basis">ඔබේ අවසන් ෆුල් ටෑන්ක් දෙක අතර ලීටර් %2$s කින් කි.මී %1$s ක් ගමන් කර ඇත</string>
-    <string name="efficiency_none">ඔබේ ටැංකිය සම්පූර්ණයෙන් පුරවා මීටරයේ දුර ඇතුලත් කරන්න. ෆුල් ටෑන්ක් දෙකකට පසු සැබෑ කි.මී/ලීටර් අගය පෙන්වයි.</string>
+    <string name="efficiency_value">%1$s km/L</string>
+    <string name="efficiency_basis">ඔබේ අවසන් ෆුල් ටෑන්ක් දෙක අතර ලීටර් %2$s කින් %1$s km ගමන් කර ඇත</string>
+    <string name="efficiency_none">ඔබේ ටැංකිය සම්පූර්ණයෙන් පුරවා මීටරයේ දුර ඇතුලත් කරන්න. ෆුල් ටෑන්ක් දෙකකට පසු සැබෑ km/L අගය පෙන්වයි.</string>
     <string name="efficiency_assumes">ඒ අතරතුර කරන ලද සෑම ඉන්ධන පිරවීමක්ම සටහන් කර ඇතැයි උපකල්පනය කෙරේ.</string>
-    <string name="efficiency_suggest_title">ඔබේ පිරවීම් වලට අනුව කාර්යක්ෂමතාව කි.මී/ලී. %1$s කි</string>
+    <string name="efficiency_suggest_title">ඔබේ පිරවීම් වලට අනුව කාර්යක්ෂමතාව %1$s km/L කි</string>
     <string name="efficiency_suggest_body">ඔබේ වාහනය %1$s ලෙස සකසා ඇත. අලුත් ගමන් සඳහා එය යාවත්කාලීන කරන්නද?</string>
     <string name="efficiency_keep">%1$s තියාගන්න</string>
     <string name="efficiency_update">අලුත් කරන්න</string>
@@ -333,8 +333,8 @@
     <string name="reports_so_far_week">සතියේ මේ දක්වා</string>
     <string name="reports_so_far_month">මාසයේ මේ දක්වා</string>
     <plurals name="reports_estimated_line">
-        <item quantity="one">කි.මී %2$s ක් පුරා කිලෝමීටරයකට %1$s · ගමන් %3$d යි</item>
-        <item quantity="other">කි.මී %2$s ක් පුරා කිලෝමීටරයකට %1$s · ගමන් %3$d යි</item>
+        <item quantity="one">%2$s km පුරා km එකකට %1$s · ගමන් %3$d යි</item>
+        <item quantity="other">%2$s km පුරා km එකකට %1$s · ගමන් %3$d යි</item>
     </plurals>
     <plurals name="reports_trips_line">
         <item quantity="one">ගමන් %1$d යි</item>
@@ -358,8 +358,8 @@
     <string name="reports_period_empty_title">කිසිවක් සටහන් කර නැත</string>
     <string name="reports_period_empty_body">මෙම කාලය තුළ ගමන්, ආදායම්, වියදම් හෝ ඉන්ධන පිරවීම් නොමැත.</string>
     <plurals name="reports_incomplete_distance">
-        <item quantity="one">මෙම කාල සීමාව තුළ ගමන් %1$d කට දුරක් නොමැත, එබැවින් එයට ඉන්ධන හෝ නඩත්තු වෙන් කිරීමක් නොමැත. කි.මී එකකට ලාභය ගණනය කරන්නේ සටහන් කළ කි.මී %2$s මතය.</item>
-        <item quantity="other">මෙම කාල සීමාව තුළ ගමන් %1$d කට දුරක් නොමැත, එබැවින් එයට ඉන්ධන හෝ නඩත්තු වෙන් කිරීමක් නොමැත. කි.මී එකකට ලාභය ගණනය කරන්නේ සටහන් කළ කි.මී %2$s මතය.</item>
+        <item quantity="one">මෙම කාල සීමාව තුළ ගමන් %1$d කට දුරක් නොමැත, එබැවින් එයට ඉන්ධන හෝ නඩත්තු වෙන් කිරීමක් නොමැත. km එකකට ලාභය ගණනය කරන්නේ සටහන් කළ %2$s km මතය.</item>
+        <item quantity="other">මෙම කාල සීමාව තුළ ගමන් %1$d කට දුරක් නොමැත, එබැවින් එයට ඉන්ධන හෝ නඩත්තු වෙන් කිරීමක් නොමැත. km එකකට ලාභය ගණනය කරන්නේ සටහන් කළ %2$s km මතය.</item>
     </plurals>
     <string name="reports_incomplete_fuel">මෙම කාලය තුළ ඉන්ධන පිරවීම් කිසිවක් සටහන් කර නොමැති නිසා, මුදල් ලාභයට ඉන්ධන ඇතුළත් නොවේ.</string>
     <string name="reports_open_fuel_log">ඉන්ධන සටහන විවෘත කරන්න</string>
@@ -404,14 +404,14 @@
     <string name="amount_add_description">රු. %1$d එකතු කරන්න</string>
     <string name="amount_clear">%1$s මකන්න</string>
     <string name="vehicle_field_efficiency">ඉන්ධන කාර්යක්ෂමතාව (Fuel efficiency)</string>
-    <string name="vehicle_field_efficiency_help">ලීටරයකින් ඔබට කොපමණ කි.මී ප්‍රමාණයක් යා හැකිද.</string>
+    <string name="vehicle_field_efficiency_help">ලීටරයකින් ඔබට කොපමණ km ප්‍රමාණයක් යා හැකිද.</string>
     <string name="vehicle_field_maintenance">නඩත්තු මුදල</string>
-    <string name="vehicle_field_maintenance_help">සර්විස්, ටයර් සහ අලුත්වැඩියාවන් සඳහා කි.මී එකකට වෙන් කළ යුතු මුදල. අවශ්‍ය නැත්නම් හිස්ව තබන්න.</string>
+    <string name="vehicle_field_maintenance_help">සර්විස්, ටයර් සහ අලුත්වැඩියාවන් සඳහා km එකකට වෙන් කළ යුතු මුදල. අවශ්‍ය නැත්නම් හිස්ව තබන්න.</string>
     <string name="vehicle_field_target">ලාභ ඉලක්කය · විකල්ප</string>
     <string name="vehicle_field_target_placeholder">ඔබට අවශ්‍ය අවම මුදල</string>
     <string name="vehicle_field_target_help">මෙයට වඩා අඩු ගමන් “ඉලක්කයට අඩුයි” ලෙස පෙන්වයි.</string>
     <string name="vehicle_error_fuel_price_required">ඉන්ධන මිල ඇතුලත් කරන්න</string>
-    <string name="vehicle_error_efficiency_required">ලීටරයකට වැඩ කරන කි.මී ගණන ඇතුලත් කරන්න</string>
+    <string name="vehicle_error_efficiency_required">ලීටරයකට වැඩ කරන km ගණන ඇතුලත් කරන්න</string>
     <string name="vehicle_error_above_zero">0 ට වඩා වැඩි විය යුතුය</string>
     <string name="vehicle_error_invalid">වලංගු අංකයක් ඇතුලත් කරන්න</string>
     <string name="vehicle_kind_summary">%1$s · %2$s</string>
@@ -503,7 +503,7 @@
     <string name="settings_other_income">වෙනත් ආදායම්</string>
     <string name="settings_other_income_body">බෝනස්, Tips සහ දිරිදීමනා</string>
     <string name="settings_fuel_log">ඉන්ධන සටහන</string>
-    <string name="settings_fuel_log_body">ඉන්ධන පිරවීම් සහ ඔබගේ සැබෑ කි.මී/ලීටර්</string>
+    <string name="settings_fuel_log_body">ඉන්ධන පිරවීම් සහ ඔබගේ සැබෑ km/L</string>
     <string name="settings_expenses">වියදම්</string>
     <string name="settings_expenses_body">නඩත්තු, වාහන නැවැත්වීම, ඩේටා සහ මාර්ග ගාස්තු</string>
     <string name="settings_section_app">App එක ගැන</string>
@@ -518,7 +518,6 @@
     <string name="offer_reader_disclosure_accept">Settings වෙතින් On කරන්න</string>
     <string name="offer_reader_paused">නවත්වා ඇත · දීමනා කියවන්නේ නැත</string>
     <string name="offer_sound_title">ලාභයට හෝ පාඩුවට ශබ්දයක්</string>
-    <string name="offer_sound_body">ලාභයකට හෝ පාඩුවකට නාදයක්.</string>
     <string name="offer_reader_switch_label">දීමනා කියවන්න</string>
     <string name="offer_reader_state_on">සක්‍රියයි</string>
     <string name="offer_reader_state_paused">නවත්වා ඇත</string>
@@ -538,7 +537,7 @@
     <string name="offer_save_channel_name">දීමනා ගමන් ලෙස සුරැකීම</string>
     <string name="offer_save_channel_description">දීමනා කියවනය ගමන් දීමනාවක් පෙන්වූ පසු, එය ගමනක් ලෙස සුරකින්නද කියා අසයි.</string>
     <string name="offer_save_title">මෙම ගමන ගත්තාද? එය ගමනක් ලෙස සුරකින්න</string>
-    <string name="offer_save_body">%1$s · කි.මී %2$s · පරීක්ෂා කර සුරැකීමට තට්ටු කරන්න</string>
+    <string name="offer_save_body">%1$s · %2$s km · පරීක්ෂා කර සුරැකීමට තට්ටු කරන්න</string>
     <string name="offer_save_public_title">ඔබගේ අවසන් ගමන් දීමනාව ගමනක් ලෙස සුරකින්න</string>
     <string name="trip_from_offer_title">ගමන් දීමනාවෙන් පුරවා ඇත</string>
     <string name="trip_from_offer_notice">සුරැකීමට පෙර අගයන් පරීක්ෂා කරන්න.</string>
@@ -556,7 +555,7 @@
     <string name="fuel_price_from">%1$s සිට</string>
     <string name="fuel_price_yours">ඔබේ මිල</string>
     <string name="fuel_price_new">නව මිල</string>
-    <string name="fuel_price_per_km">කි.මී එකකට %1$s</string>
+    <string name="fuel_price_per_km">km එකකට %1$s</string>
     <string name="fuel_price_new_note">අලුත් පරීක්ෂාවන් පමණක් නව මිල භාවිතා කරයි. පැරණි ගමන් ඒවායේ පැරණි මිල තබා ගනී.</string>
     <string name="fuel_price_keep">%1$s තියාගන්න</string>
     <string name="fuel_price_update">අලුත් කරන්න</string>
@@ -717,6 +716,19 @@
     <string name="onboarding_restore_none_title">Backup එකක් හමු නොවීය</string>
     <string name="onboarding_restore_none_body">මෙම ගිණුමට තවම backup එකක් නැත, එබැවින් නැවත ලබා ගැනීමට කිසිවක් නැත. ආරම්භ කිරීමට ඔබේ වාහනය සකසන්න. මෙතැන් සිට ඔබගේ දත්ත මෙම ගිණුමට backup වේ.</string>
     <string name="offer_badge_tip">%1$s tip එක ඇතුළත්</string>
+
+    <!-- The floating bubble (section 9a) -->
+    <string name="bubble_title">පාවෙන බුබුල</string>
+    <string name="bubble_body">km එකකට ඔබේ ලාභ ඉලක්කය වෙනත් ඇප් මතින් පෙන්වයි.</string>
+    <string name="bubble_permission_needed">\"Display over other apps\" අවසරය අවශ්‍යයි · ඉඩ දීමට තට්ටු කරන්න</string>
+    <string name="bubble_warning_title">බුබුල වෙනත් ඇප් මතින් පෙන්වන්නද?</string>
+    <string name="bubble_warning_body">මේ සඳහා Picksmart හට Android හි \"Display over other apps\" අවසරය අවශ්‍යයි. ඊළඟ තිරයේ Picksmart සඳහා එය On කර, නැවත මෙහි එන්න.\n\nසමහර ගමන් ඇප්, වෙනත් ඇප් එකක බුබුලක් යටින් කරන tap නොසලකා හරියි. Accept tap කිරීමට පෙර බුබුල පැත්තකට කරන්න. එය වහාම සැඟවීමට ඔබාගෙන සිටින්න.</string>
+    <string name="bubble_warning_allow">Settings විවෘත කරන්න</string>
+    <string name="bubble_rate">ඉලක්කය %1$s/km</string>
+    <string name="bubble_target_not_set">ඉලක්කයක් සකසා නැත</string>
+    <string name="bubble_rate_unknown">වාහනයක් සකසන්න</string>
+    <string name="bubble_description_closed">Picksmart. km එකකට ඔබේ ලාභ ඉලක්කය බැලීමට තට්ටු කරන්න</string>
+    <string name="bubble_description_open">%1$s. සැඟවීමට ඔබාගෙන සිටින්න</string>
     <string name="trip_offer_tip_title">%1$s tip එක එක් කරන්න</string>
     <string name="trip_offer_tip_body">අනෙකුත් ආදායම් වලට එක් වේ.</string>
     <string name="backup_title">Cloud backup</string>

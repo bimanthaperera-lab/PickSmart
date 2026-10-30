@@ -602,7 +602,6 @@
     <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
     <string name="offer_reader_paused">Paused · not reading offers</string>
     <string name="offer_sound_title">Sound on profit or loss</string>
-    <string name="offer_sound_body">A chime for a profit or a loss.</string>
     <!-- The switch at the top of Check a Ride -->
     <string name="offer_reader_switch_label">Read offers</string>
     <string name="offer_reader_state_on">Active</string>

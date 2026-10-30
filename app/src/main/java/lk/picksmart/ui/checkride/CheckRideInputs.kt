@@ -4,7 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
@@ -63,6 +63,7 @@ import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -317,13 +318,13 @@ private fun UnitBox(text: String, endPadding: Dp) {
 
 /** A small button in a [ValueBox] that changes the number by a step ("+50", "−5"); [description] is read out. */
 @Composable
-internal fun StepButton(text: String, description: String, onClick: () -> Unit) {
+internal fun StepButton(text: String, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         onClick = onClick,
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier
+        modifier = modifier
             .defaultMinSize(minWidth = 44.dp, minHeight = 36.dp)
             .semantics { contentDescription = description },
     ) {
@@ -339,29 +340,39 @@ internal fun StepButton(text: String, description: String, onClick: () -> Unit) 
 
 /**
  * "Quick add" and buttons that add round [amounts] to a money field (+100 … +2,000), under its
- * [ValueBox]. The buttons wrap to a second line when they don't fit (large fonts).
+ * [ValueBox]. The label sits on its own line and the buttons share one row equally; when a
+ * button's text can't fit its share (large fonts on small phones), they go two to a row.
  */
 @Composable
 internal fun QuickAddRow(onAdd: (rupees: Long) -> Unit, modifier: Modifier = Modifier, amounts: List<Long> = QUICK_ADD_AMOUNT_RUPEES) {
     val locale = LocalConfiguration.current.locales[0]
-    FlowRow(
-        modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(
             stringResource(R.string.amount_quick_add).uppercase(locale),
             style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.8.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        amounts.forEach { rupees ->
-            StepButton(
-                // Western digits with a thousands comma ("+1,000"), as every amount in the app.
-                text = stringResource(R.string.amount_quick_add_button, String.format(Locale.US, "%,d", rupees)),
-                description = stringResource(R.string.amount_add_description, rupees),
-                onClick = { onAdd(rupees) },
-            )
+        // Western digits with a thousands comma ("+1,000"), as every amount in the app.
+        val labels = amounts.map { stringResource(R.string.amount_quick_add_button, String.format(Locale.US, "%,d", it)) }
+        BoxWithConstraints {
+            val measurer = rememberTextMeasurer()
+            val widest = labels.maxOf { measurer.measure(it, MaterialTheme.typography.labelMedium).size.width }
+            val buttonTextWidth = (maxWidth - Spacing.s * (amounts.size - 1)) / amounts.size - Spacing.s * 2
+            val columns = if (widest <= with(LocalDensity.current) { buttonTextWidth.toPx() }) amounts.size else 2
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                amounts.zip(labels).chunked(columns).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                        row.forEach { (rupees, text) ->
+                            StepButton(
+                                text = text,
+                                description = stringResource(R.string.amount_add_description, rupees),
+                                onClick = { onAdd(rupees) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

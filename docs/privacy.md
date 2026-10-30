@@ -42,7 +42,7 @@ Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are
 >
 > **Deleting your data.** Clearing Picksmart's storage in Android settings removes all of its data from your phone. When you uninstall it, Android 10 and later may offer "Keep app data"; leave that unticked to remove everything. A copy Android made in your Google backup (see above) stays until you delete it there or it expires. To remove your Picksmart cloud backup, delete your account in the app first.
 >
-> **Contact.** [owner to add a contact email]
+> **Contact.** bimantha.code@gmail.com
 
 ## Play Data safety answers (build with account and backup)
 
@@ -66,7 +66,7 @@ Notes for the form:
 
 `web/privacy-policy.html` is the privacy policy as one self-contained page (no scripts, fonts or trackers; light and dark). It also gives the account deletion route Play asks for (section 10 of the page).
 
-1. Replace both `[contact email]` placeholders (and their `mailto:` links) with the address that answers privacy and deletion requests.
+1. The contact address for privacy and deletion requests is bimantha.code@gmail.com (owner, 2026-10-30); change both links on the page if it changes.
 2. Host it somewhere public. The app repository is private, so copy it to the public fuel price repository and turn on GitHub Pages (Settings → Pages), or any other host. Its URL is then, for example, `https://<user>.github.io/<repo>/privacy-policy.html`.
 3. Put the URL in Play Console → App content → Privacy policy, and in Data safety as the deletion link (pointing to `#delete`).
 4. Keep the page and this draft in step: update both in the same release as any change to network use, accounts, the offer reader or ads.

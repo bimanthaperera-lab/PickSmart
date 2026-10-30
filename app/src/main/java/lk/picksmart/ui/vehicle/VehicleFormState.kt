@@ -36,7 +36,7 @@ enum class FieldError {
     /** Left empty but needed. */
     REQUIRED,
 
-    /** Must be more than zero (fuel efficiency, profit target). */
+    /** Must be more than zero (fuel efficiency, profit target when given). */
     MUST_BE_ABOVE_ZERO,
 
     /** Not a usable number. */
@@ -49,9 +49,9 @@ sealed interface VehicleFormResult {
 }
 
 /**
- * Checks the form. The name, number plate, fuel price, efficiency and profit target are required
- * (owner request 2026-10-30); efficiency and the target must be more than 0. Maintenance may be
- * left empty (0).
+ * Checks the form. The name, number plate, fuel price and efficiency are required (owner request
+ * 2026-10-30); efficiency must be more than 0. Maintenance may be left empty (0). The profit target
+ * is optional (null when empty) but must be more than 0 when given.
  */
 fun VehicleFormState.validate(): VehicleFormResult {
     val errors = mutableMapOf<VehicleField, FieldError>()
@@ -94,7 +94,6 @@ fun VehicleFormState.validate(): VehicleFormResult {
     }
 
     val targetCents = if (target.isBlank()) {
-        errors[VehicleField.TARGET] = FieldError.REQUIRED
         null
     } else {
         val parsed = parseRupeesToCents(target)
@@ -112,7 +111,7 @@ fun VehicleFormState.validate(): VehicleFormResult {
     }
 
     if (errors.isNotEmpty() || vehicleName == null || plate == null || price == null || kmPerLitre == null ||
-        reserve == null || targetCents == null
+        reserve == null
     ) {
         return VehicleFormResult.Invalid(errors)
     }

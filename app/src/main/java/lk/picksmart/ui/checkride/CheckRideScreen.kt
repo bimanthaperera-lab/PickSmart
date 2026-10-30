@@ -760,10 +760,7 @@ private fun TargetLine(targetCents: Long, color: Color, onEdit: () -> Unit) {
     }
 }
 
-/**
- * Sets the profit target per km, saved on the vehicle. It is required (owner request 2026-10-30),
- * so an empty or zero target isn't saved.
- */
+/** Sets the profit target per km, saved on the vehicle. Empty turns it off; zero isn't saved. */
 @Composable
 private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss: () -> Unit) {
     var text by rememberSaveable { mutableStateOf(currentCents?.let(::centsToInput).orEmpty()) }
@@ -796,7 +793,7 @@ private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss
             TextButton(onClick = {
                 val cents = parseRupeesToCents(text)
                 when {
-                    text.isBlank() -> error = R.string.vehicle_error_target_required
+                    text.isBlank() -> onSave(null)
                     cents == null -> error = R.string.vehicle_error_invalid
                     cents <= 0 -> error = R.string.vehicle_error_above_zero
                     else -> onSave(cents)

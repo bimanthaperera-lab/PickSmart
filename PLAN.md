@@ -255,7 +255,7 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] `AdsProvider` interface, no-op implementation, AdMob implementation with test IDs
 - [ ] Ads kept away from Check a Ride and data entry; no interstitials during ride checks
-- [ ] Privacy policy and Data safety answers that match the actual app
+- [ ] Privacy policy and Data safety answers that match the actual app (policy page drafted 2026-10-30 in `web/privacy-policy.html`; owner to add the contact email, host it and add the URL in Play Console)
 - [ ] Check the current Play target API and policy requirements
 - [ ] Protection check: release build has R8 minify and resource shrinking on; the R8 mapping file is uploaded to Play Console; no keys, credentials or service-account files in the APK or repository
 - [ ] Owner: register the "Picksmart" name and logo as a trademark in Sri Lanka (NIPO), and confirm the app's source repository is private

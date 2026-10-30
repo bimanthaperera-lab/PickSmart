@@ -1,6 +1,6 @@
 # Picksmart — Privacy policy draft and Play Data safety answers
 
-Draft for the owner to review before release. It must match what the app actually does; update it in the same release as any change to network use, accounts or ads (CLAUDE.md sections 10, 12 and 14).
+Draft for the owner to review before release. The public page built from it is `web/privacy-policy.html` (see "Publishing the policy page" at the end). It must match what the app actually does; update it in the same release as any change to network use, accounts or ads (CLAUDE.md sections 10, 12 and 14).
 
 Last updated: 2026-10-27 (gender, date of birth and the chosen profile photo are now backed up with the account, on branch `v2`).
 
@@ -61,3 +61,12 @@ Notes for the form:
 - Data processed only on the device (offer reader text) isn't collected. A trip's optional pickup and "Where to" places are rider-entered text saved with the trip and backed up with it; they are not device location. *Owner: check whether Play wants them declared under Location (approximate) or as App activity / Other user-generated content.* The profile photo, gender and date of birth are collected only for a rider with an account who adds them (backed up since 2026-10-27).
 - Play requires a deletion route outside the app as well (a web page or email). The owner needs to add one before upload.
 - Re-answer the form when ads (Phase 9) ship.
+
+## Publishing the policy page
+
+`web/privacy-policy.html` is the privacy policy as one self-contained page (no scripts, fonts or trackers; light and dark). It also gives the account deletion route Play asks for (section 10 of the page).
+
+1. Replace both `[contact email]` placeholders (and their `mailto:` links) with the address that answers privacy and deletion requests.
+2. Host it somewhere public. The app repository is private, so copy it to the public fuel price repository and turn on GitHub Pages (Settings → Pages), or any other host. Its URL is then, for example, `https://<user>.github.io/<repo>/privacy-policy.html`.
+3. Put the URL in Play Console → App content → Privacy policy, and in Data safety as the deletion link (pointing to `#delete`).
+4. Keep the page and this draft in step: update both in the same release as any change to network use, accounts, the offer reader or ads.

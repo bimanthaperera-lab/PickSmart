@@ -28,7 +28,7 @@ import lk.picksmart.util.InputDigits
  * The vehicle fields shared by onboarding and Edit vehicle, each on its own card in the style of
  * Check a Ride: a small upper-case title (with the unit on the right), the box, then a hint.
  * Picking a fuel type fills in its price from [fuelPriceSuggestions] (`fuelPriceSuggestions`);
- * the "−5" / "+5" buttons move the price by Rs. 5. Every field but maintenance is required.
+ * the "−5" / "+5" buttons move the price by Rs. 5. Every field but maintenance and the target is required.
  */
 @Composable
 fun VehicleFormFields(
@@ -159,7 +159,7 @@ fun VehicleFormFields(
         }
 
         val targetLabel = stringResource(R.string.vehicle_field_target)
-        val targetError = errors[VehicleField.TARGET]?.let { fieldErrorText(it, R.string.vehicle_error_target_required) }
+        val targetError = errors[VehicleField.TARGET]?.let { fieldErrorText(it, R.string.vehicle_error_invalid) }
         InputSection(title = targetLabel, action = { UnitLabel(perKm) }) {
             ValueBox(
                 value = state.target,

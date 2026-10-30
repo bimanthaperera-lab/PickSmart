@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Picksmart Privacy Policy</title>
+<meta name="description" content="How the Picksmart app handles your data: what stays on your phone, what the optional account backs up, and how to delete it.">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f5f1;
+    --text: #17171a;
+    --muted: #55555c;
+    --line: #e2e0d8;
+    --accent: #8a5a00;
+    --brand: #fbbb23;
+    --pick: #17171a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f0f11;
+      --surface: #1a1a1d;
+      --text: #f2f1ec;
+      --muted: #a9a8a2;
+      --line: #2c2c30;
+      --accent: #fbbb23;
+      --pick: #f2f1ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f0f11;
+    --surface: #1a1a1d;
+    --text: #f2f1ec;
+    --muted: #a9a8a2;
+    --line: #2c2c30;
+    --accent: #fbbb23;
+    --pick: #f2f1ec;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Sinhala", "Noto Sans Tamil", sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 8px; }
+  .wordmark { font-weight: 800; font-size: 28px; letter-spacing: -0.5px; margin: 0; }
+  .wordmark .pick { color: var(--pick); }
+  .wordmark .smart { color: var(--brand); }
+  h1 { font-size: 30px; line-height: 1.25; margin: 12px 0 4px; }
+  .updated { color: var(--muted); margin: 0; font-size: 15px; }
+  h2 { font-size: 21px; line-height: 1.3; margin: 36px 0 8px; }
+  h3 { font-size: 17px; margin: 20px 0 4px; }
+  p, li { overflow-wrap: anywhere; }
+  ul { padding-left: 22px; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brand);
+    border-radius: 12px;
+    padding: 4px 20px;
+    margin: 24px 0 8px;
+  }
+  .summary ul { padding-left: 18px; }
+  .table-wrap { overflow-x: auto; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  .todo { background: var(--brand); color: #17171a; padding: 0 4px; border-radius: 4px; }
+  nav ol { columns: 2 220px; padding-left: 22px; margin: 8px 0 0; }
+  footer { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="wordmark"><span class="pick">Pick</span><span class="smart">smart</span></p>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 30 October 2026</p>
+  </header>
+
+  <div class="summary">
+    <p><strong>The short version</strong></p>
+    <ul>
+      <li>Picksmart works on your phone, without internet and without an account.</li>
+      <li>What you enter stays on your phone unless you choose to back it up by signing in.</li>
+      <li>No analytics, no advertising, no location tracking, and we never sell your data.</li>
+      <li>Read ride offers is off unless you turn it on. Offer text is read on your phone and never stored or sent anywhere.</li>
+      <li>You can delete your account and your backup from the app at any time.</li>
+    </ul>
+  </div>
+
+  <nav aria-label="Contents">
+    <ol>
+      <li><a href="#about">About this policy</a></li>
+      <li><a href="#phone">Data on your phone</a></li>
+      <li><a href="#account">Account and backup</a></li>
+      <li><a href="#offers">Reading ride offers</a></li>
+      <li><a href="#fuel">Fuel price download</a></li>
+      <li><a href="#permissions">Permissions</a></li>
+      <li><a href="#sharing">Sharing and exporting</a></li>
+      <li><a href="#android-backup">Backups by Android</a></li>
+      <li><a href="#retention">How long data is kept</a></li>
+      <li><a href="#delete">Deleting your data</a></li>
+      <li><a href="#rights">Your choices and rights</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#children">Children</a></li>
+      <li><a href="#changes">Changes</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="about">1. About this policy</h2>
+  <p>This policy explains how the Picksmart Android app ("Picksmart", "we") handles information. Picksmart helps ride-hailing, courier and delivery riders estimate the profit of a ride and track their earnings and costs. It is not made by, or connected with, Uber or PickMe.</p>
+
+  <h2 id="phone">2. Data on your phone</h2>
+  <p>Everything you enter is stored in the app's own storage on your phone:</p>
+  <ul>
+    <li>Vehicles: name, vehicle number, type, fuel type, fuel price, fuel efficiency, maintenance reserve and profit target.</li>
+    <li>Trips and offers you checked: fare, fees, distances, ride app, date and time, notes, and any pickup and "Where to" places you add.</li>
+    <li>Fuel log, expenses and other income.</li>
+    <li>Settings, such as your theme, language and the last values you used on Check a Ride.</li>
+  </ul>
+  <p>Without an account, none of this leaves your phone, and we can't see it.</p>
+
+  <h2 id="account">3. Account and backup (optional)</h2>
+  <p>You don't need an account to use Picksmart. If you create one, with email and password or with Google, we use Google Firebase to run it.</p>
+  <h3>What the account holds</h3>
+  <ul>
+    <li>An account ID, your email address and your name.</li>
+    <li>For Google sign-in, a link to your Google profile photo.</li>
+    <li>If you add them on your profile: your mobile number, gender, date of birth and a profile photo you choose. These are optional.</li>
+  </ul>
+  <h3>What is backed up</h3>
+  <p>While you are signed in, your vehicles, trips, offers you checked, fuel log, expenses, other income, which vehicle is active, and the optional profile details above are copied to your own space in Google Cloud Firestore. This is used only so you can get your records back on a new or reset phone. App settings such as theme and language are not backed up.</p>
+  <ul>
+    <li>Only you can read or change your backup. Security rules keep each rider's data apart.</li>
+    <li>When you delete a record, the backup keeps only its ID and the time it was deleted, so your other phones delete it too.</li>
+    <li>Removing a profile detail or your photo in the app removes it from the backup too.</li>
+    <li>Signing out stops the backup. Your records stay on your phone.</li>
+  </ul>
+  <h3>Other information Google processes</h3>
+  <p>Firebase sends your account emails (email verification and password reset). To protect the backup from modified copies of the app, Firebase App Check uses Google Play Integrity to confirm the request comes from the genuine Picksmart app; this sends Google information about the app and the phone's integrity, not your records. Like any online service, Google's servers see your phone's IP address when you sign in or back up. Google handles this as described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a> and <a href="https://firebase.google.com/support/privacy" rel="noopener">Privacy and Security in Firebase</a>.</p>
+
+  <h2 id="offers">4. Reading ride offers (optional)</h2>
+  <p>If you turn on <strong>Read ride offers</strong>, Picksmart uses an Android accessibility service to read the text of a ride offer shown by the Uber Driver or PickMe Driver app, so it can show an estimated profit straight away.</p>
+  <ul>
+    <li>It is off by default, and you turn it on yourself after reading an explanation in the app. You can turn it off at any time in the app or in Android's Accessibility settings.</li>
+    <li>It reads only those ride apps, and only to find the fare, distances and the pickup and "Where to" places.</li>
+    <li>The text is kept in memory only while it calculates the estimate. It is never logged, stored or sent anywhere.</li>
+    <li>It never taps, types, scrolls or does anything else in another app, and never takes screenshots.</li>
+    <li>When an offer closes, a notification asks whether you took it. If you tap it, Add trip opens with the offer's numbers and places filled in. Nothing is saved unless you tap Save, and you can change or clear the places first. A saved trip is stored, and backed up if you are signed in, like any other trip.</li>
+  </ul>
+  <p>The pickup and "Where to" places can describe someone else's journey. Keep them only if you need them.</p>
+
+  <h2 id="fuel">5. Fuel price download</h2>
+  <p>When your phone is online, Picksmart downloads one small public file with the current Ceylon Petroleum Corporation (CPC) pump prices, at most once every 12 hours. The request contains no information about you, no account or device ID, no cookies and no analytics. The website that hosts the file sees your IP address, as with any website; Picksmart doesn't receive or keep it. Your own fuel price is changed only if you choose to update it, or turned on automatic updates.</p>
+
+  <h2 id="permissions">6. Permissions</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Permission</th><th scope="col">Why</th></tr></thead>
+      <tbody>
+        <tr><td>Internet and network state</td><td>The fuel price download, and sign-in and backup if you use an account.</td></tr>
+        <tr><td>Notifications</td><td>The "Took this ride?" reminder and other alerts. Optional.</td></tr>
+        <tr><td>Accessibility service</td><td>Read ride offers, as described above. Optional and off by default.</td></tr>
+        <tr><td>Display over other apps</td><td>The optional floating bubble. Asked for only if you turn the bubble on.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Picksmart does not use your location, contacts, camera, microphone or phone calls.</p>
+
+  <h2 id="sharing">7. Sharing and exporting</h2>
+  <p>We don't sell your data or share it with anyone for advertising or any other purpose. Google Firebase stores the account and backup for us, as described in section 3. You can export your records as CSV files from Reports; you choose, in Android's share menu, which app receives them, and Picksmart sends them nowhere itself. We may disclose information if the law requires it.</p>
+  <p>Picksmart has no ads today. If ads are added in a later version, this policy will be updated first.</p>
+
+  <h2 id="android-backup">8. Backups by Android</h2>
+  <p>If Google backup is turned on for your phone, Android may copy Picksmart's records and settings to your own Google account, as it does for other apps. We can't see these backups. You control this in your phone's settings.</p>
+
+  <h2 id="retention">9. How long data is kept</h2>
+  <ul>
+    <li>On your phone: until you delete it, clear the app's storage, delete your account or uninstall the app.</li>
+    <li>Account and cloud backup: until you delete your account.</li>
+    <li>Offer text: only while an estimate is calculated, in memory.</li>
+    <li>In-app alerts: 30 days.</li>
+  </ul>
+
+  <h2 id="delete">10. Deleting your data</h2>
+  <h3>Delete your account in the app</h3>
+  <p>Open <strong>Account</strong>, tap your profile, then <strong>Delete account</strong>. After you confirm it's you, Picksmart deletes your cloud backup, your account, and that account's records, settings and photo on the phone. This can't be undone, so export your records first if you want a copy.</p>
+  <h3>If you no longer have the app</h3>
+  <p>Email <a href="mailto:privacy@example.com"><span class="todo">[contact email]</span></a> from the address you signed up with and ask us to delete your account. We will delete the account and its cloud backup within 30 days and tell you when it is done.</p>
+  <h3>Data on your phone only</h3>
+  <p>Clearing Picksmart's storage in Android settings removes its data from your phone. When you uninstall, Android 10 and later may offer "Keep app data"; leave it unticked to remove everything. A copy in your Google backup (section 8) stays until you delete it there or it expires.</p>
+
+  <h2 id="rights">11. Your choices and rights</h2>
+  <p>You can use Picksmart without an account, turn backup off by signing out, turn off Read ride offers and notifications, and see, change or delete your records in the app at any time. You can also ask us for a copy of the account information we hold about you, or to correct or delete it, by contacting us (section 15).</p>
+
+  <h2 id="security">12. Security</h2>
+  <p>Data sent to Firebase is encrypted in transit (HTTPS). Your backup can be read only after signing in to your account, and only the genuine app can reach it. No system is perfectly secure, so keep your phone locked and your password private.</p>
+
+  <h2 id="children">13. Children</h2>
+  <p>Picksmart is meant for adults who earn by driving or delivering. It is not directed at children, and we don't knowingly collect information from children under 13.</p>
+
+  <h2 id="changes">14. Changes to this policy</h2>
+  <p>When the app's handling of data changes, we will update this page and the date at the top before that version is released. Significant changes will also be explained in the app or the store listing.</p>
+
+  <h2 id="contact">15. Contact</h2>
+  <p>Questions or requests about privacy: <a href="mailto:privacy@example.com"><span class="todo">[contact email]</span></a></p>
+
+  <footer>
+    <p>Picksmart · Sri Lanka</p>
+  </footer>
+</main>
+</body>
+</html>

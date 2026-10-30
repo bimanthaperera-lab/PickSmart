@@ -48,14 +48,18 @@ class VehicleFormStateTest {
     }
 
     @Test
-    fun `name, plate, fuel price, efficiency and target are required`() {
+    fun `the target can be left empty`() {
+        assertEquals(null, valid(filled.copy(target = " ")).targetProfitPerKmCents)
+    }
+
+    @Test
+    fun `name, plate, fuel price and efficiency are required`() {
         assertEquals(
             mapOf(
                 VehicleField.NAME to FieldError.REQUIRED,
                 VehicleField.PLATE to FieldError.REQUIRED,
                 VehicleField.FUEL_PRICE to FieldError.REQUIRED,
                 VehicleField.EFFICIENCY to FieldError.REQUIRED,
-                VehicleField.TARGET to FieldError.REQUIRED,
             ),
             errors(filled.copy(name = "  ", plateNumber = "   ", fuelPrice = "", efficiency = "", target = "")),
         )

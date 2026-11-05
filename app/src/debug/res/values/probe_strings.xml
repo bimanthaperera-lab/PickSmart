@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="probe_service_label" translatable="false">Picksmart screen-read probe (debug)</string>
+    <string name="probe_service_description" translatable="false">Debug test only. Reads the Uber Driver screen to check whether the fare and distance are available as text, and writes what it finds to the debug log. It never taps or acts in any app, and is not in release builds.</string>
+</resources>

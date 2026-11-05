@@ -1,5 +1,5 @@
 [versions]
-agp = "9.4.1"
+agp = "9.3.0"
 kotlin = "2.4.21"
 composeBom = "2026.09.00"
 coreKtx = "1.19.1"
@@ -49,6 +49,12 @@ androidx-test-runner = { group = "androidx.test", name = "runner", version.ref =
 # Optional account (CLAUDE.md section 14): Firebase Auth, and Credential Manager for "Continue with Google".
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+# Optional cloud backup (CLAUDE.md section 14).
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+# App Check (CLAUDE.md section 10): Play Integrity in release builds, the debug provider in debug builds.
+firebase-appcheck = { group = "com.google.firebase", name = "firebase-appcheck" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleId" }

@@ -40,6 +40,8 @@ data class Vehicle(
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
     val plateNumber: String? = null,
+    /** The same on every device the rider backs up to; see [newSyncId]. Never changes. */
+    val syncId: String = newSyncId(),
 )
 
 /** The values a rider sets on the vehicle form, already parsed and validated. */

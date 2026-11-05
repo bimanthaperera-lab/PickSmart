@@ -3,6 +3,7 @@ package lk.picksmart.ui.account
 import androidx.annotation.StringRes
 import lk.picksmart.R
 import lk.picksmart.data.account.AuthError
+import java.time.LocalDate
 
 /** Firebase accepts 6; 8 is the floor here for a safer password. */
 const val MIN_PASSWORD_LENGTH = 8
@@ -34,6 +35,12 @@ fun mobileError(mobile: String): AuthFieldError? {
     val digits = mobile.count(Char::isDigit)
     return if (MOBILE_CHARS.matches(mobile.trim()) && digits in 9..15) null else AuthFieldError.MOBILE_INVALID
 }
+
+/** The earliest date of birth the Profile screen takes. */
+val EarliestBirthDate: LocalDate = LocalDate.of(1900, 1, 1)
+
+/** A date of birth is accepted from [EarliestBirthDate] up to [today], never in the future. */
+fun isValidBirthDate(date: LocalDate, today: LocalDate): Boolean = date in EarliestBirthDate..today
 
 /** The number as saved: trimmed with single spaces, or null when left empty. */
 fun cleanMobile(mobile: String): String? = mobile.trim().replace(Regex("\\s+"), " ").ifEmpty { null }
@@ -76,6 +83,7 @@ fun AuthError.message(): Int = when (this) {
     AuthError.TOO_MANY_ATTEMPTS -> R.string.auth_error_too_many
     AuthError.ACCOUNT_DISABLED -> R.string.auth_error_disabled
     AuthError.RECENT_SIGN_IN_REQUIRED -> R.string.auth_error_recent_sign_in
+    AuthError.DIFFERENT_ACCOUNT -> R.string.auth_error_different_account
     AuthError.NOT_AVAILABLE -> R.string.account_unavailable
     AuthError.UNKNOWN -> R.string.auth_error_unknown
 }

@@ -47,7 +47,7 @@ import lk.picksmart.ui.vehicle.SwitchVehicleDialog
 import lk.picksmart.ui.vehicle.VehicleRow
 
 /**
- * The settings list: vehicles, fuel price, records, theme and version. Shown under the profile card
+ * The settings list: vehicles, fuel price, reports, records, reading ride offers, language, theme and version. Shown under the profile card
  * on the Account tab, and works the same whether or not the rider is signed in. Adding a vehicle
  * past the limit opens [onVehicleLimit] instead of the form.
  */
@@ -59,26 +59,49 @@ fun SettingsSections(
     onOpenFuelLog: () -> Unit,
     onOpenExpenses: () -> Unit,
     onOpenFuelPrice: () -> Unit,
+    onOpenReports: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory),
 ) {
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val vehicle by viewModel.vehicle.collectAsStateWithLifecycle()
     val fuelPrices by viewModel.fuelPrices.collectAsStateWithLifecycle()
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    val language = rememberChosenLanguage()
 
     Column {
         VehicleSettings(vehicle, fuelPrices, onEditVehicle, onVehicleLimit, viewModel::setActiveVehicle, onOpenFuelPrice)
-        SectionLabel(stringResource(R.string.settings_section_records))
-        RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
-        SectionLabel(stringResource(R.string.settings_section_app))
+        SectionLabel(stringResource(R.string.settings_section_reports))
         ListGroup(
             rows = listOf {
                 ListRow(
-                    title = stringResource(R.string.settings_theme),
-                    value = themeMode?.let { stringResource(it.label) },
-                    onClick = { showThemeDialog = true },
+                    title = stringResource(R.string.settings_reports),
+                    subtitle = stringResource(R.string.settings_reports_body),
+                    onClick = onOpenReports,
                 )
             },
+        )
+        SectionLabel(stringResource(R.string.settings_section_records))
+        RecordsGroup(onOpenFuelLog = onOpenFuelLog, onOpenExpenses = onOpenExpenses, onOpenIncome = onOpenIncome)
+        OfferReaderSetting()
+        SectionLabel(stringResource(R.string.settings_section_app))
+        ListGroup(
+            rows = listOf(
+                {
+                    ListRow(
+                        title = stringResource(R.string.settings_language),
+                        value = language.displayName(),
+                        onClick = { showLanguageDialog = true },
+                    )
+                },
+                {
+                    ListRow(
+                        title = stringResource(R.string.settings_theme),
+                        value = themeMode?.let { stringResource(it.label) },
+                        onClick = { showThemeDialog = true },
+                    )
+                },
+            ),
         )
         SectionLabel(stringResource(R.string.settings_section_about))
         ListGroup(
@@ -87,6 +110,8 @@ fun SettingsSections(
             },
         )
     }
+
+    if (showLanguageDialog) LanguageDialog(selected = language, onDismiss = { showLanguageDialog = false })
 
     val current = themeMode
     if (showThemeDialog && current != null) {

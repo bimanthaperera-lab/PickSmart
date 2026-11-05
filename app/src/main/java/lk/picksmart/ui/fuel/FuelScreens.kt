@@ -31,6 +31,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.checkride.ErrorText
+import lk.picksmart.ui.checkride.HelpText
+import lk.picksmart.ui.checkride.InputSection
+import lk.picksmart.ui.checkride.NumberTile
+import lk.picksmart.ui.checkride.QuickAddRow
+import lk.picksmart.ui.checkride.STACK_FONT_SCALE
+import lk.picksmart.ui.checkride.TileRow
+import lk.picksmart.ui.checkride.ValueBox
+import lk.picksmart.util.addRupeesToInput
+import lk.picksmart.util.parseDecimal
+import lk.picksmart.util.parseRupeesToCents
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.model.FuelLog
 import lk.picksmart.ui.components.DateField
@@ -39,7 +56,6 @@ import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
-import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.Stat
@@ -51,6 +67,7 @@ import lk.picksmart.ui.components.neutralRecordIcon
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.formatDecimal
 import java.time.LocalDate
@@ -227,7 +244,7 @@ fun EditFuelScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.screen, vertical = Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             when (val s = state) {
                 EditFuelUiState.Loading -> LoadingState()
@@ -246,7 +263,7 @@ fun EditFuelScreen(
                     onAction = onAddVehicle,
                 )
                 is EditFuelUiState.Editing -> {
-                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
+                    RecordVehicleField(s.vehicle, card = true)
                     FuelForm(s, viewModel::updateForm)
                 }
             }
@@ -275,50 +292,144 @@ fun EditFuelScreen(
     }
 }
 
+/**
+ * Add / Edit fill-up in Check a Ride's card style: what was paid (with quick add), the litres and
+ * price per litre side by side with the sum they make, full tank, the odometer and the date.
+ * Typing the amount or the litres fills in the other from the price ([withTotal], [withLitres]).
+ */
 @Composable
 private fun FuelForm(state: EditFuelUiState.Editing, onChange: (FuelFormState) -> Unit) {
     val form = state.form
     val errors = state.errors
+    val currency = stringResource(R.string.currency_prefix)
     val workedOut = stringResource(R.string.fuel_worked_out)
-    NumberField(
-        value = form.total,
-        onValueChange = { onChange(form.withTotal(it)) },
-        label = stringResource(R.string.fuel_total),
-        prefix = stringResource(R.string.currency_prefix),
-        supportingText = workedOut.takeIf { form.typed == FuelAmount.LITRES && form.total.isNotEmpty() },
-        error = errors[FuelField.TOTAL]?.message(R.string.fuel_error_total_required),
-    )
-    NumberField(
-        value = form.litres,
-        onValueChange = { onChange(form.withLitres(it)) },
-        label = stringResource(R.string.fuel_litres),
-        suffix = stringResource(R.string.unit_litre_short),
-        supportingText = workedOut.takeIf { form.typed == FuelAmount.TOTAL && form.litres.isNotEmpty() },
-        error = errors[FuelField.LITRES]?.message(R.string.fuel_error_litres_required),
-    )
-    NumberField(
-        value = form.price,
-        onValueChange = { onChange(form.withPrice(it)) },
-        label = stringResource(R.string.fuel_price),
-        prefix = stringResource(R.string.currency_prefix),
-        supportingText = stringResource(R.string.fuel_price_help),
-        error = errors[FuelField.PRICE]?.message(R.string.fuel_error_price_required),
-    )
+    val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
+
+    val totalLabel = stringResource(R.string.fuel_total)
+    val totalError = errors[FuelField.TOTAL]?.message(R.string.fuel_error_total_required)
+    InputSection(title = totalLabel) {
+        ValueBox(
+            value = form.total,
+            onValueChange = { onChange(form.withTotal(it)) },
+            label = totalLabel,
+            error = totalError,
+            prefix = currency,
+            textStyle = MaterialTheme.typography.headlineMedium,
+            onClear = { onChange(form.withTotal("")) },
+        )
+        if (totalError != null) ErrorText(totalError)
+        if (form.typed == FuelAmount.LITRES && form.total.isNotEmpty()) HelpText(workedOut)
+        QuickAddRow(
+            onAdd = { onChange(form.withTotal(addRupeesToInput(form.total, it))) },
+            amounts = FUEL_QUICK_ADD_RUPEES,
+        )
+    }
+
+    InputSection(title = stringResource(R.string.fuel_litres_and_price)) {
+        TileRow(
+            stacked,
+            listOf(
+                { m ->
+                    NumberTile(
+                        value = form.litres,
+                        onValueChange = { onChange(form.withLitres(it)) },
+                        label = stringResource(R.string.fuel_litres),
+                        modifier = m,
+                        suffix = stringResource(R.string.unit_litre_short),
+                        maxIntegerDigits = InputDigits.LITRES,
+                        error = errors[FuelField.LITRES]?.message(R.string.fuel_error_litres_required),
+                        note = stringResource(R.string.fuel_auto).takeIf { form.typed == FuelAmount.TOTAL && form.litres.isNotEmpty() },
+                    )
+                },
+                { m ->
+                    NumberTile(
+                        value = form.price,
+                        onValueChange = { onChange(form.withPrice(it)) },
+                        label = stringResource(R.string.fuel_price),
+                        modifier = m,
+                        prefix = currency,
+                        error = errors[FuelField.PRICE]?.message(R.string.fuel_error_price_required),
+                        highlighted = true,
+                    )
+                },
+            ),
+        )
+        FuelSumLine(form)
+        HelpText(stringResource(R.string.fuel_price_help))
+    }
+
     SwitchRow(
         title = stringResource(R.string.fuel_full_tank),
         body = stringResource(R.string.fuel_full_tank_body),
         checked = form.fullTank,
         onCheckedChange = { onChange(form.copy(fullTank = it)) },
     )
-    NumberField(
-        value = form.odometer,
-        onValueChange = { onChange(form.copy(odometer = it)) },
-        label = stringResource(R.string.fuel_odometer),
-        suffix = stringResource(R.string.unit_km),
-        maxDecimals = 1,
-        supportingText = stringResource(R.string.fuel_odometer_help),
-        error = errors[FuelField.ODOMETER]?.message(R.string.vehicle_error_invalid),
-        imeAction = ImeAction.Done,
+
+    val odometerLabel = stringResource(R.string.fuel_odometer)
+    val odometerError = errors[FuelField.ODOMETER]?.message(R.string.vehicle_error_invalid)
+    InputSection(title = odometerLabel) {
+        ValueBox(
+            value = form.odometer,
+            onValueChange = { onChange(form.copy(odometer = it)) },
+            label = odometerLabel,
+            error = odometerError,
+            unit = stringResource(R.string.unit_km),
+            leadingIcon = R.drawable.ic_gauge,
+            maxDecimals = 1,
+            maxIntegerDigits = InputDigits.ODOMETER,
+            imeAction = ImeAction.Done,
+        )
+        if (odometerError != null) ErrorText(odometerError)
+        HelpText(stringResource(R.string.fuel_odometer_help))
+    }
+
+    DateField(
+        stringResource(R.string.fuel_date),
+        form.date,
+        { onChange(form.copy(date = it)) },
+        Modifier.fillMaxWidth(),
+        maxDate = state.today,
+        tile = true,
     )
-    DateField(stringResource(R.string.fuel_date), form.date, { onChange(form.copy(date = it)) }, Modifier.fillMaxWidth(), maxDate = state.today)
 }
+
+/**
+ * "4.83 L × Rs. 414.00 = Rs. 2,000.00": how the litres, price and amount paid fit together, once
+ * all three are numbers. One of them is worked out from the others, so the rider can check it.
+ */
+@Composable
+private fun FuelSumLine(form: FuelFormState) {
+    val litres = parseDecimal(form.litres)?.takeIf { it > 0 } ?: return
+    val priceCents = parseRupeesToCents(form.price)?.takeIf { it > 0 } ?: return
+    val totalCents = parseRupeesToCents(form.total)?.takeIf { it > 0 } ?: return
+    val money = rememberMoneyFormatter()
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+            .padding(horizontal = Spacing.m, vertical = Spacing.s),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+    ) {
+        Icon(
+            painterResource(R.drawable.ic_info),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            stringResource(
+                R.string.fuel_sum_line,
+                formatDecimal(litres, 2),
+                stringResource(R.string.unit_litre_short),
+                money.format(priceCents),
+                money.format(totalCents),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+/** Quick-add amounts for a fill-up, in rupees: riders often ask for a round sum of fuel. */
+private val FUEL_QUICK_ADD_RUPEES = listOf(500L, 1_000L, 1_500L, 2_000L)

@@ -3,16 +3,14 @@ package lk.picksmart.ui.history
 import lk.picksmart.domain.calculator.ProfitCalculator
 import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
-import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
-import lk.picksmart.domain.model.VehicleInput
-import lk.picksmart.domain.model.VehicleType
-import lk.picksmart.domain.usecase.newVehicle
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -85,27 +83,36 @@ class HistoryGroupingTest {
         assertEquals(emptyList<HistoryDay>(), groupTripsByDay(emptyList(), HistoryFilter.ALL, calculator))
     }
 
-    /** Sample vehicles for tests. */
-    private fun vehicle(id: Long, name: String, archived: Boolean = false) = newVehicle(
-        VehicleInput(name, VehicleType.MOTORCYCLE, FuelType.PETROL_92, 30_000, 40.0, 200, null),
-        isSample = false,
-        nowMillis = 0,
-    ).copy(id = id, archived = archived)
+    private val names = mapOf(Platform.PICKME to "පික්මී")
 
     @Test
-    fun `one vehicle shows no names on rows`() {
-        assertEquals(emptyMap<Long, String>(), vehicleNamesForRows(listOf(vehicle(1, "Sample bike"))))
-        groupTripsByDay(trips, HistoryFilter.ALL, calculator, vehicleNamesForRows(listOf(vehicle(1, "Sample bike"))))
-            .flatMap { it.rows }
-            .forEach { assertNull(it.vehicleName) }
+    fun `search finds a trip by note, ride app or fare`() {
+        val trip = trip(5, "2026-10-21T11:12:00Z").copy(notes = "Airport drop, cash tip", fareCents = 145_050)
+        listOf("", "  ", "airport", "CASH tip", "pickme", "පික්මී", "1450", "1,450.5", "Rs. 1450", "rs1450", "pickme 1450")
+            .forEach { assertTrue(it, trip.matchesSearch(it, names)) }
+        listOf("uber", "450", "1451", "airport uber", "hotel")
+            .forEach { assertFalse(it, trip.matchesSearch(it, names)) }
     }
 
     @Test
-    fun `with more than one vehicle each row names its own, archived ones too`() {
-        val names = vehicleNamesForRows(listOf(vehicle(1, "Sample bike", archived = true), vehicle(2, "Sample tuk")))
-        val rows = groupTripsByDay(trips + trip(5, "2026-10-20T04:00:00Z").copy(vehicleId = 2), HistoryFilter.ALL, calculator, names)
-            .flatMap { it.rows }
-        assertEquals("Sample bike", rows.first { it.trip.id == 3L }.vehicleName)
-        assertEquals("Sample tuk", rows.first { it.trip.id == 5L }.vehicleName)
+    fun `search finds a trip by its pickup or where to`() {
+        val trip = trip(7, "2026-10-21T11:12:00Z").copy(pickupLocation = "Sample Road", dropOffLocation = "Example Mawatha")
+        listOf("sample", "MAWATHA", "sample example").forEach { assertTrue(it, trip.matchesSearch(it, names)) }
+        assertFalse(trip.matchesSearch("hotel", names))
+    }
+
+    @Test
+    fun `search on a cancelled trip looks at its fee, not the fare`() {
+        val cancelled = trip(6, "2026-10-21T08:00:00Z", TripStatus.CANCELLED)
+        assertTrue(cancelled.matchesSearch("100", names))
+        assertFalse(cancelled.matchesSearch("1000", names))
+    }
+
+    @Test
+    fun `search narrows the days and their totals`() {
+        val days = groupTripsByDay(trips, HistoryFilter.ALL, calculator) { it.matchesSearch("100", names) }
+        // Only the cancelled trip's Rs. 100.00 fee; the Rs. 1,000.00 fares are other amounts.
+        assertEquals(listOf(2L), days.flatMap { it.rows }.map { it.trip.id })
+        assertEquals(8_100L, days.single().estimatedProfitCents)
     }
 }

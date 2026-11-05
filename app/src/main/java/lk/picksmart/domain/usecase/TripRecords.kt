@@ -12,9 +12,17 @@ import java.time.Instant
 
 /**
  * A trip from a Check a Ride result. The snapshot is the rates the check actually used, including
- * any per-check overrides, so the saved trip shows exactly what the rider saw.
+ * any per-check overrides, so the saved trip shows exactly what the rider saw. The locations are
+ * the optional pickup and "Where to" the rider typed.
  */
-fun tripInputFromCheck(check: ProfitInput, platform: Platform, status: TripStatus, at: Instant) = TripInput(
+fun tripInputFromCheck(
+    check: ProfitInput,
+    platform: Platform,
+    status: TripStatus,
+    at: Instant,
+    pickupLocation: String? = null,
+    dropOffLocation: String? = null,
+) = TripInput(
     tripDateTime = at,
     platform = platform,
     status = status,
@@ -34,6 +42,8 @@ fun tripInputFromCheck(check: ProfitInput, platform: Platform, status: TripStatu
         maintenanceReservePerKmCents = check.maintenanceReservePerKmCents,
         targetProfitPerKmCents = check.targetProfitPerKmCents,
     ),
+    pickupLocation = pickupLocation,
+    dropOffLocation = dropOffLocation,
 )
 
 /** A new trip from the rider's input, with the rates snapshot it was calculated with. */
@@ -58,6 +68,8 @@ fun newTrip(input: TripInput, vehicleId: Long, nowMillis: Long): Trip {
         cancellationFeeCents = clean.cancellationFeeCents,
         notes = clean.notes,
         rates = clean.rates,
+        pickupLocation = clean.pickupLocation,
+        dropOffLocation = clean.dropOffLocation,
     )
 }
 
@@ -70,19 +82,34 @@ fun applyTripEdit(current: Trip, input: TripInput, nowMillis: Long): Trip =
     newTrip(input, current.vehicleId, nowMillis).copy(
         id = current.id,
         createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
     )
 
 /**
  * A cancelled trip was never driven, so its trip distance and trip costs are cleared; they would
- * otherwise sit hidden in the record. Blank notes are stored as null. A cancellation fee only
- * belongs to a cancelled trip.
+ * otherwise sit hidden in the record. Blank notes and locations are stored as null. A
+ * cancellation fee only belongs to a cancelled trip.
  */
 private fun TripInput.normalized(): TripInput = copy(
     tripKm = if (status == TripStatus.CANCELLED) 0.0 else tripKm,
     otherCostsCents = if (status == TripStatus.CANCELLED) 0 else otherCostsCents,
     cancellationFeeCents = if (status == TripStatus.CANCELLED) cancellationFeeCents else null,
     notes = notes?.trim()?.ifEmpty { null },
+    pickupLocation = cleanLocation(pickupLocation),
+    dropOffLocation = cleanLocation(dropOffLocation),
 )
+
+/** The longest pickup or "Where to" location kept, in characters. */
+const val LOCATION_MAX_LENGTH = 120
+
+private val WHITESPACE = Regex("""\s+""")
+
+/**
+ * A location as stored: spaces and line breaks collapsed to single spaces, trimmed, cut to
+ * [LOCATION_MAX_LENGTH], and null when nothing is left.
+ */
+fun cleanLocation(text: String?): String? =
+    text?.replace(WHITESPACE, " ")?.trim()?.take(LOCATION_MAX_LENGTH)?.trim()?.ifEmpty { null }
 
 fun newOtherIncome(input: OtherIncomeInput, nowMillis: Long) = OtherIncome(
     id = 0,
@@ -96,4 +123,8 @@ fun newOtherIncome(input: OtherIncomeInput, nowMillis: Long) = OtherIncome(
 )
 
 fun applyOtherIncomeEdit(current: OtherIncome, input: OtherIncomeInput, nowMillis: Long): OtherIncome =
-    newOtherIncome(input, nowMillis).copy(id = current.id, createdAtMillis = current.createdAtMillis)
+    newOtherIncome(input, nowMillis).copy(
+        id = current.id,
+        createdAtMillis = current.createdAtMillis,
+        syncId = current.syncId,
+    )

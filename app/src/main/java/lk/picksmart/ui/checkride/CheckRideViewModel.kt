@@ -40,10 +40,9 @@ sealed interface CheckRideUiState {
     /** No default vehicle (its row is missing). Check a Ride needs one for its rates. */
     data object NoVehicle : CheckRideUiState
 
-    /** @property vehicles Every vehicle that isn't archived, for the switch; [vehicle] is the active one. */
+    /** @property vehicle The active vehicle, whose rates the check uses. It is switched from the Account tab. */
     data class Ready(
         val vehicle: Vehicle,
-        val vehicles: List<Vehicle>,
         val form: CheckRideFormState,
         val outcome: CheckRideOutcome,
         val saving: Boolean = false,
@@ -76,14 +75,13 @@ class CheckRideViewModel(
 
     val state: StateFlow<CheckRideUiState> = combine(
         vehicles.defaultVehicle,
-        vehicles.activeVehicles,
         form,
         saving,
-    ) { vehicle, list, form, saving ->
+    ) { vehicle, form, saving ->
         when {
             form == null -> CheckRideUiState.Loading
             vehicle == null -> CheckRideUiState.NoVehicle
-            else -> CheckRideUiState.Ready(vehicle, list, form, form.evaluate(vehicle.rates(), calculator), saving)
+            else -> CheckRideUiState.Ready(vehicle, form, form.evaluate(vehicle.rates(), calculator), saving)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CheckRideUiState.Loading)
 
@@ -105,16 +103,6 @@ class CheckRideViewModel(
         form.value = newForm
     }
 
-    /**
-     * Makes [vehicleId] the active vehicle in one tap. Its rates replace the old ones (any rates
-     * typed for this check are dropped); the fare, fee and distances the rider typed stay. Saved
-     * trips keep their own vehicle and rates.
-     */
-    fun switchVehicle(vehicleId: Long) {
-        form.update { it?.copy(overrides = null) }
-        viewModelScope.launch { vehicles.setActive(vehicleId) }
-    }
-
     /** Opens the per-check rate fields, starting from the vehicle's current rates. */
     fun startOverrides(vehicle: Vehicle) = form.update { it?.copy(overrides = it.overrides ?: vehicle.toRateOverrides()) }
 
@@ -123,8 +111,8 @@ class CheckRideViewModel(
 
     /**
      * Saves the current result as an [TripStatus.OFFER_CHECK] ("Save offer") or a
-     * [TripStatus.COMPLETED] trip ("I took it"), timed now, then starts a new check: the fare and
-     * any rate overrides clear, everything else stays.
+     * [TripStatus.COMPLETED] trip ("I took it"), timed now, then starts a new check: the fare, the
+     * locations and any rate overrides clear, everything else stays.
      */
     fun save(status: TripStatus) {
         val ready = state.value as? CheckRideUiState.Ready ?: return
@@ -135,9 +123,16 @@ class CheckRideViewModel(
             val message = try {
                 trips.create(
                     ready.vehicle.id,
-                    tripInputFromCheck(calculated.input, ready.form.platform, status, clock.instant()),
+                    tripInputFromCheck(
+                        calculated.input,
+                        ready.form.platform,
+                        status,
+                        clock.instant(),
+                        pickupLocation = ready.form.pickupLocation,
+                        dropOffLocation = ready.form.dropOffLocation,
+                    ),
                 )
-                form.update { it?.copy(fare = "", overrides = null) }
+                form.update { it?.copy(fare = "", overrides = null, pickupLocation = "", dropOffLocation = "") }
                 if (status == TripStatus.OFFER_CHECK) CheckRideMessage.OFFER_SAVED else CheckRideMessage.TRIP_SAVED
             } catch (e: CancellationException) {
                 throw e

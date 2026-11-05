@@ -53,10 +53,10 @@ import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.label
 import lk.picksmart.util.ColomboZone
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.todayInColombo
 import java.time.Instant
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * Fuel price (CLAUDE.md section 8a): a new published price as a prompt, the default vehicle's fuel
@@ -299,7 +299,7 @@ private fun InfoLine(state: FuelPriceUiState.Ready) {
 private fun rememberFullDate(date: LocalDate): String {
     val locale = LocalConfiguration.current.locales[0]
     val pattern = stringResource(R.string.pattern_date_field)
-    return remember(date, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(date) }
+    return remember(date, pattern, locale) { dateFormatter(pattern, locale).format(date) }
 }
 
 /** "23 Oct, 10:15 AM" in Colombo time. */
@@ -308,6 +308,6 @@ private fun rememberCheckTime(millis: Long): String {
     val dateTime = remember(millis) { Instant.ofEpochMilli(millis).atZone(ColomboZone) }
     val locale = LocalConfiguration.current.locales[0]
     val timePattern = stringResource(R.string.pattern_time)
-    val time = remember(dateTime, timePattern, locale) { DateTimeFormatter.ofPattern(timePattern, locale).format(dateTime) }
+    val time = remember(dateTime, timePattern, locale) { dateFormatter(timePattern, locale).format(dateTime) }
     return stringResource(R.string.fuel_price_checked_at, rememberRecordDate(dateTime.toLocalDate(), todayInColombo()), time)
 }

@@ -8,7 +8,6 @@
     <string name="nav_home">Home</string>
     <string name="nav_check_ride">Check Ride</string>
     <string name="nav_history">History</string>
-    <string name="nav_reports">Reports</string>
     <string name="nav_account">Account</string>
 
     <!-- Result bands. Always shown with an icon; never rely on colour alone. -->
@@ -25,6 +24,7 @@
     <string name="state_loading">Loading</string>
     <string name="action_view">View</string>
     <string name="action_ok">OK</string>
+    <string name="action_remove">Remove</string>
     <string name="action_back">Back</string>
     <string name="action_delete">Delete</string>
     <string name="action_save">Save</string>
@@ -48,6 +48,10 @@
     <string name="income_type_tip">Tip</string>
     <string name="income_type_bonus">Bonus</string>
     <string name="income_type_other">Other</string>
+    <string name="income_type_incentive_hint">Targets and promotions</string>
+    <string name="income_type_tip_hint">From passengers</string>
+    <string name="income_type_bonus_hint">Weekly and special</string>
+    <string name="income_type_other_hint">Anything else</string>
     <!-- java.time patterns -->
     <string name="pattern_date_field">d MMM yyyy</string>
     <string name="pattern_time">h:mm a</string>
@@ -69,10 +73,17 @@
     <string name="home_net_basis">After fees, fuel and maintenance reserve</string>
     <string name="home_net_empty">Nothing recorded today yet. Check an offer, then tap \"I took it\" to count it.</string>
     <string name="home_stat_earned">Earned after fees</string>
-    <string name="home_stat_expenses">Recorded expenses</string>
+    <string name="home_stat_expenses">Expenses</string>
     <string name="home_stat_trips">Completed trips</string>
     <string name="home_stat_distance">Distance</string>
     <string name="home_recent">Recent trips</string>
+    <string name="home_month_profit">This month\'s profit</string>
+    <string name="home_month_detail">%1$s · %2$s per km</string>
+    <string name="home_month_empty">No trips this month yet</string>
+    <string name="home_all_time">All time</string>
+    <string name="home_total_distance">Total distance</string>
+    <string name="home_longest_trip">Longest trip</string>
+    <string name="home_longest_none">No trips with a distance yet</string>
     <string name="home_see_all">See all</string>
 
     <!-- Check a Ride -->
@@ -82,9 +93,8 @@
     <string name="check_fare_gross">Fare offered</string>
     <string name="check_fare_payout">Payout to you</string>
     <string name="check_fare_payout_help">The platform fee is already taken out, so it isn\'t asked for.</string>
-    <string name="check_clear_fare">Clear fare</string>
     <string name="check_fee">Platform fee</string>
-    <string name="check_fee_unit_amount" translatable="false">Rs.</string>
+    <string name="check_fee_unit_amount">Rs.</string>
     <string name="check_fee_unit_percent" translatable="false">%</string>
     <string name="check_fee_in_rupees">Fee in rupees</string>
     <string name="check_fee_in_percent">Fee as a percentage of the fare</string>
@@ -94,12 +104,18 @@
     <string name="check_pickup">Pickup</string>
     <string name="check_trip">Trip</string>
     <string name="check_return">Return</string>
-    <string name="check_optional">Optional</string>
+    <string name="check_return_optional">Return (optional)</string>
+    <string name="check_total_km">Total %1$s km</string>
+    <string name="check_fare_add" translatable="false">+%1$d</string>
+    <string name="check_fare_add_description">Add Rs. %1$d to the fare</string>
+    <string name="check_fee_equivalent" translatable="false">= %1$s</string>
     <string name="unit_km">km</string>
     <!-- Rates beside their icons on the Check a Ride vehicle card and the Vehicles list. %1$s: an amount such as "Rs. 300.00", or km per litre such as "40" -->
     <string name="check_rate_fuel_price">%1$s/L</string>
     <string name="check_rate_efficiency">%1$s km/L</string>
-    <string name="check_rate_reserve">%1$s/km reserve</string>
+    <string name="check_rate_reserve">%1$s/km</string>
+    <!-- Read aloud for the wrench rate: "Maintenance reserve, Rs. 2.00/km" -->
+    <string name="check_rate_reserve_description">Maintenance reserve, %1$s/km</string>
     <string name="check_sample_label">Sample</string>
     <string name="check_change_rates">Change</string>
     <string name="check_change_rates_description">Change rates for this check</string>
@@ -155,12 +171,18 @@
     <string name="history_empty_title">No trips yet</string>
     <string name="history_empty_body">Save an offer or a trip from Check a Ride, or add a trip you\'ve already done.</string>
     <string name="history_add_trip">Add trip</string>
+    <string name="history_search">Search trips</string>
+    <string name="history_search_close">Close search</string>
+    <string name="history_search_hint">Note, ride app or fare</string>
+    <string name="history_search_empty_title">No matching trips</string>
+    <string name="history_search_empty_body">Nothing matches “%1$s”. Try a word from a note, a ride app or a fare.</string>
     <string name="history_filter_all">All</string>
     <string name="history_filter_completed">Completed</string>
     <string name="history_filter_offers">Offers</string>
     <string name="history_filter_cancelled">Cancelled</string>
     <string name="history_filter_empty_title">Nothing here</string>
     <string name="history_filter_empty_body">No trips match this filter.</string>
+    <string name="history_vehicle_empty_body">No trips on %1$s yet. Switch the vehicle on Check a Ride to see trips on another vehicle.</string>
     <!-- Day headers: "Today · Wed 21 Oct" -->
     <string name="history_today">Today · %1$s</string>
     <string name="history_yesterday">Yesterday · %1$s</string>
@@ -174,7 +196,6 @@
     <string name="history_row_cancelled_no_fee">%1$s km · no fee</string>
     <string name="history_row_offer_note">Not counted as income</string>
     <!-- %1$s: the vehicle's name; %2$s: the rest of the row, e.g. "5.0 km · fare Rs. 60.00" -->
-    <string name="history_row_with_vehicle">%1$s · %2$s</string>
     <!-- An offer's estimate, which is never income: "-Rs. 50.00 est." -->
     <string name="history_offer_estimate">%1$s est.</string>
     <string name="history_row_unavailable">Can\'t calculate</string>
@@ -203,6 +224,26 @@
     <string name="trip_not_found_body">This trip is no longer on this phone.</string>
     <string name="trip_save_failed">Couldn\'t save. Your changes are still here; please try again.</string>
     <string name="trip_no_vehicle_body">Add your vehicle first, so the trip has fuel and maintenance rates.</string>
+    <string name="action_edit">Edit</string>
+    <string name="trip_details_title">Trip details</string>
+    <string name="trip_details_when" translatable="false">%1$s · %2$s</string>
+    <string name="trip_details_money">Fare and costs</string>
+    <string name="trip_details_fee_percent">%1$s%% of the fare</string>
+    <string name="trip_details_fee_taken">Platform fee already taken out</string>
+    <string name="trip_details_fuel">Fuel (estimate)</string>
+    <string name="trip_details_total_km">Total distance</string>
+    <string name="trip_details_more">More details</string>
+    <string name="trip_details_vehicle">Vehicle</string>
+    <string name="trip_details_note">Note</string>
+    <string name="trip_locations_optional">Pickup and where to · optional</string>
+    <string name="trip_locations">Pickup and where to</string>
+    <string name="trip_add_locations">Add pickup and where to</string>
+    <string name="trip_pickup_location">Pickup location</string>
+    <string name="trip_drop_off_location">Where to</string>
+    <string name="history_row_route" translatable="false">%1$s → %2$s</string>
+    <string name="history_row_route_to" translatable="false">→ %1$s</string>
+    <string name="trip_details_cancelled_note">The cancellation fee, minus fuel and reserve for the distance you drove.</string>
+    <string name="trip_delete_failed">Couldn\'t delete the trip. Please try again.</string>
 
     <!-- Other income -->
     <string name="income_title">Other income</string>
@@ -247,6 +288,9 @@
     <string name="fuel_price">Price per litre</string>
     <string name="fuel_price_help">Starts from your vehicle\'s price. Change it if this station charged differently.</string>
     <string name="fuel_worked_out">Worked out from the price</string>
+    <string name="fuel_litres_and_price">Litres and price</string>
+    <string name="fuel_auto">Worked out</string>
+    <string name="fuel_sum_line" translatable="false">%1$s %2$s × %3$s = %4$s</string>
     <string name="fuel_full_tank">Full tank</string>
     <string name="fuel_full_tank_body">Filled to the top. Two full tanks with odometer readings show your real km per litre.</string>
     <string name="fuel_odometer">Odometer · optional</string>
@@ -296,11 +340,16 @@
     <string name="expense_add_title">Add expense</string>
     <string name="expense_edit_title">Edit expense</string>
     <string name="expense_category">Category</string>
-    <string name="expense_category_maintenance">Maintenance &amp; repair</string>
+    <string name="expense_category_maintenance">Maintenance</string>
     <string name="expense_category_parking">Parking</string>
     <string name="expense_category_mobile_data">Mobile data</string>
     <string name="expense_category_tolls">Tolls</string>
     <string name="expense_category_other">Other</string>
+    <string name="expense_category_maintenance_hint">Repairs and oil</string>
+    <string name="expense_category_parking_hint">Street and car parks</string>
+    <string name="expense_category_mobile_data_hint">Data and app packages</string>
+    <string name="expense_category_tolls_hint">Highway tolls</string>
+    <string name="expense_category_other_hint">Wash, puncture, fines and more</string>
     <string name="expense_amount">Amount</string>
     <string name="expense_date">Date</string>
     <string name="expense_odometer">Odometer · optional</string>
@@ -398,7 +447,7 @@
     <string name="vehicle_field_type">Vehicle type</string>
     <string name="vehicle_field_name">Vehicle name</string>
     <string name="vehicle_field_name_placeholder">e.g. Honda Dio</string>
-    <string name="vehicle_field_plate">Vehicle number (optional)</string>
+    <string name="vehicle_field_plate">Vehicle number</string>
     <string name="vehicle_field_plate_placeholder">e.g. WP CAB-1234</string>
     <string name="vehicle_field_plate_help">Helps you tell your vehicles apart</string>
     <!-- "Motorcycle · WP CAB-1234" -->
@@ -407,6 +456,14 @@
     <string name="vehicle_field_fuel_price">Fuel price</string>
     <string name="vehicle_field_fuel_price_placeholder">Today\'s pump price</string>
     <string name="vehicle_field_fuel_price_help">Use the price you paid at your last fill-up.</string>
+    <string name="vehicle_price_step_down" translatable="false">−%1$d</string>
+    <string name="vehicle_price_up_description">Raise the fuel price by Rs. %1$d</string>
+    <string name="vehicle_price_down_description">Lower the fuel price by Rs. %1$d</string>
+    <string name="amount_quick_add_button" translatable="false">+%1$s</string>
+    <string name="note_counter" translatable="false">%1$d/%2$d</string>
+    <string name="amount_quick_add">Quick add</string>
+    <string name="amount_add_description">Add Rs. %1$d</string>
+    <string name="amount_clear">Clear %1$s</string>
     <string name="vehicle_field_efficiency">Fuel efficiency</string>
     <string name="vehicle_field_efficiency_help">How many km you usually get from one litre.</string>
     <string name="vehicle_field_maintenance">Maintenance reserve</string>
@@ -414,6 +471,8 @@
     <string name="vehicle_field_target">Profit target · optional</string>
     <string name="vehicle_field_target_placeholder">Minimum you want</string>
     <string name="vehicle_field_target_help">Rides below this show as “Below target”.</string>
+    <string name="vehicle_error_name_required">Enter a name for the vehicle</string>
+    <string name="vehicle_error_plate_required">Enter the vehicle number</string>
     <string name="vehicle_error_fuel_price_required">Enter the fuel price</string>
     <string name="vehicle_error_efficiency_required">Enter how many km you get per litre</string>
     <string name="vehicle_error_above_zero">Must be more than 0</string>
@@ -450,11 +509,30 @@
     <string name="onboarding_step">Step %1$d of %2$d</string>
     <string name="onboarding_vehicle_title">Set up your vehicle</string>
     <string name="onboarding_vehicle_body">These numbers estimate fuel and maintenance for every ride. You can change them any time.</string>
+    <string name="onboarding_permissions_title">Permissions</string>
+    <string name="onboarding_permissions_body">Both are optional. Picksmart works without them, and you can change them later in Android settings or on the Account tab.</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_body">Lets Picksmart ask whether to save a ride offer as a trip, and send reminders you turn on.</string>
+    <string name="permission_reader_body">Shows the estimated profit or loss on Uber Driver offers. Off unless you turn it on.</string>
+    <string name="permission_allow">Allow</string>
+    <string name="permission_allowed">Allowed</string>
+    <string name="permission_turn_on">Turn on</string>
+    <string name="permission_on">On</string>
+    <string name="permission_open_settings">Open settings</string>
     <string name="onboarding_safety_title">Before you ride</string>
     <string name="onboarding_safety_estimates">Results are estimates, based on the numbers you enter.</string>
     <string name="onboarding_safety_stopped">Only check ride offers when you\'re stopped safely.</string>
-    <string name="onboarding_safety_no_reading">Picksmart never reads or taps inside Uber, PickMe or other apps. You type the numbers.</string>
-    <string name="onboarding_safety_on_device">Your records stay on this phone and work without internet.</string>
+    <string name="onboarding_safety_no_reading">Picksmart never taps inside Uber, PickMe or other apps. You type the numbers, unless you turn on Read ride offers.</string>
+    <string name="onboarding_safety_on_device">Your records stay on this phone and work without internet. When you\'re signed in, they\'re also backed up to your account.</string>
+    <string name="onboarding_restore_title">Restoring your data</string>
+    <string name="onboarding_restore_body">Restoring your data, please wait… Your vehicles, trips and records are coming back from your backup. This needs internet.</string>
+    <string name="onboarding_restore_offline">Waiting for internet. Restoring carries on by itself once you\'re online.</string>
+    <string name="onboarding_restore_unverified">Your backup can\'t be restored on this copy of Picksmart until Google Play has verified it. Picksmart keeps trying.</string>
+    <string name="onboarding_restore_failed">Couldn\'t restore your backup yet. Picksmart keeps trying.</string>
+    <string name="onboarding_restore_skip">Skip and start fresh</string>
+    <string name="onboarding_restore_skip_body">Skipping starts you fresh in your account on this phone: nothing is restored, and backup stays off here. Your backup stays safe; turn backup on from the Account tab to bring it back.</string>
+    <string name="onboarding_restore_none_title">No backup found</string>
+    <string name="onboarding_restore_none_body">This account has no backup yet, so there\'s nothing to restore. Set up your vehicle to start. From now on, your records are backed up to this account.</string>
     <string name="onboarding_safety_accept">I understand, start</string>
     <string name="onboarding_save_failed">Couldn\'t save your vehicle. Please try again.</string>
     <string name="action_continue">Continue</string>
@@ -481,6 +559,8 @@
     <string name="vehicle_switch_title">Switch vehicle</string>
     <string name="vehicle_switch_body">Check a Ride and new records use its rates. Saved records keep theirs.</string>
     <string name="record_vehicle_label">Vehicle</string>
+    <string name="vehicle_scope_for">%1$s · vehicle in use</string>
+    <string name="vehicle_scope_shared_note">Incentives, tips and expenses with no vehicle belong to no single vehicle, so they are not counted here.</string>
     <string name="vehicle_delete">Delete vehicle</string>
     <!-- %1$s: the vehicle's name -->
     <string name="vehicle_delete_title">Delete %1$s?</string>
@@ -500,6 +580,9 @@
     <string name="settings_add_vehicle">Add your vehicle</string>
     <string name="settings_add_vehicle_body">Needed to estimate fuel and maintenance for each ride.</string>
     <string name="settings_sample_body">Your estimates use example numbers. Enter your own fuel price, km per litre and maintenance so they match your real costs.</string>
+    <string name="settings_section_reports">Reports</string>
+    <string name="settings_reports">Profit reports</string>
+    <string name="settings_reports_body">Day, week or month, estimated and cash, with CSV export</string>
     <string name="settings_section_records">Records</string>
     <string name="settings_other_income">Other income</string>
     <string name="settings_other_income_body">Bonuses, tips and incentives</string>
@@ -509,9 +592,64 @@
     <string name="settings_expenses_body">Repairs, parking, mobile data and tolls</string>
     <string name="settings_section_app">App</string>
     <string name="settings_section_about">About</string>
+
+    <!-- Offer reader (CLAUDE.md section 9b) -->
+    <string name="settings_section_glance">While riding</string>
+    <string name="offer_reader_title">Read ride offers</string>
+    <string name="offer_reader_on">On · shows profit or loss on new offers</string>
+    <string name="offer_reader_off">Off</string>
+    <string name="offer_reader_disclosure_title">Read ride offers?</string>
+    <string name="offer_reader_disclosure_body">Picksmart can read the fare and distances on a ride offer in Uber Driver and show the estimated profit or loss in a small badge at the top of the screen.\n\nIt uses Android\'s accessibility service to read the text on the offer only. It never taps, accepts or declines anything. What it reads stays on this phone: it is not saved, logged or sent anywhere.\n\nWhen an offer closes, a notification asks whether you took it. Tapping it fills in a trip for you to check; nothing is saved until you tap Save.\n\nRide apps may not allow other apps to read their screens. Using this could get your driver account warned or blocked. Use it at your own risk.\n\nThe result is an estimate from your vehicle\'s rates. Always check before you accept.</string>
+    <string name="offer_reader_disclosure_accept">Turn on in Settings</string>
+    <string name="offer_reader_paused">Paused · not reading offers</string>
+    <string name="offer_sound_title">Sound on profit or loss</string>
+    <!-- The switch at the top of Check a Ride -->
+    <string name="offer_reader_switch_label">Read offers</string>
+    <string name="offer_reader_state_on">Active</string>
+    <string name="offer_reader_state_paused">Paused</string>
+    <string name="offer_reader_state_off">Off</string>
+    <string name="offer_reader_manage_on_body">Picksmart is reading new offers in Uber Driver.\n\nPause stops it until you resume; it stays on in Android, so ride apps can still see it is turned on.\n\nTurn off completely switches it off in Android too. Turning it on again then needs Accessibility settings.</string>
+    <string name="offer_reader_manage_paused_body">Paused: Picksmart reads nothing and shows no badge.\n\nIt is still on in Android, so ride apps can still see it is turned on. Turn off completely to switch it off in Android too.</string>
+    <string name="offer_reader_pause">Pause</string>
+    <string name="offer_reader_resume">Resume</string>
+    <string name="offer_reader_turn_off_completely">Turn off completely</string>
+    <string name="offer_reader_settings_hint">In Accessibility, open Picksmart under Downloaded apps (or Installed apps) and turn it on.</string>
+    <string name="offer_reader_service_summary">Shows the estimated profit or loss of a ride offer. Reads the offer only, never taps.</string>
+    <string name="offer_reader_service_description">Reads the fare and distances on ride offers in Uber Driver, on this phone only, to show the estimated profit or loss in a small badge. It never taps, accepts or declines anything, and nothing it reads is saved or sent anywhere. Ride apps may not allow this, and a driver account could be warned or blocked.</string>
+    <string name="offer_badge_amounts">%1$s · %2$s/km</string>
+    <string name="offer_badge_source">Estimate · %1$s</string>
+    <string name="offer_badge_hide_hint">Hold to hide</string>
+    <string name="offer_badge_tip">Includes %1$s tip</string>
+    <string name="offer_badge_powered">Powered by Picksmart</string>
+    <!-- The floating bubble (section 9a) -->
+    <string name="bubble_title">Floating bubble</string>
+    <string name="bubble_body">Shows your profit target per km over other apps.</string>
+    <string name="bubble_permission_needed">Needs \"Display over other apps\" · tap to allow</string>
+    <string name="bubble_warning_title">Show the bubble over other apps?</string>
+    <string name="bubble_warning_body">Picksmart needs Android\'s \"Display over other apps\" permission for this. On the next screen, turn it on for Picksmart, then come back.\n\nSome ride apps ignore taps under another app\'s bubble. Move it aside before you tap Accept, and hold it to hide it at once.</string>
+    <string name="bubble_warning_allow">Open settings</string>
+    <string name="bubble_rate_description">Target %1$s/km</string>
+    <string name="bubble_target_not_set">No target set</string>
+    <string name="bubble_rate_unknown">Set up a vehicle</string>
+    <string name="bubble_description_closed">Picksmart. Tap to show your profit target per km</string>
+    <string name="bubble_description_open">%1$s. Hold to hide</string>
+    <string name="offer_save_channel_name">Save offers as trips</string>
+    <string name="offer_save_channel_description">After the offer reader shows a ride offer, asks whether to save it as a trip.</string>
+    <string name="offer_save_title">Took this ride? Save it as a trip</string>
+    <string name="offer_save_body">%1$s · %2$s km · tap to check and save</string>
+    <string name="offer_save_public_title">Save your last ride offer as a trip</string>
+    <string name="trip_from_offer_title">Filled from the ride offer</string>
+    <string name="trip_offer_tip_title">Add the %1$s tip</string>
+    <string name="trip_offer_tip_body">Added to Other income.</string>
+    <string name="trip_from_offer_notice">Check the numbers before you save.</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">Phone\'s language</string>
+    <string name="language_name_en" translatable="false">English</string>
+    <string name="language_name_si" translatable="false">සිංහල</string>
+    <string name="language_name_ta" translatable="false">தமிழ்</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_version">Version</string>
-    <string name="theme_system">System default</string>
+    <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <!-- Fuel price (published CPC prices, CLAUDE.md section 8a) -->
@@ -575,6 +713,23 @@
     <string name="account_sign_in">Sign in</string>
     <string name="account_unavailable">Sign-in isn\'t available in this version of the app.</string>
     <string name="account_email_not_verified">Email not verified</string>
+    <string name="backup_title">Cloud backup</string>
+    <string name="backup_running">Backing up…</string>
+    <string name="backup_never">Not backed up yet</string>
+    <!-- %1$s: when the last backup finished, such as "26 Oct, 10:42 AM" -->
+    <string name="backup_done">Last backed up %1$s</string>
+    <string name="backup_offline">Waiting for internet. Your records are safe on this phone.</string>
+    <string name="backup_refused">The backup server didn\'t accept your sign-in. Sign out and in again.</string>
+    <string name="backup_unverified">Backup starts once Google Play has verified this copy of Picksmart. Your records are safe on this phone.</string>
+    <string name="backup_failed">Backup didn\'t finish. Try again.</string>
+    <plurals name="backup_pending">
+        <item quantity="one">%d change waiting to back up</item>
+        <item quantity="other">%d changes waiting to back up</item>
+    </plurals>
+    <string name="backup_now">Back up now</string>
+    <string name="backup_paused">Backup is off on this phone because you started fresh. Turn it on to bring your backup back and add these records to it.</string>
+    <string name="backup_turn_on">Turn on backup</string>
+    <string name="pattern_backup_time">d MMM, h:mm a</string>
     <!-- Screen reader action on the signed-in profile card -->
     <string name="account_open_profile">open your profile</string>
 
@@ -610,6 +765,15 @@
     <string name="auth_skip">Skip — use without an account</string>
     <string name="auth_needs_internet">Signing in needs internet. The rest of the app works offline.</string>
     <string name="auth_register_later">You can create an account later from the Account tab. Without one, your data stays only on this phone.</string>
+    <!-- Asked once, right after a new account is created on a phone that has records made without one -->
+    <string name="auth_move_records_title">Move your records to this account?</string>
+    <string name="auth_move_records_body">This phone has trips and records made without an account. Move them to your new account to back them up, or keep them separate: your account then starts empty, and they come back when you sign out.</string>
+    <string name="auth_move_records_move">Move to my account</string>
+    <string name="auth_move_records_keep">Keep separate</string>
+    <!-- The same question when an account that already existed signs in for the first time on this phone -->
+    <string name="auth_merge_records_title">Add these records to your account?</string>
+    <string name="auth_merge_records_body">This phone has trips and records made without an account. Add them to your account, together with your backup, or keep them separate: you then see only your account\'s records, and these come back when you sign out.</string>
+    <string name="auth_merge_records_merge">Add to my account</string>
     <string name="auth_reset_title">Reset password</string>
     <string name="auth_reset_body">Enter your account email and we\'ll send you a link to choose a new password.</string>
     <string name="auth_reset_action">Send reset link</string>
@@ -635,6 +799,7 @@
     <string name="auth_error_too_many">Too many attempts. Wait a few minutes and try again.</string>
     <string name="auth_error_disabled">This account has been turned off.</string>
     <string name="auth_error_recent_sign_in">For your safety, sign out and sign in again, then try once more.</string>
+    <string name="auth_error_different_account">That\'s a different Google account. Choose the account you\'re signed in with.</string>
     <string name="auth_error_unknown">Something went wrong. Try again.</string>
     <string name="auth_error_google_no_account">No Google account on this phone. Add one in Android settings, or use email.</string>
     <string name="auth_error_google_failed">Google sign-in didn\'t work. Try again, or use email.</string>
@@ -654,17 +819,52 @@
     <string name="profile_mobile">Mobile number</string>
     <string name="profile_mobile_optional">Optional</string>
     <string name="profile_mobile_not_verified">Not verified</string>
-    <string name="profile_sign_in_method">Signed in with</string>
-    <string name="profile_method_email">Email and password</string>
-    <string name="profile_method_google">Google</string>
+    <string name="profile_change_photo">Change photo</string>
+    <string name="profile_change_photo_description">Change profile photo</string>
+    <string name="profile_remove_photo">Remove photo</string>
+    <string name="profile_photo_failed">Couldn\'t use that photo. Try another one.</string>
+    <string name="profile_photo_unsupported">Choose a JPG, PNG, WebP or HEIC photo.</string>
+    <string name="profile_photo_too_large">That photo is over 20 MB. Choose a smaller one.</string>
+    <string name="profile_gender">Gender</string>
+    <string name="profile_birth_date">Date of birth</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_other">Other</string>
+    <string name="gender_prefer_not_to_say">Prefer not to say</string>
     <string name="profile_edit_name">Edit name</string>
     <string name="profile_edit_mobile">Edit mobile number</string>
     <string name="profile_sign_out">Sign out</string>
     <string name="profile_sign_out_title">Sign out?</string>
-    <string name="profile_sign_out_body">Your trips and records stay on this phone. Sign in again any time.</string>
+    <string name="profile_sign_out_body_apart">Your trips and records stay on this phone and come back when you sign in again. Until then, Picksmart shows the records made without an account.</string>
     <string name="profile_delete_account">Delete account</string>
     <string name="profile_delete_title">Delete your account?</string>
-    <string name="profile_delete_body">This deletes your Picksmart account and can\'t be undone. Your trips and records stay on this phone.</string>
-    <string name="profile_delete_confirm">Delete account</string>
-    <string name="profile_records_stay">Signing out or deleting your account never removes your trips and records from this phone.</string>
+    <string name="profile_delete_body">This can\'t be undone. It permanently deletes:</string>
+    <string name="profile_delete_item" translatable="false">• %1$s</string>
+    <string name="profile_delete_item_account">Your Picksmart account</string>
+    <string name="profile_delete_item_backup">Your cloud backup</string>
+    <string name="profile_delete_item_phone">Everything on this phone: vehicles, trips, fuel logs, expenses, income, profile details and settings</string>
+    <string name="profile_delete_export_hint">Want a copy first? Cancel and export your records as CSV. Picksmart then starts again from the welcome screen. This needs internet.</string>
+    <string name="profile_delete_password_label">Your password</string>
+    <string name="profile_delete_password_hint">Enter your password to confirm it\'s you.</string>
+    <string name="profile_delete_google_hint">You\'ll choose your Google account to confirm it\'s you.</string>
+    <string name="profile_deleting">Deleting…</string>
+    <string name="profile_delete_account_failed">Your cloud backup was deleted, but your account wasn\'t. Your records are still on this phone. Check your internet connection and try again.</string>
+    <string name="profile_delete_cloud_failed">Couldn\'t delete your cloud backup. Check your internet connection and try again.</string>
+    <string name="profile_delete_cloud_refused">The backup server refused to delete your cloud backup, so nothing was deleted. Try again later.</string>
+    <string name="profile_delete_cloud_unverified">Your cloud backup couldn\'t be deleted because this copy of Picksmart couldn\'t be verified, so nothing was deleted. Install Picksmart from Google Play and try again.</string>
+    <string name="profile_delete_cloud_error">Couldn\'t delete your cloud backup, so nothing was deleted. Try again.</string>
+    <string name="profile_delete_confirm">Delete everything</string>
+    <string name="profile_records_stay">Signing out keeps your trips and records on this phone. Deleting your account removes them from this phone and from the cloud.</string>
+
+    <!-- The alerts inbox (section 9a) -->
+    <string name="alerts_title">Alerts</string>
+    <string name="alerts_empty_title">No alerts yet</string>
+    <string name="alerts_empty_body">Fuel price changes will show here, even with no internet.</string>
+    <string name="alerts_kept_note">Alerts are kept for 30 days.</string>
+    <string name="alerts_new">New</string>
+    <string name="alerts_badge_many" translatable="false">9+</string>
+    <plurals name="home_alerts_unread">
+        <item quantity="one">Alerts, %d unread</item>
+        <item quantity="other">Alerts, %d unread</item>
+    </plurals>
 </resources>

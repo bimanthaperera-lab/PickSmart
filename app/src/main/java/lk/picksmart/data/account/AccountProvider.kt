@@ -37,8 +37,21 @@ interface AccountProvider {
     /** Signs out. Never touches the rider's records on the device. */
     suspend fun signOut()
 
-    /** Deletes the sign-in account. The rider's records on the device stay. */
+    /**
+     * Proves again that the signed-in rider is at the phone. Firebase deletes an account only
+     * after a recent sign-in, so [lk.picksmart.domain.usecase.DeleteAccount] asks for this first.
+     */
+    suspend fun confirmIdentity(proof: IdentityProof): AuthResult
+
+    /** Deletes the sign-in account only; [lk.picksmart.domain.usecase.DeleteAccount] does the rest. */
     suspend fun deleteAccount(): AuthResult
+}
+
+/** What the rider gives to confirm it's them: their password, or Google's account picker. */
+sealed interface IdentityProof {
+    data class Password(val password: String) : IdentityProof
+
+    data class Google(val idToken: String) : IdentityProof
 }
 
 /** Whether a rider is signed in; always false in a build without sign-in. Works offline. */
@@ -61,6 +74,9 @@ enum class AuthError {
     TOO_MANY_ATTEMPTS,
     ACCOUNT_DISABLED,
     RECENT_SIGN_IN_REQUIRED,
+
+    /** Google's picker returned another account than the one signed in. */
+    DIFFERENT_ACCOUNT,
     NOT_AVAILABLE,
     UNKNOWN,
 }
@@ -79,5 +95,6 @@ object NoOpAccountProvider : AccountProvider {
     override suspend fun refresh() = unavailable
     override suspend fun updateName(name: String) = unavailable
     override suspend fun signOut() = Unit
+    override suspend fun confirmIdentity(proof: IdentityProof) = unavailable
     override suspend fun deleteAccount() = unavailable
 }

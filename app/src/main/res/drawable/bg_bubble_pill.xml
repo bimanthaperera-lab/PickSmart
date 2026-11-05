@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The opened bubble: a brand yellow pill around the pin and the minimum fare per km. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/brand_yellow" />
+    <corners android:radius="28dp" />
+</shape>

@@ -4,10 +4,12 @@ import lk.picksmart.domain.model.FuelType
 import lk.picksmart.domain.model.Vehicle
 import lk.picksmart.domain.model.VehicleInput
 import lk.picksmart.domain.model.VehicleType
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.parseDecimal
 import lk.picksmart.util.parseRupeesToCents
+import java.math.BigDecimal
 import java.util.Locale
 
 /**
@@ -28,13 +30,13 @@ data class VehicleFormState(
 /** Longest number plate the form accepts, e.g. "WP CAB-1234" is 11. */
 const val PLATE_NUMBER_MAX_LENGTH = 15
 
-enum class VehicleField { FUEL_PRICE, EFFICIENCY, MAINTENANCE, TARGET }
+enum class VehicleField { NAME, PLATE, FUEL_PRICE, EFFICIENCY, MAINTENANCE, TARGET }
 
 enum class FieldError {
     /** Left empty but needed. */
     REQUIRED,
 
-    /** Must be more than zero (fuel efficiency). */
+    /** Must be more than zero (fuel efficiency, profit target when given). */
     MUST_BE_ABOVE_ZERO,
 
     /** Not a usable number. */
@@ -47,11 +49,18 @@ sealed interface VehicleFormResult {
 }
 
 /**
- * Checks the form. Fuel price and efficiency are required; maintenance may be left empty (0);
- * the target and number plate are optional (null when empty). A blank name becomes [defaultName].
+ * Checks the form. The name, number plate, fuel price and efficiency are required (owner request
+ * 2026-10-30); efficiency must be more than 0. Maintenance may be left empty (0). The profit target
+ * is optional (null when empty) but must be more than 0 when given.
  */
-fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
+fun VehicleFormState.validate(): VehicleFormResult {
     val errors = mutableMapOf<VehicleField, FieldError>()
+
+    val vehicleName = name.trim().ifEmpty { null }
+    if (vehicleName == null) errors[VehicleField.NAME] = FieldError.REQUIRED
+
+    val plate = normalizePlateNumber(plateNumber)
+    if (plate == null) errors[VehicleField.PLATE] = FieldError.REQUIRED
 
     val price = if (fuelPrice.isBlank()) {
         errors[VehicleField.FUEL_PRICE] = FieldError.REQUIRED
@@ -87,22 +96,35 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
     val targetCents = if (target.isBlank()) {
         null
     } else {
-        parseRupeesToCents(target).also { if (it == null) errors[VehicleField.TARGET] = FieldError.INVALID }
+        val parsed = parseRupeesToCents(target)
+        when {
+            parsed == null -> {
+                errors[VehicleField.TARGET] = FieldError.INVALID
+                null
+            }
+            parsed <= 0 -> {
+                errors[VehicleField.TARGET] = FieldError.MUST_BE_ABOVE_ZERO
+                null
+            }
+            else -> parsed
+        }
     }
 
-    if (errors.isNotEmpty() || price == null || kmPerLitre == null || reserve == null) {
+    if (errors.isNotEmpty() || vehicleName == null || plate == null || price == null || kmPerLitre == null ||
+        reserve == null
+    ) {
         return VehicleFormResult.Invalid(errors)
     }
     return VehicleFormResult.Valid(
         VehicleInput(
-            name = name.trim().ifEmpty { defaultName },
+            name = vehicleName,
             type = type,
             fuelType = fuelType,
             fuelPricePerLitreCents = price,
             fuelEfficiencyKmPerLitre = kmPerLitre,
             maintenanceReservePerKmCents = reserve,
             targetProfitPerKmCents = targetCents,
-            plateNumber = normalizePlateNumber(plateNumber),
+            plateNumber = plate,
         ),
     )
 }
@@ -113,6 +135,21 @@ fun VehicleFormState.validate(defaultName: String): VehicleFormResult {
  */
 fun VehicleFormState.withFuelType(type: FuelType, suggestions: Map<FuelType, Long>): VehicleFormState =
     copy(fuelType = type, fuelPrice = priceAfterFuelTypeSwitch(fuelPrice, fuelType, type, suggestions))
+
+/**
+ * The fuel price after a step button: [rupees] more (or less, when negative), shown with two
+ * decimals ("414.00"). An empty price starts from 0. A price that would drop below 0 or grow past
+ * the field's [InputDigits.MONEY] digits, or text that isn't a number, stays as it is.
+ */
+fun VehicleFormState.stepFuelPrice(rupees: Long): VehicleFormState {
+    val current = if (fuelPrice.isBlank()) 0L else parseRupeesToCents(fuelPrice) ?: return this
+    val cents = current + rupees * 100
+    if (cents < 0 || cents >= MAX_PRICE_CENTS) return this
+    return copy(fuelPrice = centsToInput(cents))
+}
+
+/** One more than the largest price the field takes ([InputDigits.MONEY] whole rupees). */
+private val MAX_PRICE_CENTS = BigDecimal.TEN.pow(InputDigits.MONEY).movePointRight(2).toLong()
 
 /** Fills the form from a saved vehicle, for editing. */
 fun Vehicle.toFormState() = VehicleFormState(

@@ -4,9 +4,9 @@ Claude updates this file at the end of every phase. The rules for *how* to build
 
 ## Status
 
-- **Current phase:** 7 — Dashboard, reports and export, done (2026-10-23). Phase 6c still has two open items: the onboarding CPC price pre-fill, and the rest of its emulator check.
-- **Next step:** Owner: try Reports (Day, Week, Month, Estimated and Cash) and the export icon on a phone; sign-up and sign-in checks from 8c; publish the fuel price file (`docs/fuel-price-file.md`). Claude: finish the Phase 6c emulator check, pre-fill the CPC price on onboarding, then Phase 8.
-- **Last updated:** 2026-10-23 (Phase 7: one accounting use case for Home and Reports; Reports built from the week mockup with Estimated / Cash, a daily Canvas chart and incomplete-data notes; CSV export through the share sheet)
+- **Current phase:** V1 (1.0.0) marked on 2026-10-26: everything built so far, tagged `v1.0.0` on `main`. V2 work continues on branch `v2`. V1 is not uploaded to Play yet; Phase 9 (release readiness) is still open, and Phase 6c has two open items (onboarding CPC price pre-fill, the rest of its emulator check).
+- **Next step:** V2 started with cloud backup (Phase 8c, branch `v2`). Owner: create the Firestore database, publish `firestore.rules` and test backup and restore on two phones (`docs/cloud-backup.md`). Then register App Check (Play Integrity, debug tokens) and enforce it for Firestore once the metrics look right (`docs/cloud-backup.md`, "App Check"); the app side is done. Still open from V1: run the offer reader probe with Uber Driver, read Uber's driver terms, and decide whether the offer reader ships in V1 (`docs/decisions.md`, 2026-10-26).
+- **Last updated:** 2026-10-29, latest (Add / Edit fill-up in Check a Ride's card style; Add fill-up and Add expense use the active vehicle, no picker. Before that, Add / Edit expense and income in the card style, with quick add; before that Add / Edit vehicle, with −5 / +5 on the fuel price). Before that, 2026-10-29, later (Home: this month's profit card, all-time distance and longest trip). Earlier 2026-10-29 (trips have optional pickup and "Where to" places: Check a Ride and Add trip, filled from ride offers, shown in History and Trip details; database v6. *Owner: publish `firestore.rules` before testing places with backup.*). Earlier 2026-10-27, later (accounts and restore: an account signing in for the first time is asked whether to move or add the no-account records; setup waits on "Restoring your data" until the backup is down, with Skip for a fresh start in the account with backup off and Turn on backup later; restored vehicles match the rider's own by plate or name instead of duplicating; gender, date of birth and the chosen photo are backed up and restored; no backup error for a new account; Firestore rules check every record's fields, types and text sizes, *owner: publish them*. Trip details rows got icons). Earlier 2026-10-27 (Trip details screen; swipe a History trip right to edit, left to delete. Earlier: UI polish: no hover shade, language applied after its dialog closes, navigation rail in landscape; type one step smaller with `FitText` for long Sinhala/Tamil labels; offer reader reads popup windows and PickMe Driver). Before that, 2026-10-26 (Delete account erases the cloud backup and the phone's data; Firebase App Check on `v2`; before that, cloud backup with Firestore: database v5, merge and restore, Account tab backup card)
 
 ## Open questions for the owner
 
@@ -158,6 +158,8 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [x] Clear notice when data is incomplete (trips with no distance; cash with no fill-ups; offers not counted)
 - [x] CSV export of trips, income, fuel and expenses through the share sheet (download icon on Reports; `CsvExportTest`)
 - [x] Checked on the emulator (2026-10-23, on the owner's data): Week, Estimated showed Rs. 330.00, the same as Home (600.00 − 20.00 fee − 250.00 fuel − 0.00 reserve); Cash showed −Rs. 4,420.00 (600.00 − 20.00 − 5,000.00 fuel bought) with the loss bar below the line; Day (no chart), previous to an empty day ("Nothing recorded", Next enabled again), Month with date ticks; light and dark themes. Export opened the share sheet with 4 files, and the files read from the app's cache had the byte order mark, CRLF rows, and the trip's fuel 250.00 and net 330.00. At 360 dp and 200% font two problems were fixed: "Month" broke mid-word (segment labels now shrink to one line) and the weekday labels ran together (they switch to M T W and shrink to fit). "October 2026" also pushed the view toggle to its own row, so the month label is now "Oct 2026". Unit tests check a hand-calculated week in both views. Not checked on screen: the incomplete-data notes (the owner's data has none; the rules are unit-tested), and opening the files in a spreadsheet app.
+- [x] History and Home's recent trips follow the active vehicle as well (checked on the emulator 2026-10-26: bajaj and Dio each showed "No trips on … yet"). Open: archived vehicles' trips are hidden until a vehicle can be restored (`docs/decisions.md`, 2026-10-26).
+- [x] Reports and Home's today figures follow the active vehicle: switching the vehicle switches them (`activeVehicleScope`, `AccountingRecords.forVehicle` in `VehicleScope.kt`, `VehicleScopeTest`). Checked on the emulator (2026-10-26) over the owner's data: Dio showed nothing for 19–25 Oct, bajaj showed only its own Rs. 5,000 fill-up for October, the archived CIVIC's trip no longer mixed in.
 
 **Done when:** dashboard and reports agree with each other and with hand-calculated test data.
 
@@ -177,22 +179,40 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] One `NotificationChannel` per type; `POST_NOTIFICATIONS` requested in context
 - [ ] Shift reminder: start/stop from Home, ongoing silent notification with the magic number and 5/10/15 km fares, recomputed when inputs change
-- [ ] Magic number in a tested pure function (percentage and fixed commission)
+- [x] Magic number in a tested pure function (percentage and fixed commission): `minimumFarePerKm`, `MinimumFareTest`
 - [ ] Fuel price changed, daily summary (rider-set time), optional unfinished-offer reminder
 - [ ] Daily summary and fuel price check scheduled through WorkManager
 - [ ] Quick Settings tile opening a mini fare check
-- [ ] Floating bubble (off by default, advanced) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it
-- [ ] Bubble obscured-touch safeguards: two states with one visible at a time, auto-collapse on a request, snap out of the bottom-centre region, long-press to hide
-- [ ] No reading of any other app on any surface (N5)
-- [ ] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header); posting a notification also writes an inbox row; 30-day retention; reads offline
-- [ ] Migration and migration test for the `Alert` table
+- [x] Floating bubble (off by default) behind `SYSTEM_ALERT_WINDOW`, requested only on enable, with the tap-block warning; app fully usable without it. Switch under Account → While riding (2026-10-29). Open: the small calculator inside it.
+- [x] Bubble obscured-touch safeguards: closed pin / open rate pill, one at a time; a `WRAP_CONTENT` window with `FLAG_NOT_TOUCH_MODAL` so only touches on it are taken; auto-close after 5 s, on an outside touch and when the offer badge shows; snaps to a side edge out of the lower quarter; hold to hide. Partly checked on the emulator 2026-10-29 (see `docs/decisions.md`).
+- [ ] No acting inside any other app on any surface; reading only through the opt-in offer reader (N5, Phase 8e)
+- [x] `Alert` entity + in-app alerts inbox (bell icon with unread count in Home header, replacing the three-dot menu); 30-day retention; reads offline (2026-10-30). Fuel price news writes an alert once per price list. Open: posting a system notification together with its inbox row, when the fuel price notification and daily summary are built.
+- [x] Migration and migration test for the `Alert` table (version 7, `MIGRATION_6_7`, `MigrationTest`, `AlertDaoTest`; 2026-10-30)
 
 **Done when:** a rider sees their minimum fare per km at a glance while riding, and can check a fare from the tile, with no notification sound while riding and no access to the ride app.
+
+## Phase 8e — Offer reader (owner decision 2026-10-26)
+
+- [x] CLAUDE.md N5, N6, 9a, 9b and 10 changed to allow read-only offer reading, with the risks the owner accepted
+- [x] Pure parser for the fare, pickup km and trip km from an offer's text, with fixtures (`OfferTextTest`)
+- [x] Quick check from the active vehicle and last-used fee settings, through `ProfitCalculator`
+- [x] Read-only `OfferReaderService` limited to the ride apps' packages; no actions, gestures, logs or storage of screen text
+- [x] Result badge in a top corner: band label and icon, net, per km, "Read from screen"; clears when the offer goes; never in the bottom-centre region; long-press hides it. Checked on the emulator (2026-10-26) with the sample offer screen on bajaj (Rs. 411/L, 30 km/L, Rs. 20 fee): Rs. 850 → GOOD +Rs. 710.81 · Rs. 81.70/km; Rs. 300 → BELOW TARGET +Rs. 33.40; Rs. 1,450 → GOOD +Rs. 1,266.97; Rs. 150 → LOSS −Rs. 144.00 · −Rs. 7.20/km, all matching hand calculation; no offer cleared it; Accept kept working with the badge up; holding it hid it until the next offer; it showed again after a reinstall without a new event.
+- [x] Opt-in switch on the Account tab with the prominent disclosure, then Android's Accessibility settings
+- [x] In-app "Read offers" switch (now in the Home header, moved from beside the Check a Ride title on 2026-10-26): first time shows the disclosure, then Android's settings; after that pauses and resumes at once. Account row shows On / Paused / Off, with Pause / Resume and Turn off completely (`disableSelf`). Checked on the emulator (2026-10-26): the switch sits beside the title without moving the form, shows Off and On correctly, and opens the disclosure when off. Pause cleared the badge at once, and the Rs. 850 and Rs. 300 samples then showed none while Android still listed the reader as on; Resume showed GOOD +Rs. 710.81 again; Turn off completely removed it from Android's enabled services, the row and the switch showed Off, and the sample showed no badge.
+- [x] Debug-only sample offer screen to check it on the emulator
+- [x] Badge source line is "Estimate · <vehicle>" instead of "Read from screen · <vehicle>" (owner, 2026-10-26). Checked on the emulator: the Rs. 850 sample shows GOOD +Rs. 750.54 · Rs. 86.27/km, "Estimate · Dio", "Powered by Picksmart".
+- [x] "Powered by Picksmart" line on the badge, and a "Took this ride? Save it as a trip" notification when a shown offer leaves the screen; tapping it opens Add trip filled with the offer's fare, distances, ride app and time, with a "Filled from the ride offer" notice, and nothing is saved until the rider taps Save. Notifications are asked for when the rider accepts the disclosure (Android 13+), and on the onboarding Permissions step (Step 2 of 3: notifications Allow, Read ride offers Turn on, Continue). Onboarding checked on the emulator after clearing data (backed up and restored): Allow showed Android's dialog and then "Allowed"; Turn on showed the disclosure and opened Accessibility settings; Back returned to the step; Continue went to Step 3 and Home. Checked on the emulator (2026-10-26): the badge shows the line; Decline on the Rs. 300 sample posted "Rs. 300.00 · 18 km", silent; tapping it opened Add trip with Rs. 300, pickup 3, trip 15, the offer's time (11:27) and the notice.
+- [x] PickMe Driver's package (`com.pickme.driver.byod`) in the reader and the probe; popup offers read through the window list (`flagRetrieveInteractiveWindows`), checked on the emulator with the popup sample (2026-10-27)
+- [ ] Run the probe on a phone with Uber Driver and PickMe Driver and adjust the parser to the real offer cards
+- [ ] Play Console AccessibilityService declaration, disclosure video, Data safety and privacy policy
+
+**Done when:** with the reader on, an offer in a listed ride app shows PROFIT or LOSS in the badge within a second, nothing is tapped or stored, and the app works the same with it off.
 
 ## Phase 8c — Optional account and cloud backup
 
 - [x] `AccountProvider` interface with Firebase and no-op implementations; app builds and runs with `google-services.json` absent (checked 2026-10-23)
-- [ ] `SyncProvider` interface with a no-op implementation (with sync)
+- [x] `SyncProvider` interface with a no-op implementation (with sync; branch `v2`, 2026-10-26)
 - [x] Rename the Settings tab to **Account**: profile card at the top, the existing settings unchanged below it (CLAUDE.md section 14, "Account tab")
 - [x] Signed-out profile card shows no profile details, just the account benefit line and Sign up / Sign in buttons
 - [x] Auth screens: Login (email/password, Forgot password, Google) and Register (name, email, password, optional mobile number, Google), each with a prominent "Skip — use without an account"; restyled to the mockups without the Phone button
@@ -203,11 +223,16 @@ Claude uses the default shown until the owner answers, and moves answered items 
 - [ ] Owner: test sign-up, sign-in, Google, reset and Profile on a real phone (Claude can't create accounts or sign in)
 - [ ] Firebase budget alerts at 50/80/100% (when moving to Blaze)
 - [x] Create an account later from the Account tab without losing local data (nothing local is touched; backup comes with sync)
-- [ ] Firestore per-user storage with security rules isolating each rider; offline persistence on
-- [ ] Firebase App Check with the Play Integrity provider on Firestore; a failed check stops only backup, with a plain message, never local use
-- [ ] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud
+- [x] Firestore per-user storage with security rules isolating each rider (`firestore.rules`); Firestore keeps queued writes offline, Room stays the source (2026-10-26)
+- [ ] Owner: create the Firestore database, publish `firestore.rules`, test backup and restore on two phones (`docs/cloud-backup.md`)
+- [x] Firebase App Check: Play Integrity in release builds, the debug provider in debug builds; a failed check stops only backup, with a plain message, never local use (2026-10-26)
+- [ ] Owner: register Play Integrity and debug tokens in App Check, watch the Firestore metrics, then enforce for Firestore only (`docs/cloud-backup.md`, "App Check")
+- [x] Sync: local stays authoritative, last-write-wins by `updatedAt`, delete tombstones; never replaces local with empty cloud (DB v5 with migration test; `CloudSyncTest` on the emulator, 2026-10-26)
+- [x] Restore on a new phone from "I already have an account"; Cloud backup card on the Account tab; Delete account removes the cloud data first
 - [x] Sign-out keeps local data; "Delete account" action (deletes the sign-in account; cloud data joins it with sync)
-- [ ] Play Data safety form and privacy policy updated; marketing promise reworded
+- [x] Delete account warns, confirms it's the rider (password or Google), then deletes the cloud backup, the account and all data on the phone, and returns to the welcome screen (owner decision 2026-10-26)
+- [ ] Owner: try Delete account on a real phone with an email account and a Google account (Claude can't sign in)
+- [ ] Play Data safety form and privacy policy updated; marketing promise reworded (draft updated in `docs/privacy.md`; owner to review and add a web deletion route)
 
 **Later (not this phase):** Facebook login (Meta developer app, Facebook SDK, Meta app review).
 
@@ -230,10 +255,12 @@ Claude uses the default shown until the owner answers, and moves answered items 
 
 - [ ] `AdsProvider` interface, no-op implementation, AdMob implementation with test IDs
 - [ ] Ads kept away from Check a Ride and data entry; no interstitials during ride checks
-- [ ] Privacy policy and Data safety answers that match the actual app
+- [ ] Privacy policy and Data safety answers that match the actual app (policy page drafted 2026-10-30 in `web/privacy-policy.html`; owner to host it and add the URL in Play Console)
 - [ ] Check the current Play target API and policy requirements
 - [ ] Protection check: release build has R8 minify and resource shrinking on; the R8 mapping file is uploaded to Play Console; no keys, credentials or service-account files in the APK or repository
 - [ ] Owner: register the "Picksmart" name and logo as a trademark in Sri Lanka (NIPO), and confirm the app's source repository is private
+- [x] Security review (2026-10-30): release APK and code checked; Delete account ignores touches through other apps' overlays; release signing reads the git-ignored `keystore.properties`; privacy text on uninstalling corrected
+- [ ] Owner: the console steps in `docs/release-security.md` (publish rules, enforce App Check, delete debug tokens, restrict the API key, email enumeration protection, budget alerts, web deletion page, upload key, GitHub 2FA)
 - [ ] App icon, store screenshots, store description
 - [ ] Release checklist run on a low-end device: offline use, small screen, large fonts, back navigation, ad failure
 

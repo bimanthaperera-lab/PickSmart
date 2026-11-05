@@ -45,11 +45,21 @@ val IncomeType.label: Int
         IncomeType.OTHER -> R.string.income_type_other
     }
 
+/** A short line under the type on Add income saying what it covers. */
+@get:StringRes
+val IncomeType.hint: Int
+    get() = when (this) {
+        IncomeType.INCENTIVE -> R.string.income_type_incentive_hint
+        IncomeType.TIP -> R.string.income_type_tip_hint
+        IncomeType.BONUS -> R.string.income_type_bonus_hint
+        IncomeType.OTHER -> R.string.income_type_other_hint
+    }
+
 @get:DrawableRes
 val IncomeType.icon: Int
     get() = when (this) {
         IncomeType.INCENTIVE -> R.drawable.ic_gift
         IncomeType.TIP -> R.drawable.ic_thumb_up
         IncomeType.BONUS -> R.drawable.ic_star
-        IncomeType.OTHER -> R.drawable.ic_plus_circle
+        IncomeType.OTHER -> R.drawable.ic_wallet
     }

@@ -23,14 +23,14 @@ import lk.picksmart.data.repository.ExpenseRepository
 import lk.picksmart.data.repository.FuelLogRepository
 import lk.picksmart.data.repository.OtherIncomeRepository
 import lk.picksmart.data.repository.TripRepository
+import lk.picksmart.data.repository.VehicleRepository
 import lk.picksmart.domain.calculator.ProfitCalculator
-import lk.picksmart.domain.model.Expense
-import lk.picksmart.domain.model.FuelLog
-import lk.picksmart.domain.model.OtherIncome
-import lk.picksmart.domain.model.Trip
+import lk.picksmart.domain.usecase.AccountingRecords
 import lk.picksmart.domain.usecase.DateRange
 import lk.picksmart.domain.usecase.PeriodSummary
 import lk.picksmart.domain.usecase.ReportPeriod
+import lk.picksmart.domain.usecase.VehicleScope
+import lk.picksmart.domain.usecase.activeVehicleScope
 import lk.picksmart.domain.usecase.rangeContaining
 import lk.picksmart.domain.usecase.shift
 import lk.picksmart.domain.usecase.summarizeEachDay
@@ -54,10 +54,16 @@ sealed interface ReportsUiState {
     /**
      * @property days One summary per day of [range] for the chart; empty for a single day.
      * @property isCurrent True when [range] contains today, so there is no later period to go to.
+     * @property vehicleName The active vehicle the report is for, when the rider has several;
+     *   null with a single vehicle, whose report is every record.
+     * @property sharedLeftOut True when the report is one of several vehicles' and the period has
+     *   other income or expenses with no vehicle, which belong to no single vehicle.
      */
     data class Loaded(
         val period: ReportPeriod,
         val view: ReportView,
+        val vehicleName: String?,
+        val sharedLeftOut: Boolean,
         val range: DateRange,
         val today: LocalDate,
         val summary: PeriodSummary,
@@ -67,50 +73,48 @@ sealed interface ReportsUiState {
 }
 
 /**
- * Reports for a day, week or month, in the estimated or cash view. All totals come from
- * [summarizePeriod], the same use case Home uses, so the two always agree. Works offline.
+ * Reports for a day, week or month, in the estimated or cash view, for the active vehicle (so
+ * switching the vehicle switches the report). All
+ * totals come from [summarizePeriod], the same use case Home uses, so the two always agree. Works
+ * offline.
  */
 class ReportsViewModel(
     trips: TripRepository,
     otherIncome: OtherIncomeRepository,
     expenses: ExpenseRepository,
     fuelLogs: FuelLogRepository,
+    vehicles: VehicleRepository,
     calculator: ProfitCalculator,
     private val clock: Clock,
     private val exporter: CsvExporter,
 ) : ViewModel() {
 
     /** [start] is the first day of the period shown, or null for the one containing today. */
-    private data class Selection(val period: ReportPeriod, val start: LocalDate?, val view: ReportView)
-
-    private data class Records(
-        val trips: List<Trip>,
-        val income: List<OtherIncome>,
-        val expenses: List<Expense>,
-        val fuel: List<FuelLog>,
+    private data class Selection(
+        val period: ReportPeriod,
+        val start: LocalDate?,
+        val view: ReportView,
     )
 
     private val selection = MutableStateFlow(Selection(ReportPeriod.WEEK, null, ReportView.ESTIMATED))
 
-    private val records = combine(trips.all, otherIncome.all, expenses.all, fuelLogs.all, ::Records)
+    private val records = combine(trips.all, otherIncome.all, expenses.all, fuelLogs.all, ::AccountingRecords)
 
-    val state: StateFlow<ReportsUiState> = combine(records, selection) { r, sel ->
-        if (r.trips.isEmpty() && r.income.isEmpty() && r.expenses.isEmpty() && r.fuel.isEmpty()) {
-            return@combine ReportsUiState.Empty
-        }
+    val state: StateFlow<ReportsUiState> = combine(records, vehicles.defaultVehicle, vehicles.allVehicles, selection) { all, active, vehicleList, sel ->
+        if (all.isEmpty) return@combine ReportsUiState.Empty
         val today = todayInColombo(clock)
         val range = sel.period.rangeContaining(sel.start ?: today)
+        val scope = activeVehicleScope(active, vehicleList)
+        val shown = all.forVehicle(scope)
         ReportsUiState.Loaded(
             period = sel.period,
             view = sel.view,
+            vehicleName = active?.name?.takeIf { scope != VehicleScope.All },
+            sharedLeftOut = scope != VehicleScope.All && all.hasSharedRecordsIn(range),
             range = range,
             today = today,
-            summary = calculator.summarizePeriod(range, r.trips, r.income, r.expenses, r.fuel),
-            days = if (sel.period == ReportPeriod.DAY) {
-                emptyList()
-            } else {
-                calculator.summarizeEachDay(range, r.trips, r.income, r.expenses, r.fuel)
-            },
+            summary = calculator.summarizePeriod(range, shown),
+            days = if (sel.period == ReportPeriod.DAY) emptyList() else calculator.summarizeEachDay(range, shown),
             isCurrent = today in range,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReportsUiState.Loading)
@@ -159,7 +163,7 @@ class ReportsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = (this[APPLICATION_KEY] as PicksmartApplication).container
-                ReportsViewModel(c.trips, c.otherIncome, c.expenses, c.fuelLogs, c.profitCalculator, c.clock, c.csvExporter)
+                ReportsViewModel(c.trips, c.otherIncome, c.expenses, c.fuelLogs, c.vehicles, c.profitCalculator, c.clock, c.csvExporter)
             }
         }
     }

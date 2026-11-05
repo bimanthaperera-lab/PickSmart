@@ -8,6 +8,7 @@ import lk.picksmart.domain.model.Trip
 import lk.picksmart.domain.model.TripInput
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
+import lk.picksmart.domain.usecase.OfferToSave
 import lk.picksmart.ui.checkride.CheckRideError
 import lk.picksmart.ui.checkride.CheckRideFormState
 import lk.picksmart.ui.checkride.CheckRideOutcome
@@ -89,6 +90,8 @@ fun TripFormState.validate(rates: TripRates, calculator: ProfitCalculator): Trip
                     cancellationFeeCents = if (cancelled) parseRupeesToCents(cancellationFee) else null,
                     notes = notes,
                     rates = rates,
+                    pickupLocation = ride.pickupLocation,
+                    dropOffLocation = ride.dropOffLocation,
                 ),
             )
         }
@@ -111,6 +114,8 @@ fun Trip.toFormState(): TripFormState {
             pickupKm = if (pickupKm == 0.0) "" else decimalToInput(pickupKm),
             tripKm = if (tripKm == 0.0) "" else decimalToInput(tripKm),
             returnKm = if (returnKm == 0.0) "" else decimalToInput(returnKm),
+            pickupLocation = pickupLocation.orEmpty(),
+            dropOffLocation = dropOffLocation.orEmpty(),
         ),
         cancellationFee = cancellationFeeCents?.let(::hundredthsToInput).orEmpty(),
         notes = notes.orEmpty(),
@@ -128,3 +133,23 @@ fun newTripForm(last: LastCheckInputs, date: LocalDate, time: LocalTime) = TripF
     time = time.withSecond(0).withNano(0),
     ride = last.copy(otherCostsCents = null, pickupKm = null, tripKm = null, returnKm = null).toFormState(),
 )
+
+/**
+ * A completed trip filled from an offer the reader showed: its fare, distances, places and ride
+ * app, at the time it was read, with the fee setup of the last check (as on the badge). The rider checks
+ * it before saving (N6).
+ */
+fun offerTripForm(last: LastCheckInputs, offer: OfferToSave): TripFormState {
+    val local = offer.readAt.atZone(ColomboZone)
+    val blank = newTripForm(last.copy(platform = offer.platform), local.toLocalDate(), local.toLocalTime())
+    val reading = offer.reading
+    return blank.copy(
+        ride = blank.ride.copy(
+            fare = hundredthsToInput(reading.fareCents),
+            pickupKm = reading.pickupKm?.let(::decimalToInput).orEmpty(),
+            tripKm = reading.tripKm?.let(::decimalToInput).orEmpty(),
+            pickupLocation = reading.pickupLocation.orEmpty(),
+            dropOffLocation = reading.dropOffLocation.orEmpty(),
+        ),
+    )
+}

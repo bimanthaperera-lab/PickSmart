@@ -3,21 +3,35 @@
 
     <!-- Only for the read-only fuel price download (CLAUDE.md section 8a). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cloud backup retries when the phone comes back online. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Auto Backup is on, limited by explicit rules (CLAUDE.md section 10). -->
+    <!-- Android 13+: asked for when the rider turns on the offer reader, for "Save this trip?" (section 9b). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Only for the floating bubble, asked for when the rider turns it on (section 9a). -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!--
+        Auto Backup is on, limited by explicit rules (CLAUDE.md section 10).
+        hasFragileUserData: on Android 10+, uninstalling from the phone's settings or launcher shows a
+        "Keep app data" checkbox, so a rider can keep their records for a reinstall (owner decision 2026-10-27).
+    -->
     <application
         android:name=".PicksmartApplication"
         android:allowBackup="true"
+        android:hasFragileUserData="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.Picksmart">
         <activity
             android:name=".MainActivity"
-            android:configChanges="uiMode"
+            android:configChanges="uiMode|locale|layoutDirection"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -25,6 +39,38 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            The "Save this trip?" notification opens MainActivity through this alias. It isn't
+            exported, so no other app can send to it, and MainActivity takes an offer only from an
+            intent that came this way (OfferSaveNotification.offerFrom).
+        -->
+        <activity-alias
+            android:name=".SaveOffer"
+            android:exported="false"
+            android:targetActivity=".MainActivity" />
+
+        <!--
+            The offer reader (CLAUDE.md section 9b): read-only, no gestures, off until the rider turns it on
+            in Android's Accessibility settings after the in-app disclosure.
+        -->
+        <service
+            android:name=".glance.OfferReaderService"
+            android:exported="false"
+            android:label="@string/offer_reader_title"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/offer_reader" />
+        </service>
+
+        <!-- The floating bubble (CLAUDE.md section 9a): off until the rider turns it on in the app. -->
+        <service
+            android:name=".glance.FloatingBubbleService"
+            android:exported="false" />
 
         <!-- Hands the CSV export to the app the rider picks in the share sheet (Reports). -->
         <provider

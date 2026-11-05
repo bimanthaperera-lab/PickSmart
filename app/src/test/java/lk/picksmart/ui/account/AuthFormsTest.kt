@@ -1,9 +1,11 @@
 package lk.picksmart.ui.account
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class AuthFormsTest {
 
@@ -68,5 +70,15 @@ class AuthFormsTest {
         assertEquals("R", initialsOf(null, "rider@mail.lk"))
         assertEquals("R", initialsOf("  ", "rider@mail.lk"))
         assertNull(initialsOf(null, null))
+    }
+
+    @Test
+    fun `a date of birth can't be in the future or before 1900`() {
+        val today = LocalDate.of(2026, 10, 26)
+        assertTrue(isValidBirthDate(LocalDate.of(1990, 5, 17), today))
+        assertTrue(isValidBirthDate(today, today))
+        assertTrue(isValidBirthDate(LocalDate.of(1900, 1, 1), today))
+        assertFalse(isValidBirthDate(today.plusDays(1), today))
+        assertFalse(isValidBirthDate(LocalDate.of(1899, 12, 31), today))
     }
 }

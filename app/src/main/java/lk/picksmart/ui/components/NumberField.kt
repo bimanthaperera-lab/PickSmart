@@ -2,6 +2,8 @@ package lk.picksmart.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -14,12 +16,16 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import lk.picksmart.util.sanitizeDecimalInput
+import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.sp
+import lk.picksmart.util.InputDigits
+import lk.picksmart.util.limitDecimalInput
 
 /**
- * A number input with a numeric keyboard. Typing is cleaned with [sanitizeDecimalInput], so the
- * value is always empty or a non-negative number. Use [prefix] for "Rs." and [suffix] for units
- * such as "km", and [trailing] for a small control at the field's end.
+ * A number input with a numeric keyboard. Typing is cleaned and limited with [limitDecimalInput],
+ * so the value is always empty or a non-negative number of at most [maxIntegerDigits] whole
+ * digits (default: money, see [InputDigits]). Use [prefix] for "Rs." and [suffix] for units such
+ * as "km", and [trailing] for a small control at the field's end.
  *
  * @param error Shown under the field and announced by screen readers; null when valid.
  */
@@ -33,6 +39,7 @@ fun NumberField(
     prefix: String? = null,
     suffix: String? = null,
     maxDecimals: Int = 2,
+    maxIntegerDigits: Int = InputDigits.MONEY,
     supportingText: String? = null,
     error: String? = null,
     imeAction: ImeAction = ImeAction.Next,
@@ -40,8 +47,8 @@ fun NumberField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(sanitizeDecimalInput(it, maxDecimals)) },
-        label = { Text(label) },
+        onValueChange = { onValueChange(limitDecimalInput(value, it, maxDecimals, maxIntegerDigits)) },
+        label = { FieldLabelText(label) },
         placeholder = placeholder?.let { { Text(it) } },
         prefix = prefix?.let { { Text(it) } },
         suffix = suffix?.let { { Text(it) } },
@@ -87,6 +94,21 @@ fun TextInputField(
         shape = MaterialTheme.shapes.medium,
         colors = fieldColors(),
         modifier = modifier.fillMaxWidth(),
+    )
+}
+
+/**
+ * A field's label on one line. In a narrow field with a [NumberField] `trailing` control (the fee's
+ * "Rs." / "%" switch) a label such as "Platform fee" would otherwise wrap onto two lines while the
+ * field is empty and break the row; it shrinks a little to fit instead.
+ */
+@Composable
+private fun FieldLabelText(text: String) {
+    val size = LocalTextStyle.current.fontSize.takeIf { it.isSpecified } ?: 16.sp
+    Text(
+        text,
+        maxLines = 1,
+        autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = size, stepSize = 0.5.sp),
     )
 }
 

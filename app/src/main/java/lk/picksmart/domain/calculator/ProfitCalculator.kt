@@ -15,7 +15,7 @@ import java.math.RoundingMode
  * fuelCost           = totalKm × fuelPricePerLitre ÷ fuelEfficiencyKmPerLitre
  * maintenanceReserve = totalKm × maintenanceReservePerKm
  * commission         = 0 in payout mode, the amount for AMOUNT, fare × percent ÷ 100 for PERCENT
- * netProfit          = fare − commission − fuelCost − maintenanceReserve − otherCosts
+ * netProfit          = fare − commission − fuelCost − maintenanceReserve − otherCosts + tip
  * netProfitPerKm     = netProfit ÷ totalKm, or null when totalKm is 0
  * ```
  *
@@ -55,8 +55,9 @@ class ProfitCalculator {
                 .divide(HUNDRED_PERCENT, DIVISION_SCALE, RoundingMode.HALF_UP)
                 .toCents()
         }
+        // A tip is the rider's in full: it is added after the commission, never charged on.
         val netProfit = input.fareCents.toBigDecimal() - commission - fuelCost - reserve -
-            input.otherCostsCents.toBigDecimal()
+            input.otherCostsCents.toBigDecimal() + input.tipCents.toBigDecimal()
         val perKm = if (totalKm.signum() > 0) {
             netProfit.divide(totalKm, DIVISION_SCALE, RoundingMode.HALF_UP).toCents()
         } else {
@@ -83,6 +84,7 @@ class ProfitCalculator {
                 netProfitCents = netCents,
                 netProfitPerKmCents = perKmCents,
                 band = band(netCents, perKmCents, input.targetProfitPerKmCents),
+                tipCents = input.tipCents,
             ),
         )
     }
@@ -117,6 +119,7 @@ class ProfitCalculator {
         money(input.fuelPricePerLitreCents, InputField.FUEL_PRICE)
         money(input.maintenanceReservePerKmCents, InputField.MAINTENANCE_RESERVE)
         money(input.otherCostsCents, InputField.OTHER_COSTS)
+        money(input.tipCents, InputField.TIP)
         input.targetProfitPerKmCents?.let { money(it, InputField.TARGET_PROFIT_PER_KM) }
     }
 

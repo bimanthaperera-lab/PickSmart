@@ -154,7 +154,9 @@ fun ProfitCalculator.summarizePeriod(
         fuelFillUps = fuelInRange.size,
         distanceKm = distance.toDouble(),
         tripProfitPerKmCents = if (distance.signum() > 0) {
-            BigDecimal.valueOf(tripProfit).divide(distance, 0, RoundingMode.HALF_UP).longValueExact()
+            // A tiny distance can push the per-km figure past a Long; then there is no figure.
+            BigDecimal.valueOf(tripProfit).divide(distance, 0, RoundingMode.HALF_UP)
+                .takeIf { it.abs() <= BigDecimal.valueOf(Long.MAX_VALUE) }?.longValueExact()
         } else {
             null
         },

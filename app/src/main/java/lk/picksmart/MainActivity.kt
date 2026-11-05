@@ -1,6 +1,8 @@
 package lk.picksmart
 
 import android.app.UiModeManager
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -26,16 +28,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import lk.picksmart.data.preferences.AppLanguageStore
 import lk.picksmart.domain.model.ThemeMode
+import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.glance.FloatingBubbleService
+import lk.picksmart.ui.account.MoveRecordsDialog
 import lk.picksmart.ui.navigation.PicksmartApp
+import lk.picksmart.ui.notifications.OfferSaveNotification
 import lk.picksmart.ui.onboarding.OnboardingScreen
 import lk.picksmart.ui.splash.SplashScreen
 import lk.picksmart.ui.theme.PicksmartTheme
 
 class MainActivity : ComponentActivity() {
+    /** An offer from a tap on "Save this trip?", waiting for the app to open Add trip with it. */
+    private var offerToSave by mutableStateOf<OfferToSave?>(null)
+
+    // The rider's language below Android 13 (AppLanguageStore); Android applies it itself on 13+.
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(AppLanguageStore.wrap(newBase))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -45,15 +62,41 @@ class MainActivity : ComponentActivity() {
             splashScreen.setOnExitAnimationListener { it.remove() }
         }
         val container = (application as PicksmartApplication).container
-        val preferences = container.userPreferences
         // App start: check the published fuel price in the background (CLAUDE.md section 8a).
-        if (savedInstanceState == null) container.refreshFuelPrices()
+        if (savedInstanceState == null) {
+            container.refreshFuelPrices()
+            offerToSave = OfferSaveNotification.offerFrom(intent)
+        }
+        // Another account signed in, or the rider signed out, so other records are now the ones on
+        // screen (DataSpaces.kt).
+        // Start again, so every screen and ViewModel is built on them, never on the last rider's.
+        val shownSpace = container.space.value.id
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                container.space.first { it.id != shownSpace }
+                startActivity(
+                    Intent(this@MainActivity, MainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+                )
+            }
+        }
+
+        // The floating bubble, when the rider has turned it on; only an app on screen may start it.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                container.userPreferences.floatingBubble.collect { on ->
+                    if (on) FloatingBubbleService.startIfAllowed(this@MainActivity)
+                }
+            }
+        }
 
         setContent {
             // The app waits for the stored theme and setup flag, so a rider never sees a flash of
-            // the wrong theme or of onboarding.
-            val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = null)
-            val onboardingComplete by preferences.onboardingComplete.collectAsStateWithLifecycle(initialValue = null)
+            // the wrong theme or of onboarding. Once loaded they stay loaded, so a recreated
+            // screen has them at once.
+            val startup by container.startupSettings.collectAsStateWithLifecycle()
+            val themeMode = startup?.themeMode
+            val onboardingComplete = startup?.onboardingComplete
 
             // The splash is drawn on the very first frame, before those load, so the logo on the
             // system splash never gives way to a blank screen. It stays for SplashMillis and until
@@ -62,7 +105,7 @@ class MainActivity : ComponentActivity() {
             if (!splashDone) {
                 LaunchedEffect(Unit) {
                     delay(SplashMillis)
-                    snapshotFlow { themeMode != null && onboardingComplete != null }.first { it }
+                    snapshotFlow { startup != null }.first { it }
                     splashDone = true
                 }
             }
@@ -132,8 +175,18 @@ class MainActivity : ComponentActivity() {
         PicksmartTheme(darkTheme = darkTheme) {
             // Setup runs only while the flag is false; finishing it flips the flag and this
             // switches to the app. An update never resets the flag (CLAUDE.md N7).
-            if (onboardingComplete) PicksmartApp() else OnboardingScreen()
+            if (onboardingComplete) PicksmartApp(offerToSave, onOfferOpened = { offerToSave = null }) else OnboardingScreen()
+
+            // An account signed in for the first time on a phone with records made without one.
+            val container = (application as PicksmartApplication).container
+            val moveRecordsQuestion by container.moveRecordsQuestion.collectAsStateWithLifecycle()
+            moveRecordsQuestion?.let { MoveRecordsDialog(it, onAnswer = container::answerMoveRecords) }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        OfferSaveNotification.offerFrom(intent)?.let { offerToSave = it }
     }
 
     private companion object {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The bubble's pin sits on a near-black circle, so the yellow mark reads on any app and on the yellow pill (CLAUDE.md section 9, Brand). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="@color/near_black" />
+    <stroke android:width="1dp" android:color="@color/badge_outline" />
+</shape>

@@ -2,6 +2,7 @@ package lk.picksmart.data.local.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import lk.picksmart.domain.model.FuelPriceSource
 import lk.picksmart.domain.model.FuelType
@@ -13,7 +14,7 @@ import java.time.LocalDate
  * Room row for [Vehicle]. Enums are stored by name, dates as ISO `yyyy-MM-dd`, money as cents.
  * Renaming a column or enum constant needs a migration (CLAUDE.md N7).
  */
-@Entity(tableName = "vehicles")
+@Entity(tableName = "vehicles", indices = [Index(value = ["sync_id"], unique = true)])
 data class VehicleEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
@@ -31,6 +32,9 @@ data class VehicleEntity(
     @ColumnInfo(name = "created_at") val createdAtMillis: Long,
     @ColumnInfo(name = "updated_at") val updatedAtMillis: Long,
     @ColumnInfo(name = "plate_number") val plateNumber: String? = null,
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String,
+    /** True until cloud backup has this version of the row; every local save sets it. */
+    @ColumnInfo(name = "sync_pending", defaultValue = "1") val syncPending: Boolean = true,
 )
 
 fun VehicleEntity.toDomain() = Vehicle(
@@ -50,6 +54,7 @@ fun VehicleEntity.toDomain() = Vehicle(
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
     plateNumber = plateNumber,
+    syncId = syncId,
 )
 
 fun Vehicle.toEntity() = VehicleEntity(
@@ -69,4 +74,5 @@ fun Vehicle.toEntity() = VehicleEntity(
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
     plateNumber = plateNumber,
+    syncId = syncId,
 )

@@ -27,9 +27,9 @@ import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatCompactRupees
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
 /**
@@ -46,9 +46,9 @@ internal fun DailyProfitChart(days: List<PeriodSummary>, view: ReportView, perio
     val colors = MaterialTheme.colorScheme
     val locale = LocalConfiguration.current.locales[0]
     val dayPattern = stringResource(R.string.pattern_day)
-    val dayFormat = remember(dayPattern, locale) { DateTimeFormatter.ofPattern(dayPattern, locale) }
-    val axisFormat = remember(period, locale) { DateTimeFormatter.ofPattern(if (period == ReportPeriod.WEEK) "EEE" else "d", locale) }
-    val narrowFormat = remember(locale) { DateTimeFormatter.ofPattern("EEEEE", locale) }
+    val dayFormat = remember(dayPattern, locale) { dateFormatter(dayPattern, locale) }
+    val axisFormat = remember(period, locale) { dateFormatter(if (period == ReportPeriod.WEEK) "EEE" else "d", locale) }
+    val narrowFormat = remember(locale) { dateFormatter("EEEEE", locale) }
     val week = period == ReportPeriod.WEEK
 
     val values = days.map { if (view == ReportView.ESTIMATED) it.estimatedProfitCents else it.cashProfitCents }

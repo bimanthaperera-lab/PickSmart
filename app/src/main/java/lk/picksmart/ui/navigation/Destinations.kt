@@ -4,10 +4,15 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import lk.picksmart.R
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.domain.usecase.OfferToSave
+import lk.picksmart.domain.usecase.offerReadingOrNull
+import java.time.Instant
 
 @Serializable data object HomeRoute
 @Serializable data object CheckRideRoute
 @Serializable data object HistoryRoute
+/** Day, week and month reports with CSV export. Opened from the Account tab. */
 @Serializable data object ReportsRoute
 /** The Account tab: profile card and settings (CLAUDE.md section 14). Replaced the Settings tab. */
 @Serializable data object AccountRoute
@@ -21,13 +26,56 @@ data class EditVehicleRoute(val vehicleId: Long) {
     }
 }
 
-/** Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History. */
+/**
+ * Add a trip, or edit one when [tripId] isn't [NEW]. Opened from History, and from the offer
+ * reader's "Save this trip?" notification, which fills the new trip with the offer's numbers
+ * ([forOffer]). An offer fare of 0 means the trip isn't from an offer; an empty location wasn't read.
+ */
 @Serializable
-data class EditTripRoute(val tripId: Long) {
+data class EditTripRoute(
+    val tripId: Long,
+    val offerFareCents: Long = 0,
+    val offerPickupKm: Double = -1.0,
+    val offerTripKm: Double = -1.0,
+    val offerTipCents: Long = 0,
+    val offerPlatform: Platform = Platform.OTHER,
+    val offerReadAtMillis: Long = 0,
+    val offerPickupLocation: String = "",
+    val offerDropOffLocation: String = "",
+) {
+    /** The offer to fill a new trip with, or null for a blank one. Distances below 0 weren't read. */
+    fun offer(): OfferToSave? {
+        if (tripId != NEW) return null
+        val reading = offerReadingOrNull(
+            fareCents = offerFareCents,
+            pickupKm = offerPickupKm.takeIf { it >= 0 },
+            tripKm = offerTripKm.takeIf { it >= 0 },
+            tipCents = offerTipCents,
+            pickupLocation = offerPickupLocation,
+            dropOffLocation = offerDropOffLocation,
+        ) ?: return null
+        return OfferToSave(reading, offerPlatform, Instant.ofEpochMilli(offerReadAtMillis))
+    }
+
     companion object {
         const val NEW = 0L
+
+        fun forOffer(offer: OfferToSave) = EditTripRoute(
+            tripId = NEW,
+            offerFareCents = offer.reading.fareCents,
+            offerPickupKm = offer.reading.pickupKm ?: -1.0,
+            offerTripKm = offer.reading.tripKm ?: -1.0,
+            offerTipCents = offer.reading.tipCents,
+            offerPlatform = offer.platform,
+            offerReadAtMillis = offer.readAt.toEpochMilli(),
+            offerPickupLocation = offer.reading.pickupLocation.orEmpty(),
+            offerDropOffLocation = offer.reading.dropOffLocation.orEmpty(),
+        )
     }
 }
+
+/** A saved trip's details, read-only. Opened by tapping a trip in History or on Home. */
+@Serializable data class TripDetailsRoute(val tripId: Long)
 
 /** Other income list. Opened from Home and Settings. */
 @Serializable data object OtherIncomeRoute
@@ -80,8 +128,12 @@ data class EditExpenseRoute(val expenseId: Long) {
 /** The default vehicle's fuel type and price, with published CPC prices. Opened from Settings and Home. */
 @Serializable data object FuelPriceRoute
 
+/** The in-app alerts inbox (CLAUDE.md section 9a). Opened from the bell on Home. */
+@Serializable data object AlertsRoute
+
 /**
- * The five bottom-bar tabs (CLAUDE.md section 9), in display order. The selected tab shows
+ * The four bottom-bar tabs, in display order. Reports moved from the bar into the Account tab
+ * (docs/decisions.md, 2026-10-25). The selected tab shows
  * [selectedIcon], a filled version of [icon].
  */
 enum class TopLevelDestination(
@@ -93,6 +145,5 @@ enum class TopLevelDestination(
     HOME(HomeRoute, R.string.nav_home, R.drawable.ic_nav_home, R.drawable.ic_nav_home_filled),
     CHECK_RIDE(CheckRideRoute, R.string.nav_check_ride, R.drawable.ic_nav_check_ride, R.drawable.ic_nav_check_ride_filled),
     HISTORY(HistoryRoute, R.string.nav_history, R.drawable.ic_nav_history, R.drawable.ic_nav_history_filled),
-    REPORTS(ReportsRoute, R.string.nav_reports, R.drawable.ic_nav_reports, R.drawable.ic_nav_reports_filled),
     ACCOUNT(AccountRoute, R.string.nav_account, R.drawable.ic_nav_account, R.drawable.ic_nav_account_filled),
 }

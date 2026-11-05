@@ -4,4 +4,10 @@
     <color name="brand_yellow">#FFFBBB23</color>
     <color name="near_black">#FF0D1112</color>
     <color name="off_white">#FFF5F5F2</color>
+    <!-- The offer badge drawn over ride apps (glance/OfferBadge); the dark theme's status colours. -->
+    <color name="badge_outline">#FF2E3636</color>
+    <color name="badge_on_surface_variant">#FFA3ABA8</color>
+    <color name="badge_profit">#FF43D17A</color>
+    <color name="badge_loss">#FFFF6B6B</color>
+    <color name="badge_below_target">#FFFFB547</color>
 </resources>

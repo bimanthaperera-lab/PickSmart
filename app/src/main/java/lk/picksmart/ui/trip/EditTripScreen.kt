@@ -1,6 +1,7 @@
 package lk.picksmart.ui.trip
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -30,17 +31,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,16 +51,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
 import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.calculator.InputField
+import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.ui.checkride.CheckRideError
+import lk.picksmart.ui.checkride.CheckRideFormState
 import lk.picksmart.ui.checkride.CheckRideOutcome
+import lk.picksmart.ui.checkride.ErrorText
+import lk.picksmart.ui.checkride.FareBox
 import lk.picksmart.ui.checkride.FareModeSelector
 import lk.picksmart.ui.checkride.FeeUnitToggle
-import lk.picksmart.ui.checkride.FieldRow
+import lk.picksmart.ui.checkride.HelpText
+import lk.picksmart.ui.checkride.InputSection
+import lk.picksmart.ui.checkride.LocationFields
+import lk.picksmart.ui.checkride.NoteBox
+import lk.picksmart.ui.checkride.NumberTile
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
+import lk.picksmart.ui.checkride.TileRow
+import lk.picksmart.ui.checkride.TotalKmPill
+import lk.picksmart.ui.checkride.addToFare
 import lk.picksmart.ui.checkride.text
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.DateField
@@ -65,15 +79,15 @@ import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NoticeCard
-import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
-import lk.picksmart.ui.components.TextInputField
+import lk.picksmart.ui.components.SwitchRow
 import lk.picksmart.ui.components.TimeField
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.style
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.decimalToInput
 
 @Composable
@@ -122,7 +136,7 @@ fun EditTripScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.screen, vertical = Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             when (val s = state) {
                 EditTripUiState.Loading -> LoadingState()
@@ -141,8 +155,9 @@ fun EditTripScreen(
                     onAction = onAddVehicle,
                 )
                 is EditTripUiState.Editing -> {
-                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
-                    TripForm(s, viewModel::updateForm)
+                    // A saved trip names its vehicle (never editable); a new one goes on the active vehicle.
+                    RecordVehicleField(s.vehicle)
+                    TripForm(s, viewModel::updateForm, viewModel::setSaveTip)
                 }
             }
         }
@@ -176,14 +191,18 @@ fun EditTripScreen(
     }
 }
 
+/**
+ * The trip's fields in the same cards and tiles as Check a Ride: date and time tiles, the fare
+ * card (fare box, fee and other costs), the distance card, the pickup and "Where to" places, then
+ * the note.
+ */
 @Composable
-private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -> Unit) {
+private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -> Unit, onSaveTip: (Boolean) -> Unit) {
     val form = state.form
     val ride = form.ride
     val errors = state.shownErrors
     val currency = stringResource(R.string.currency_prefix)
     val km = stringResource(R.string.unit_km)
-    val zero = stringResource(R.string.placeholder_zero)
     val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
     val cancelled = form.status == TripStatus.CANCELLED
 
@@ -197,157 +216,207 @@ private fun TripForm(state: EditTripUiState.Editing, onChange: (TripFormState) -
     if (form.status == TripStatus.OFFER_CHECK) {
         NoticeCard(title = stringResource(R.string.trip_status_offer), body = stringResource(R.string.trip_offer_notice))
     }
-
-    FieldRow(
-        stacked,
-        listOf(
-            { m ->
-                DateField(stringResource(R.string.trip_date), form.date, { onChange(form.copy(date = it)) }, m, maxDate = state.today)
-            },
-            { m -> TimeField(stringResource(R.string.trip_time), form.time, { onChange(form.copy(time = it)) }, m) },
-        ),
-    )
-
-    if (cancelled) {
-        NumberField(
-            value = form.cancellationFee,
-            onValueChange = { onChange(form.copy(cancellationFee = it)) },
-            label = stringResource(R.string.trip_cancellation_fee),
-            placeholder = zero,
-            prefix = currency,
-            supportingText = stringResource(R.string.trip_cancellation_fee_help),
-            error = errors.text(InputField.FARE),
-        )
-        FieldRow(
-            stacked,
-            listOf(
-                { m ->
-                    NumberField(
-                        value = ride.pickupKm,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(pickupKm = it))) },
-                        label = stringResource(R.string.trip_pickup_driven),
-                        modifier = m,
-                        placeholder = zero,
-                        suffix = km,
-                        maxDecimals = 1,
-                        error = errors.text(InputField.PICKUP_KM),
-                    )
-                },
-                { m ->
-                    NumberField(
-                        value = ride.returnKm,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(returnKm = it))) },
-                        label = stringResource(R.string.check_return),
-                        modifier = m,
-                        placeholder = zero,
-                        suffix = km,
-                        maxDecimals = 1,
-                        supportingText = stringResource(R.string.check_optional),
-                        error = errors.text(InputField.RETURN_KM),
-                    )
-                },
-            ),
-        )
-    } else {
-        val payout = ride.fareMode == FareMode.PAYOUT_AFTER_COMMISSION
-        FareModeSelector(ride.fareMode) { onChange(form.copy(ride = ride.copy(fareMode = it))) }
-        NumberField(
-            value = ride.fare,
-            onValueChange = { onChange(form.copy(ride = ride.copy(fare = it))) },
-            label = stringResource(
-                when {
-                    payout -> R.string.check_fare_payout
-                    form.status == TripStatus.OFFER_CHECK -> R.string.check_fare_gross
-                    else -> R.string.trip_fare_received
-                },
-            ),
-            prefix = currency,
-            error = errors[InputField.FARE]?.let {
-                if (it == CheckRideError.REQUIRED) stringResource(R.string.trip_error_fare_required) else errors.text(InputField.FARE)
-            },
-        )
-        FieldRow(
-            stacked,
-            buildList {
-                if (!payout) {
-                    add { m ->
-                        NumberField(
-                            value = ride.commission,
-                            onValueChange = { onChange(form.copy(ride = ride.copy(commission = it))) },
-                            label = stringResource(R.string.check_fee),
-                            modifier = m,
-                            placeholder = zero,
-                            error = errors.text(InputField.COMMISSION),
-                            trailing = {
-                                FeeUnitToggle(ride.commissionType) { onChange(form.copy(ride = ride.copy(commissionType = it))) }
-                            },
-                        )
-                    }
-                }
-                add { m ->
-                    NumberField(
-                        value = ride.otherCosts,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(otherCosts = it))) },
-                        label = stringResource(R.string.check_other_costs),
-                        modifier = m,
-                        placeholder = zero,
-                        prefix = currency,
-                        error = errors.text(InputField.OTHER_COSTS),
-                    )
-                }
-            },
-        )
-        FieldRow(
-            stacked,
-            listOf(
-                { m ->
-                    NumberField(
-                        value = ride.pickupKm,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(pickupKm = it))) },
-                        label = stringResource(R.string.check_pickup),
-                        modifier = m,
-                        placeholder = zero,
-                        suffix = km,
-                        maxDecimals = 1,
-                        error = errors.text(InputField.PICKUP_KM),
-                    )
-                },
-                { m ->
-                    NumberField(
-                        value = ride.tripKm,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(tripKm = it))) },
-                        label = stringResource(R.string.check_trip),
-                        modifier = m,
-                        placeholder = zero,
-                        suffix = km,
-                        maxDecimals = 1,
-                        error = errors.text(InputField.TRIP_KM),
-                    )
-                },
-                { m ->
-                    NumberField(
-                        value = ride.returnKm,
-                        onValueChange = { onChange(form.copy(ride = ride.copy(returnKm = it))) },
-                        label = stringResource(R.string.check_return),
-                        modifier = m,
-                        placeholder = zero,
-                        suffix = km,
-                        maxDecimals = 1,
-                        supportingText = stringResource(R.string.check_optional),
-                        error = errors.text(InputField.RETURN_KM),
-                    )
-                },
-            ),
+    if (state.fromOffer) {
+        NoticeCard(title = stringResource(R.string.trip_from_offer_title), body = stringResource(R.string.trip_from_offer_notice))
+    }
+    if (state.offerTipCents > 0 && form.status == TripStatus.COMPLETED) {
+        SwitchRow(
+            title = stringResource(R.string.trip_offer_tip_title, rememberMoneyFormatter().format(state.offerTipCents)),
+            body = stringResource(R.string.trip_offer_tip_body),
+            checked = state.saveTip,
+            onCheckedChange = onSaveTip,
         )
     }
 
-    TextInputField(
-        value = form.notes,
-        onValueChange = { onChange(form.copy(notes = it)) },
-        label = stringResource(R.string.trip_notes),
-        maxLength = NOTES_MAX_LENGTH,
-        imeAction = ImeAction.Done,
+    TileRow(
+        stacked,
+        listOf(
+            { m ->
+                DateField(
+                    stringResource(R.string.trip_date),
+                    form.date,
+                    { onChange(form.copy(date = it)) },
+                    m,
+                    maxDate = state.today,
+                    tile = true,
+                )
+            },
+            { m -> TimeField(stringResource(R.string.trip_time), form.time, { onChange(form.copy(time = it)) }, m, tile = true) },
+        ),
     )
+
+    val fareFocus = remember { FocusRequester() }
+    if (cancelled) {
+        val feeLabel = stringResource(R.string.trip_cancellation_fee)
+        val feeError = errors.text(InputField.FARE)
+        InputSection(title = feeLabel) {
+            FareBox(
+                value = form.cancellationFee,
+                onValueChange = { onChange(form.copy(cancellationFee = it)) },
+                label = feeLabel,
+                focusRequester = fareFocus,
+                error = feeError,
+                stacked = stacked,
+                // The same adding (and digit limit) as the fare's buttons.
+                onAdd = { onChange(form.copy(cancellationFee = CheckRideFormState(fare = form.cancellationFee).addToFare(it).fare)) },
+            )
+            if (feeError != null) ErrorText(feeError)
+            HelpText(stringResource(R.string.trip_cancellation_fee_help))
+        }
+        InputSection(title = stringResource(R.string.check_result_distance)) {
+            TileRow(
+                stacked,
+                listOf(
+                    { m ->
+                        NumberTile(
+                            value = ride.pickupKm,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(pickupKm = it))) },
+                            label = stringResource(R.string.trip_pickup_driven),
+                            modifier = m,
+                            suffix = km,
+                            maxDecimals = 1,
+                            maxIntegerDigits = InputDigits.DISTANCE,
+                            error = errors.text(InputField.PICKUP_KM),
+                            highlighted = true,
+                        )
+                    },
+                    { m ->
+                        NumberTile(
+                            value = ride.returnKm,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(returnKm = it))) },
+                            label = stringResource(R.string.check_return_optional),
+                            modifier = m,
+                            suffix = km,
+                            maxDecimals = 1,
+                            maxIntegerDigits = InputDigits.DISTANCE,
+                            error = errors.text(InputField.RETURN_KM),
+                        )
+                    },
+                ),
+            )
+        }
+    } else {
+        val payout = ride.fareMode == FareMode.PAYOUT_AFTER_COMMISSION
+        val calculated = (state.outcome as? CheckRideOutcome.Calculated)?.result
+        FareModeSelector(ride.fareMode) { onChange(form.copy(ride = ride.copy(fareMode = it))) }
+        val fareLabel = stringResource(
+            when {
+                payout -> R.string.check_fare_payout
+                form.status == TripStatus.OFFER_CHECK -> R.string.check_fare_gross
+                else -> R.string.trip_fare_received
+            },
+        )
+        val fareError = errors[InputField.FARE]?.let {
+            if (it == CheckRideError.REQUIRED) stringResource(R.string.trip_error_fare_required) else errors.text(InputField.FARE)
+        }
+        InputSection(title = fareLabel) {
+            FareBox(
+                value = ride.fare,
+                onValueChange = { onChange(form.copy(ride = ride.copy(fare = it))) },
+                label = fareLabel,
+                focusRequester = fareFocus,
+                error = fareError,
+                stacked = stacked,
+                onAdd = { onChange(form.copy(ride = ride.addToFare(it))) },
+            )
+            if (fareError != null) ErrorText(fareError)
+            if (payout) HelpText(stringResource(R.string.check_fare_payout_help))
+            TileRow(
+                stacked,
+                buildList {
+                    if (!payout) {
+                        add { m ->
+                            // In percent, the fee in rupees for this fare, once there is a result.
+                            val feeCents = calculated?.commissionCents
+                                ?.takeIf { ride.commissionType == CommissionType.PERCENT && it > 0 }
+                            NumberTile(
+                                value = ride.commission,
+                                onValueChange = { onChange(form.copy(ride = ride.copy(commission = it))) },
+                                label = stringResource(R.string.check_fee),
+                                modifier = m,
+                                error = errors.text(InputField.COMMISSION),
+                                note = feeCents?.let { stringResource(R.string.check_fee_equivalent, rememberMoneyFormatter().format(it)) },
+                                trailing = {
+                                    FeeUnitToggle(ride.commissionType, size = 36.dp) {
+                                        onChange(form.copy(ride = ride.copy(commissionType = it)))
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    add { m ->
+                        NumberTile(
+                            value = ride.otherCosts,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(otherCosts = it))) },
+                            label = stringResource(R.string.check_other_costs),
+                            modifier = m,
+                            prefix = currency,
+                            error = errors.text(InputField.OTHER_COSTS),
+                        )
+                    }
+                },
+            )
+        }
+        InputSection(
+            title = stringResource(R.string.check_result_distance),
+            action = calculated?.totalKm?.let { total -> { _ -> TotalKmPill(total) } },
+        ) {
+            TileRow(
+                stacked,
+                listOf(
+                    { m ->
+                        NumberTile(
+                            value = ride.pickupKm,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(pickupKm = it))) },
+                            label = stringResource(R.string.check_pickup),
+                            modifier = m,
+                            suffix = km,
+                            maxDecimals = 1,
+                            maxIntegerDigits = InputDigits.DISTANCE,
+                            error = errors.text(InputField.PICKUP_KM),
+                        )
+                    },
+                    { m ->
+                        NumberTile(
+                            value = ride.tripKm,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(tripKm = it))) },
+                            label = stringResource(R.string.check_trip),
+                            modifier = m,
+                            suffix = km,
+                            maxDecimals = 1,
+                            maxIntegerDigits = InputDigits.DISTANCE,
+                            error = errors.text(InputField.TRIP_KM),
+                            highlighted = true,
+                        )
+                    },
+                    { m ->
+                        NumberTile(
+                            value = ride.returnKm,
+                            onValueChange = { onChange(form.copy(ride = ride.copy(returnKm = it))) },
+                            label = stringResource(R.string.check_return_optional),
+                            modifier = m,
+                            suffix = km,
+                            maxDecimals = 1,
+                            maxIntegerDigits = InputDigits.DISTANCE,
+                            error = errors.text(InputField.RETURN_KM),
+                        )
+                    },
+                ),
+            )
+        }
+    }
+
+    LocationFields(
+        pickup = ride.pickupLocation,
+        dropOff = ride.dropOffLocation,
+        onPickupChange = { onChange(form.copy(ride = ride.copy(pickupLocation = it))) },
+        onDropOffChange = { onChange(form.copy(ride = ride.copy(dropOffLocation = it))) },
+    )
+
+    val notesLabel = stringResource(R.string.trip_notes)
+    InputSection(title = notesLabel) {
+        NoteBox(form.notes, { onChange(form.copy(notes = it)) }, notesLabel, NOTES_MAX_LENGTH)
+    }
 
     RatesLine(state.rates)
     NetResult(state.outcome, isOffer = form.status == TripStatus.OFFER_CHECK)
@@ -379,9 +448,10 @@ private fun StatusSelector(statuses: List<TripStatus>, selected: TripStatus, onS
     }
 }
 
+
 /** The rate snapshot this trip is calculated with. It never follows later vehicle edits. */
 @Composable
-private fun RatesLine(rates: TripRates) {
+internal fun RatesLine(rates: TripRates) {
     val money = rememberMoneyFormatter()
     Text(
         stringResource(

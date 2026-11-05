@@ -163,6 +163,7 @@ class ProfitCalculatorTest {
                 maintenanceReservePerKmCents = -1,
                 otherCostsCents = -1,
                 targetProfitPerKmCents = -1,
+                tipCents = -1,
             ),
         )
         val expected = listOf(
@@ -174,6 +175,7 @@ class ProfitCalculatorTest {
             InputField.FUEL_PRICE,
             InputField.MAINTENANCE_RESERVE,
             InputField.OTHER_COSTS,
+            InputField.TIP,
             InputField.TARGET_PROFIT_PER_KM,
         ).map { ValidationError.Negative(it) }
         assertEquals(expected, e)
@@ -342,6 +344,39 @@ class ProfitCalculatorTest {
         val r = success(input)
         assertEquals(
             input.fareCents - r.commissionCents - r.fuelCostCents - r.maintenanceReserveCents - input.otherCostsCents,
+            r.netProfitCents,
+        )
+    }
+
+    // ---- Tip ----
+
+    @Test
+    fun `a tip is added after the commission, which isn't taken from it`() {
+        val r = success(g1.copy(commissionType = CommissionType.PERCENT, commissionHundredths = 2_000, tipCents = 20_000))
+        assertEquals(20_000L, r.commissionCents)
+        assertEquals(20_000L, r.tipCents)
+        assertEquals(90_500L, r.netProfitCents)
+        assertEquals(9_050L, r.netProfitPerKmCents)
+    }
+
+    @Test
+    fun `a tip counts in the band`() {
+        assertEquals(ResultBand.BELOW_TARGET, success(g1.copy(targetProfitPerKmCents = 8_000)).band)
+        assertEquals(ResultBand.GOOD, success(g1.copy(targetProfitPerKmCents = 8_000, tipCents = 20_000)).band)
+    }
+
+    @Test
+    fun `no tip leaves every golden result as it was`() {
+        assertEquals(0L, success(g1).tipCents)
+        assertEquals(success(g1), success(g1.copy(tipCents = 0)))
+    }
+
+    @Test
+    fun `breakdown with a tip adds up to net profit`() {
+        val input = g1.copy(otherCostsCents = 4_321, tipCents = 15_075)
+        val r = success(input)
+        assertEquals(
+            input.fareCents - r.commissionCents - r.fuelCostCents - r.maintenanceReserveCents - input.otherCostsCents + r.tipCents,
             r.netProfitCents,
         )
     }

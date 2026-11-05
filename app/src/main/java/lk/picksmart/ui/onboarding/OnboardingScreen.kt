@@ -62,17 +62,18 @@ import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.navigation.ForgotPasswordRoute
 import lk.picksmart.ui.navigation.LoginRoute
 import lk.picksmart.ui.navigation.RegisterRoute
 import lk.picksmart.ui.navigation.popIfOn
+import lk.picksmart.ui.settings.LanguageChips
 import lk.picksmart.ui.splash.WelcomeScreen
 import lk.picksmart.ui.theme.Spacing
 import lk.picksmart.ui.vehicle.VehicleFormFields
 import lk.picksmart.ui.vehicle.VehicleFormState
-import lk.picksmart.ui.vehicle.label
 
-/** The setup steps (welcome, intro, vehicle, safety); the sign-in screens open on top of it. */
+/** The setup steps (welcome, intro, vehicle, permissions, safety); the sign-in screens open on top of it. */
 @Serializable private data object SetupRoute
 
 /**
@@ -154,15 +155,23 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
             onPageShown = viewModel::showIntroPage,
             onDone = viewModel::finishIntro,
         )
+        OnboardingStep.RESTORE ->
+            RestoreStep(
+                state.restore,
+                skipping = state.skipping,
+                onRetry = viewModel::restore,
+                onSkip = viewModel::skipRestore,
+                onNext = viewModel::continueWithoutBackup,
+            )
         OnboardingStep.VEHICLE -> {
-            val defaultName = stringResource(state.form.type.label)
             VehicleStep(
                 state = state,
                 fuelPriceSuggestions = fuelPriceSuggestions,
                 onChange = viewModel::updateForm,
-                onContinue = { viewModel.continueWithForm(defaultName) },
+                onContinue = viewModel::continueWithForm,
             )
         }
+        OnboardingStep.PERMISSIONS -> StepScaffold(stepNumber = 2) { PermissionsStep(onContinue = viewModel::finishPermissions) }
         OnboardingStep.SAFETY -> SafetyStep(state = state, onFinish = viewModel::finish)
     }
 }
@@ -170,6 +179,8 @@ private fun SetupFlow(viewModel: OnboardingViewModel, onSignIn: () -> Unit) {
 @Composable
 private fun WelcomeStep(canSignIn: Boolean, onStart: () -> Unit, onSignIn: () -> Unit) {
     WelcomeScreen {
+        // The language comes first, so a rider reads everything after it in their own.
+        LanguageChips(Modifier.padding(bottom = Spacing.s))
         PrimaryButton(stringResource(R.string.onboarding_get_started), onStart, Modifier.fillMaxWidth())
         if (canSignIn) {
             TextButton(
@@ -371,7 +382,7 @@ private fun StepScaffold(
             .padding(horizontal = Spacing.screen, vertical = Spacing.l),
         verticalArrangement = Arrangement.spacedBy(Spacing.l),
     ) {
-        StepHeader(stepNumber, totalSteps = 2)
+        StepHeader(stepNumber, totalSteps = 3)
         content()
     }
 }
@@ -436,9 +447,70 @@ private fun VehicleStep(
     }
 }
 
+/**
+ * After signing in: the rider's backup comes back before setup asks for anything, so nothing they
+ * enter is merged with it later. Problems are retried on their own; Skip starts fresh in the
+ * account with backup off on this phone. An account with nothing backed up is told so, and Next
+ * goes to the vehicle.
+ */
+@Composable
+private fun RestoreStep(state: RestoreState, skipping: Boolean, onRetry: () -> Unit, onSkip: () -> Unit, onNext: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Spacing.screen, vertical = Spacing.l),
+        verticalArrangement = Arrangement.spacedBy(Spacing.l),
+    ) {
+        if (state == RestoreState.NO_BACKUP) {
+            ScreenTitle(stringResource(R.string.onboarding_restore_none_title))
+            Text(
+                stringResource(R.string.onboarding_restore_none_body),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            PrimaryButton(stringResource(R.string.intro_next), onNext, Modifier.fillMaxWidth())
+            return@Column
+        }
+        ScreenTitle(stringResource(R.string.onboarding_restore_title))
+        when (state) {
+            RestoreState.RUNNING -> {
+                Text(
+                    stringResource(R.string.onboarding_restore_body),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                LoadingState()
+            }
+            RestoreState.OFFLINE, RestoreState.UNVERIFIED, RestoreState.FAILED -> {
+                ErrorState(
+                    stringResource(
+                        when (state) {
+                            RestoreState.OFFLINE -> R.string.onboarding_restore_offline
+                            RestoreState.UNVERIFIED -> R.string.onboarding_restore_unverified
+                            else -> R.string.onboarding_restore_failed
+                        },
+                    ),
+                )
+                PrimaryButton(stringResource(R.string.action_retry), onRetry, Modifier.fillMaxWidth(), enabled = !skipping)
+            }
+            RestoreState.NO_BACKUP -> Unit
+        }
+        // Always there, so a rider who can't wait is never stuck here.
+        Text(
+            stringResource(R.string.onboarding_restore_skip_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SecondaryButton(stringResource(R.string.onboarding_restore_skip), onSkip, Modifier.fillMaxWidth(), enabled = !skipping)
+    }
+}
+
 @Composable
 private fun SafetyStep(state: OnboardingUiState, onFinish: () -> Unit) {
-    StepScaffold(stepNumber = 2) {
+    StepScaffold(stepNumber = 3) {
         ScreenTitle(stringResource(R.string.onboarding_safety_title))
         CheckPoint(R.string.onboarding_safety_estimates)
         CheckPoint(R.string.onboarding_safety_stopped)

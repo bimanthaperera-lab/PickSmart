@@ -1,7 +1,10 @@
 package lk.picksmart.domain.model
 
+import androidx.annotation.Keep
 import java.time.Instant
 
+/** Kept by R8: it is a type-safe navigation argument (EditTripRoute). */
+@Keep
 enum class Platform { UBER, PICKME, COURIER, OWN_DELIVERY, OTHER }
 
 enum class TripStatus {
@@ -35,6 +38,9 @@ fun Vehicle.rates() = TripRates(
  *
  * @property commissionHundredths As in `ProfitInput.commissionHundredths`.
  * @property cancellationFeeCents The fee paid for a cancelled trip, or null when there was none.
+ * @property pickupLocation Where the passenger or parcel was picked up, as the rider typed it or
+ *   as the ride offer showed it; null when not given. Free text, never a map position.
+ * @property dropOffLocation Where the trip went ("Where to"); null when not given.
  */
 data class Trip(
     val id: Long,
@@ -55,6 +61,10 @@ data class Trip(
     val cancellationFeeCents: Long?,
     val notes: String?,
     val rates: TripRates,
+    val pickupLocation: String? = null,
+    val dropOffLocation: String? = null,
+    /** The same on every device the rider backs up to; see [newSyncId]. Never changes. */
+    val syncId: String = newSyncId(),
 )
 
 /** What the rider sets when saving or editing a trip, already parsed and validated. */
@@ -73,4 +83,6 @@ data class TripInput(
     val cancellationFeeCents: Long?,
     val notes: String?,
     val rates: TripRates,
+    val pickupLocation: String? = null,
+    val dropOffLocation: String? = null,
 )

@@ -73,6 +73,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -88,10 +89,12 @@ import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.NumberField
+import lk.picksmart.util.InputDigits
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.parseRupeesToCents
 import lk.picksmart.ui.components.PicksmartCard
 import lk.picksmart.ui.components.PrimaryButton
+import lk.picksmart.ui.components.FitText
 import lk.picksmart.ui.components.ScreenTitle
 import lk.picksmart.ui.components.SecondaryButton
 import lk.picksmart.ui.components.TabScreen
@@ -159,7 +162,6 @@ fun CheckRideScreen(
                     is CheckRideUiState.Ready -> CheckRideForm(
                         state = s,
                         onChange = viewModel::updateForm,
-                        onSwitchVehicle = viewModel::switchVehicle,
                         onChangeRates = { viewModel.startOverrides(s.vehicle) },
                         onUseVehicleRates = viewModel::clearOverrides,
                     )
@@ -197,7 +199,6 @@ fun CheckRideScreen(
 private fun CheckRideForm(
     state: CheckRideUiState.Ready,
     onChange: (CheckRideFormState) -> Unit,
-    onSwitchVehicle: (vehicleId: Long) -> Unit,
     onChangeRates: () -> Unit,
     onUseVehicleRates: () -> Unit,
 ) {
@@ -205,7 +206,6 @@ private fun CheckRideForm(
     val errors = (state.outcome as? CheckRideOutcome.Invalid)?.errors.orEmpty()
     val currency = stringResource(R.string.currency_prefix)
     val km = stringResource(R.string.unit_km)
-    val zero = stringResource(R.string.placeholder_zero)
     val payout = form.fareMode == FareMode.PAYOUT_AFTER_COMMISSION
     // Side-by-side fields get too narrow for their labels at large font sizes.
     val stacked = LocalDensity.current.fontScale > STACK_FONT_SCALE
@@ -217,17 +217,6 @@ private fun CheckRideForm(
         keyboard?.show()
     }
 
-    // One tap switches vehicle; only shown when there is more than one.
-    if (state.vehicles.size > 1) {
-        ChoiceChips(
-            options = state.vehicles,
-            selected = state.vehicles.firstOrNull { it.id == state.vehicle.id },
-            optionLabel = { it.name },
-            optionIcon = { it.type.icon },
-            onSelect = { if (it.id != state.vehicle.id) onSwitchVehicle(it.id) },
-        )
-    }
-
     ChoiceChips(
         options = Platform.entries,
         selected = form.platform,
@@ -235,104 +224,118 @@ private fun CheckRideForm(
         onSelect = { onChange(form.copy(platform = it)) },
     )
 
-    FareModeSelector(form.fareMode) { onChange(form.copy(fareMode = it)) }
-
-    NumberField(
-        value = form.fare,
-        onValueChange = { onChange(form.copy(fare = it)) },
-        label = stringResource(if (payout) R.string.check_fare_payout else R.string.check_fare_gross),
-        modifier = Modifier.focusRequester(fareFocus),
-        prefix = currency,
-        supportingText = if (payout) stringResource(R.string.check_fare_payout_help) else null,
-        error = errors.text(InputField.FARE),
-        trailing = if (form.fare.isEmpty()) {
-            null
-        } else {
-            {
-                IconButton(onClick = {
-                    onChange(form.copy(fare = ""))
-                    fareFocus.requestFocus()
-                }) {
-                    Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.check_clear_fare))
+    val fareLabel = stringResource(if (payout) R.string.check_fare_payout else R.string.check_fare_gross)
+    InputSection(
+        title = fareLabel,
+        action = { stacked -> FareModePills(form.fareMode, fill = stacked) { onChange(form.copy(fareMode = it)) } },
+    ) {
+        FareBox(
+            value = form.fare,
+            onValueChange = { onChange(form.copy(fare = it)) },
+            label = fareLabel,
+            focusRequester = fareFocus,
+            error = errors.text(InputField.FARE),
+            stacked = stacked,
+            onAdd = { onChange(form.addToFare(it)) },
+        )
+        if (payout) {
+            Text(
+                stringResource(R.string.check_fare_payout_help),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TileRow(
+            stacked,
+            buildList {
+                if (!payout) {
+                    add { m ->
+                        // In percent, the fee in rupees for this fare, once there is a result.
+                        val feeCents = (state.outcome as? CheckRideOutcome.Calculated)?.result?.commissionCents
+                            ?.takeIf { form.commissionType == CommissionType.PERCENT && it > 0 }
+                        NumberTile(
+                            value = form.commission,
+                            onValueChange = { onChange(form.copy(commission = it)) },
+                            label = stringResource(R.string.check_fee),
+                            modifier = m,
+                            error = errors.text(InputField.COMMISSION),
+                            note = feeCents?.let { stringResource(R.string.check_fee_equivalent, rememberMoneyFormatter().format(it)) },
+                            trailing = {
+                                FeeUnitToggle(form.commissionType, size = 36.dp) { onChange(form.copy(commissionType = it)) }
+                            },
+                        )
+                    }
                 }
-            }
-        },
-    )
-
-    FieldRow(
-        stacked,
-        buildList {
-            if (!payout) {
                 add { m ->
-                    NumberField(
-                        value = form.commission,
-                        onValueChange = { onChange(form.copy(commission = it)) },
-                        label = stringResource(R.string.check_fee),
+                    NumberTile(
+                        value = form.otherCosts,
+                        onValueChange = { onChange(form.copy(otherCosts = it)) },
+                        label = stringResource(R.string.check_other_costs),
                         modifier = m,
-                        placeholder = zero,
-                        error = errors.text(InputField.COMMISSION),
-                        trailing = {
-                            FeeUnitToggle(form.commissionType) { onChange(form.copy(commissionType = it)) }
-                        },
+                        prefix = currency,
+                        error = errors.text(InputField.OTHER_COSTS),
                     )
                 }
-            }
-            add { m ->
-                NumberField(
-                    value = form.otherCosts,
-                    onValueChange = { onChange(form.copy(otherCosts = it)) },
-                    label = stringResource(R.string.check_other_costs),
-                    modifier = m,
-                    placeholder = zero,
-                    prefix = currency,
-                    error = errors.text(InputField.OTHER_COSTS),
-                )
-            }
-        },
-    )
+            },
+        )
+    }
 
-    FieldRow(
-        stacked,
-        listOf(
-            { m ->
-                NumberField(
-                    value = form.pickupKm,
-                    onValueChange = { onChange(form.copy(pickupKm = it)) },
-                    label = stringResource(R.string.check_pickup),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    error = errors.text(InputField.PICKUP_KM),
-                )
-            },
-            { m ->
-                NumberField(
-                    value = form.tripKm,
-                    onValueChange = { onChange(form.copy(tripKm = it)) },
-                    label = stringResource(R.string.check_trip),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    error = errors.text(InputField.TRIP_KM),
-                )
-            },
-            { m ->
-                NumberField(
-                    value = form.returnKm,
-                    onValueChange = { onChange(form.copy(returnKm = it)) },
-                    label = stringResource(R.string.check_return),
-                    modifier = m,
-                    placeholder = zero,
-                    suffix = km,
-                    maxDecimals = 1,
-                    supportingText = stringResource(R.string.check_optional),
-                    error = errors.text(InputField.RETURN_KM),
-                    imeAction = if (form.overrides == null) ImeAction.Done else ImeAction.Next,
-                )
-            },
-        ),
+    val totalKm = (state.outcome as? CheckRideOutcome.Calculated)?.result?.totalKm
+    InputSection(
+        title = stringResource(R.string.check_result_distance),
+        action = totalKm?.let { total -> { _ -> TotalKmPill(total) } },
+    ) {
+        TileRow(
+            stacked,
+            listOf(
+                { m ->
+                    NumberTile(
+                        value = form.pickupKm,
+                        onValueChange = { onChange(form.copy(pickupKm = it)) },
+                        label = stringResource(R.string.check_pickup),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.PICKUP_KM),
+                    )
+                },
+                { m ->
+                    NumberTile(
+                        value = form.tripKm,
+                        onValueChange = { onChange(form.copy(tripKm = it)) },
+                        label = stringResource(R.string.check_trip),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.TRIP_KM),
+                        highlighted = true,
+                    )
+                },
+                { m ->
+                    NumberTile(
+                        value = form.returnKm,
+                        onValueChange = { onChange(form.copy(returnKm = it)) },
+                        label = stringResource(R.string.check_return_optional),
+                        modifier = m,
+                        suffix = km,
+                        maxDecimals = 1,
+                        maxIntegerDigits = InputDigits.DISTANCE,
+                        error = errors.text(InputField.RETURN_KM),
+                        imeAction = if (form.overrides == null) ImeAction.Done else ImeAction.Next,
+                    )
+                },
+            ),
+        )
+    }
+
+    LocationFields(
+        pickup = form.pickupLocation,
+        dropOff = form.dropOffLocation,
+        onPickupChange = { onChange(form.copy(pickupLocation = it)) },
+        onDropOffChange = { onChange(form.copy(dropOffLocation = it)) },
+        collapsible = true,
     )
 
     val overrides = form.overrides
@@ -384,6 +387,19 @@ private fun SafetyLine() {
 
 private const val SHIELD_ID = "shield"
 
+/** "Total 10.0 km", beside the distance section's title once there is a result. */
+@Composable
+internal fun TotalKmPill(totalKm: Double) {
+    Surface(shape = MaterialTheme.shapes.extraSmall, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+        Text(
+            stringResource(R.string.check_total_km, formatDecimal(totalKm, 1)),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = Spacing.s, vertical = Spacing.xs),
+        )
+    }
+}
+
 @Composable
 internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) {
     val modes = FareMode.entries
@@ -402,7 +418,8 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
                     .fillMaxHeight()
                     .defaultMinSize(minHeight = Spacing.touchTarget),
                 label = {
-                    Text(
+                    // Two lines at most, without splitting a word in a long translation.
+                    FitText(
                         stringResource(
                             when (mode) {
                                 FareMode.GROSS_BEFORE_COMMISSION -> R.string.check_fare_mode_gross
@@ -410,6 +427,8 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
                             },
                         ),
                         textAlign = TextAlign.Center,
+                        lines = 2,
+                        minScale = 0.8f,
                     )
                 },
             )
@@ -417,9 +436,9 @@ internal fun FareModeSelector(selected: FareMode, onSelect: (FareMode) -> Unit) 
     }
 }
 
-/** The "Rs." / "%" switch inside the fee field. */
+/** The "Rs." / "%" switch inside the fee field. [size] is how big it is drawn; Compose keeps a 48 dp touch area. */
 @Composable
-internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> Unit) {
+internal fun FeeUnitToggle(type: CommissionType, size: Dp = Spacing.touchTarget, onSelect: (CommissionType) -> Unit) {
     val amount = type == CommissionType.AMOUNT
     val description = stringResource(if (amount) R.string.check_fee_in_rupees else R.string.check_fee_in_percent)
     val actionLabel = stringResource(if (amount) R.string.check_fee_switch_to_percent else R.string.check_fee_switch_to_rupees)
@@ -427,7 +446,7 @@ internal fun FeeUnitToggle(type: CommissionType, onSelect: (CommissionType) -> U
     Box(
         Modifier
             .padding(end = Spacing.xs)
-            .defaultMinSize(minWidth = Spacing.touchTarget, minHeight = Spacing.touchTarget)
+            .defaultMinSize(minWidth = size, minHeight = size)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
             .clickable(role = Role.Button, onClickLabel = actionLabel) {
@@ -460,7 +479,7 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(start = Spacing.m, top = Spacing.m, bottom = Spacing.m, end = Spacing.xs)) {
+        Column(Modifier.padding(start = Spacing.m, top = Spacing.s, bottom = Spacing.s, end = Spacing.xs)) {
             Row(
                 // Stacked rates are tall; the tile then stays by the name instead of floating.
                 verticalAlignment = if (stacked) Alignment.Top else Alignment.CenterVertically,
@@ -468,8 +487,8 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
             ) {
                 Box(
                     Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.medium),
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small),
                     contentAlignment = Alignment.Center,
                 ) {
                     // Decorative: the name and type are read out with the text.
@@ -477,7 +496,7 @@ private fun VehicleRatesLine(vehicle: Vehicle, onChangeRates: () -> Unit) {
                         painterResource(vehicle.type.icon),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
                 Column(
@@ -563,6 +582,7 @@ private fun RateOverridesCard(
                 label = stringResource(R.string.vehicle_field_efficiency),
                 suffix = stringResource(R.string.unit_km_per_litre),
                 maxDecimals = 1,
+                maxIntegerDigits = InputDigits.EFFICIENCY,
                 error = errors.text(InputField.FUEL_EFFICIENCY),
             )
             NumberField(
@@ -626,10 +646,12 @@ private fun ResultPanel(
 
 @Composable
 private fun MessagePanel(title: String, body: String?, modifier: Modifier, isError: Boolean = false) {
-    PicksmartCard(modifier.fillMaxWidth()) {
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+            modifier = Modifier
+                .padding(Spacing.m)
+                .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         ) {
             Icon(
                 painterResource(if (isError) R.drawable.ic_error else R.drawable.ic_info),
@@ -638,9 +660,9 @@ private fun MessagePanel(title: String, body: String?, modifier: Modifier, isErr
                 modifier = Modifier.size(24.dp),
             )
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(title, style = MaterialTheme.typography.titleSmall)
                 if (body != null) {
-                    Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -674,8 +696,8 @@ private fun CalculatedPanel(
         Column(
             Modifier
                 .verticalScroll(rememberScrollState())
-                .padding(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                .padding(horizontal = Spacing.m, vertical = Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(
@@ -702,10 +724,10 @@ private fun CalculatedPanel(
                 itemVerticalAlignment = Alignment.Bottom,
                 modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = netDescription },
             ) {
-                Text(net, style = MaterialTheme.typography.displaySmall, color = style.onContainer)
+                Text(net, style = MaterialTheme.typography.headlineLarge, color = style.onContainer)
                 Text(
                     perKm,
-                    style = if (result.netProfitPerKmCents != null) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyMedium,
+                    style = if (result.netProfitPerKmCents != null) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodySmall,
                     color = style.content,
                     modifier = Modifier.padding(bottom = Spacing.xs),
                 )
@@ -738,11 +760,11 @@ private fun TargetLine(targetCents: Long, color: Color, onEdit: () -> Unit) {
     }
 }
 
-/** Sets the profit target per km. Empty turns it off; it is saved on the vehicle. */
+/** Sets the profit target per km, saved on the vehicle. Empty turns it off; zero isn't saved. */
 @Composable
 private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss: () -> Unit) {
     var text by rememberSaveable { mutableStateOf(currentCents?.let(::centsToInput).orEmpty()) }
-    var invalid by rememberSaveable { mutableStateOf(false) }
+    var error by rememberSaveable { mutableStateOf<Int?>(null) }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
@@ -755,13 +777,13 @@ private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss
                     value = text,
                     onValueChange = {
                         text = it
-                        invalid = false
+                        error = null
                     },
                     label = stringResource(R.string.target_dialog_field),
                     placeholder = stringResource(R.string.placeholder_zero),
                     prefix = stringResource(R.string.currency_prefix),
                     suffix = stringResource(R.string.unit_per_km),
-                    error = if (invalid) stringResource(R.string.vehicle_error_invalid) else null,
+                    error = error?.let { stringResource(it) },
                     imeAction = ImeAction.Done,
                     modifier = Modifier.focusRequester(focus),
                 )
@@ -769,10 +791,12 @@ private fun TargetDialog(currentCents: Long?, onSave: (Long?) -> Unit, onDismiss
         },
         confirmButton = {
             TextButton(onClick = {
-                if (text.isBlank()) {
-                    onSave(null)
-                } else {
-                    parseRupeesToCents(text)?.let(onSave) ?: run { invalid = true }
+                val cents = parseRupeesToCents(text)
+                when {
+                    text.isBlank() -> onSave(null)
+                    cents == null -> error = R.string.vehicle_error_invalid
+                    cents <= 0 -> error = R.string.vehicle_error_above_zero
+                    else -> onSave(cents)
                 }
             }) { Text(stringResource(R.string.action_save)) }
         },
@@ -788,14 +812,14 @@ private fun SaveButtons(isLoss: Boolean, enabled: Boolean, onSave: (TripStatus) 
         stacked,
         listOf(
             { m ->
-                SecondaryButton(stringResource(R.string.check_save_offer), { onSave(TripStatus.OFFER_CHECK) }, m, enabled = enabled)
+                SecondaryButton(stringResource(R.string.check_save_offer), { onSave(TripStatus.OFFER_CHECK) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
             },
             { m ->
                 // Taking a loss-making ride is allowed but not encouraged: no yellow fill.
                 if (isLoss) {
-                    SecondaryButton(stringResource(R.string.check_took_it_anyway), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                    SecondaryButton(stringResource(R.string.check_took_it_anyway), { onSave(TripStatus.COMPLETED) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
                 } else {
-                    PrimaryButton(stringResource(R.string.check_took_it), { onSave(TripStatus.COMPLETED) }, m, enabled = enabled)
+                    PrimaryButton(stringResource(R.string.check_took_it), { onSave(TripStatus.COMPLETED) }, m.heightIn(min = Spacing.touchTarget), enabled = enabled)
                 }
             },
         ),

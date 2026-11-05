@@ -28,4 +28,9 @@ class FuelCostTest {
         assertNull(fuelCostPerKmCents(30_000, Double.POSITIVE_INFINITY))
         assertNull(fuelCostPerKmCents(-1, 40.0))
     }
+
+    @Test
+    fun `a cost too large for a Long is null instead of a crash`() {
+        assertNull(fuelCostPerKmCents(Long.MAX_VALUE, 0.001))
+    }
 }

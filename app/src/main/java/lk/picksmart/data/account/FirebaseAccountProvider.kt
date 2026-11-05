@@ -3,9 +3,9 @@ package lk.picksmart.data.account
 import android.content.Context
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.userProfileChangeRequest
+import kotlin.math.abs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,11 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.suspendCancellableCoroutine
 import lk.picksmart.domain.model.SignInMethod
 import lk.picksmart.domain.model.UserProfile
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /** Firebase Authentication with email/password and Google (CLAUDE.md section 14). */
 class FirebaseAccountProvider(
@@ -90,6 +88,15 @@ class FirebaseAccountProvider(
         runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
     }
 
+    override suspend fun confirmIdentity(proof: IdentityProof) = attempt {
+        val user = checkNotNull(auth.currentUser)
+        val credential = when (proof) {
+            is IdentityProof.Password -> EmailAuthProvider.getCredential(checkNotNull(user.email), proof.password)
+            is IdentityProof.Google -> GoogleAuthProvider.getCredential(proof.idToken, null)
+        }
+        user.reauthenticate(credential).await()
+    }
+
     override suspend fun deleteAccount() = attempt {
         checkNotNull(auth.currentUser).delete().await()
         runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
@@ -112,7 +119,11 @@ private fun FirebaseUser.toProfile() = UserProfile(
     emailVerified = isEmailVerified,
     photoUrl = photoUrl?.toString(),
     method = if (providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID }) SignInMethod.GOOGLE else SignInMethod.EMAIL,
+    // Firebase sets both times when it creates the account; a later sign-in moves only the last.
+    isNewAccount = metadata?.let { abs(it.lastSignInTimestamp - it.creationTimestamp) < NEW_ACCOUNT_MILLIS } ?: false,
 )
+
+private const val NEW_ACCOUNT_MILLIS = 60_000L
 
 private fun Exception.toAuthError(): AuthError = when (this) {
     is FirebaseNetworkException -> AuthError.NO_INTERNET
@@ -123,19 +134,10 @@ private fun Exception.toAuthError(): AuthError = when (this) {
         if (errorCode == "ERROR_EMAIL_ALREADY_IN_USE") AuthError.EMAIL_IN_USE else AuthError.OTHER_SIGN_IN_METHOD
     is FirebaseAuthInvalidCredentialsException ->
         if (errorCode == "ERROR_INVALID_EMAIL") AuthError.INVALID_EMAIL else AuthError.WRONG_CREDENTIALS
-    is FirebaseAuthInvalidUserException ->
-        if (errorCode == "ERROR_USER_DISABLED") AuthError.ACCOUNT_DISABLED else AuthError.WRONG_CREDENTIALS
-    else -> AuthError.UNKNOWN
-}
-
-/** Waits for a Play services [Task] without pulling in another library for it. */
-private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
-    addOnCompleteListener { task ->
-        val error = task.exception
-        when {
-            error != null -> cont.resumeWithException(error)
-            task.isCanceled -> cont.cancel()
-            else -> cont.resume(task.result)
-        }
+    is FirebaseAuthInvalidUserException -> when (errorCode) {
+        "ERROR_USER_DISABLED" -> AuthError.ACCOUNT_DISABLED
+        "ERROR_USER_MISMATCH" -> AuthError.DIFFERENT_ACCOUNT
+        else -> AuthError.WRONG_CREDENTIALS
     }
+    else -> AuthError.UNKNOWN
 }

@@ -12,6 +12,7 @@ enum class InputField {
     MAINTENANCE_RESERVE,
     OTHER_COSTS,
     TARGET_PROFIT_PER_KM,
+    TIP,
 }
 
 /** Why an input can't be calculated. Returned, never thrown. */

@@ -116,10 +116,10 @@ class EditVehicleViewModel(
 
     fun updateForm(form: VehicleFormState) = editing { it.copy(form = form, errors = emptyMap(), saveFailed = false) }
 
-    fun save(defaultName: String) {
+    fun save() {
         val current = _state.value as? EditVehicleUiState.Editing ?: return
         if (current.saving) return
-        val input = when (val result = current.form.validate(defaultName)) {
+        val input = when (val result = current.form.validate()) {
             is VehicleFormResult.Invalid -> return editing { it.copy(errors = result.errors) }
             is VehicleFormResult.Valid -> result.input
         }

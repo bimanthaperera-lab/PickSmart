@@ -26,11 +26,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.checkride.ErrorText
+import lk.picksmart.ui.checkride.InputSection
+import lk.picksmart.ui.checkride.NoteBox
+import lk.picksmart.ui.checkride.NoteCounter
+import lk.picksmart.ui.checkride.QuickAddRow
+import lk.picksmart.ui.checkride.ValueBox
+import lk.picksmart.util.addRupeesToInput
+import lk.picksmart.ui.trip.hint
 import lk.picksmart.domain.model.IncomeType
 import lk.picksmart.domain.model.OtherIncome
 import lk.picksmart.domain.model.Platform
@@ -40,15 +47,12 @@ import lk.picksmart.ui.components.DateField
 import lk.picksmart.ui.components.DetailHeader
 import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
-import lk.picksmart.ui.components.FieldLabel
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.MonthTotalCard
-import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.RecordIcon
 import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.SectionLabel
-import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
@@ -178,7 +182,7 @@ fun EditIncomeScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.screen, vertical = Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             when (val s = state) {
                 EditIncomeUiState.Loading -> LoadingState()
@@ -216,33 +220,49 @@ fun EditIncomeScreen(
     }
 }
 
+/**
+ * Add / Edit income in Check a Ride's card style: the type tiles, the amount with quick-add
+ * buttons, the platform, the date and the note, each on its own card.
+ */
 @Composable
 private fun IncomeForm(state: EditIncomeUiState.Editing, onChange: (IncomeFormState) -> Unit) {
     val form = state.form
-    ChoiceGrid(
-        label = stringResource(R.string.income_type),
-        options = IncomeType.entries,
-        selected = form.type,
-        optionLabel = { stringResource(it.label) },
-        onSelect = { onChange(form.copy(type = it)) },
-    )
-    NumberField(
-        value = form.amount,
-        onValueChange = { onChange(form.copy(amount = it)) },
-        label = stringResource(R.string.income_amount),
-        prefix = stringResource(R.string.currency_prefix),
-        error = state.amountError?.let {
-            stringResource(
-                when (it) {
-                    AmountError.REQUIRED -> R.string.income_error_amount_required
-                    AmountError.INVALID -> R.string.vehicle_error_invalid
-                    AmountError.ZERO -> R.string.income_error_amount_zero
-                },
-            )
-        },
-    )
-    Column {
-        FieldLabel(stringResource(R.string.income_platform))
+    InputSection(title = stringResource(R.string.income_type)) {
+        ChoiceGrid(
+            label = null,
+            options = IncomeType.entries,
+            selected = form.type,
+            optionLabel = { stringResource(it.label) },
+            onSelect = { onChange(form.copy(type = it)) },
+            optionIcon = { it.icon },
+            optionSubtitle = { stringResource(it.hint) },
+            tileColor = MaterialTheme.colorScheme.surface,
+        )
+    }
+    val amountLabel = stringResource(R.string.income_amount)
+    val amountError = state.amountError?.let {
+        stringResource(
+            when (it) {
+                AmountError.REQUIRED -> R.string.income_error_amount_required
+                AmountError.INVALID -> R.string.vehicle_error_invalid
+                AmountError.ZERO -> R.string.income_error_amount_zero
+            },
+        )
+    }
+    InputSection(title = amountLabel) {
+        ValueBox(
+            value = form.amount,
+            onValueChange = { onChange(form.copy(amount = it)) },
+            label = amountLabel,
+            error = amountError,
+            prefix = stringResource(R.string.currency_prefix),
+            textStyle = MaterialTheme.typography.headlineMedium,
+            onClear = { onChange(form.copy(amount = "")) },
+        )
+        if (amountError != null) ErrorText(amountError)
+        QuickAddRow(onAdd = { onChange(form.copy(amount = addRupeesToInput(form.amount, it))) })
+    }
+    InputSection(title = stringResource(R.string.income_platform)) {
         // Null is "None": income doesn't have to belong to a platform.
         ChoiceChips(
             options = listOf<Platform?>(null) + Platform.entries,
@@ -251,15 +271,24 @@ private fun IncomeForm(state: EditIncomeUiState.Editing, onChange: (IncomeFormSt
             onSelect = { onChange(form.copy(platform = it)) },
         )
     }
-    DateField(stringResource(R.string.income_date), form.date, { onChange(form.copy(date = it)) }, Modifier.fillMaxWidth(), maxDate = state.today)
-    TextInputField(
-        value = form.note,
-        onValueChange = { onChange(form.copy(note = it)) },
-        label = stringResource(R.string.income_note),
-        placeholder = stringResource(R.string.income_note_placeholder),
-        maxLength = NOTE_MAX_LENGTH,
-        imeAction = ImeAction.Done,
+    DateField(
+        stringResource(R.string.income_date),
+        form.date,
+        { onChange(form.copy(date = it)) },
+        Modifier.fillMaxWidth(),
+        maxDate = state.today,
+        tile = true,
     )
+    val noteLabel = stringResource(R.string.income_note)
+    InputSection(title = noteLabel, action = { NoteCounter(form.note.length, NOTE_MAX_LENGTH) }) {
+        NoteBox(
+            value = form.note,
+            onValueChange = { onChange(form.copy(note = it)) },
+            label = noteLabel,
+            maxLength = NOTE_MAX_LENGTH,
+            placeholder = stringResource(R.string.income_note_placeholder),
+        )
+    }
 }
 
 private const val NOTE_MAX_LENGTH = 100

@@ -1,5 +1,35 @@
 package lk.picksmart.util
 
+import java.math.BigDecimal
+
+/**
+ * How many whole-number digits each kind of number field takes, so a rider can't type or paste a
+ * number long enough to overflow a total. Money allows Rs. 9,999,999.99, far above any ride or
+ * fill-up, and every sum of such values over years of records still fits a Long of cents.
+ */
+object InputDigits {
+    const val MONEY = 7
+    const val DISTANCE = 4
+    const val EFFICIENCY = 3
+    const val LITRES = 4
+    const val ODOMETER = 7
+}
+
+/**
+ * A money field after a quick-add button ("+50", "+1,000"): [rupees] added to [text], an empty
+ * field counting as 0, shown as short text ("1450", "12.5"). Text that isn't a number, or a sum
+ * past the field's [InputDigits.MONEY] digits, stays as it is.
+ */
+fun addRupeesToInput(text: String, rupees: Long): String {
+    val current = if (text.isBlank()) 0L else parseRupeesToCents(text) ?: return text
+    val cents = current + rupees * 100
+    if (cents >= MAX_MONEY_CENTS) return text
+    return hundredthsToInput(cents)
+}
+
+/** One more than the largest amount a money field takes ([InputDigits.MONEY] whole rupees). */
+private val MAX_MONEY_CENTS = BigDecimal.TEN.pow(InputDigits.MONEY).movePointRight(2).toLong()
+
 /**
  * Cleans what a rider types into a number field: keeps digits and one decimal point, drops
  * everything else (spaces, commas, a pasted "Rs." or "LKR"), and trims decimals beyond
@@ -38,3 +68,22 @@ fun sanitizeDecimalInput(text: String, maxDecimals: Int): String {
     }
     return out.toString()
 }
+
+/**
+ * What a number field shows after the rider changed [old] to [new]: [new] cleaned with
+ * [sanitizeDecimalInput]. A change that would take the whole-number part past [maxIntegerDigits]
+ * is refused, so [old] stays and nothing jumps under the cursor; a paste that is too long is cut
+ * to the limit instead. A value already over the limit (saved by an older version) can still be
+ * shortened.
+ */
+fun limitDecimalInput(old: String, new: String, maxDecimals: Int, maxIntegerDigits: Int): String {
+    val clean = sanitizeDecimalInput(new, maxDecimals)
+    val digits = integerDigits(clean)
+    if (digits <= maxIntegerDigits || digits <= integerDigits(old)) return clean
+    if (integerDigits(old) <= maxIntegerDigits && clean.length <= old.length + 1) return old
+    val dot = clean.indexOf('.')
+    val whole = if (dot < 0) clean else clean.substring(0, dot)
+    return whole.take(maxIntegerDigits) + if (dot < 0) "" else clean.substring(dot)
+}
+
+private fun integerDigits(text: String): Int = text.substringBefore('.').count { it in '0'..'9' }

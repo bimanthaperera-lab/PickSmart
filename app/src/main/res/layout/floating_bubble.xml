@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The floating bubble (CLAUDE.md section 9a). Closed, only the pin on its near-black circle shows;
+    a tap opens the yellow pill with the minimum fare per km and "Hold to hide" under it. While the
+    offer reader shows an offer, the pill gives way to the offer badge's card. Always the same
+    colours, because it sits on top of other apps. FloatingBubble sets the pill's background and
+    which side the pin is on.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:longClickable="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/bubble_pill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:padding="4dp">
+
+        <ImageView
+            android:id="@+id/bubble_mark"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_bubble_mark"
+            android:importantForAccessibility="no"
+            android:padding="9dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/picksmart_mark" />
+
+        <TextView
+            android:id="@+id/bubble_rate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="14dp"
+            android:importantForAccessibility="no"
+            android:maxLines="1"
+            android:textColor="@color/near_black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <include
+        android:id="@+id/bubble_offer"
+        layout="@layout/offer_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/bubble_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_bubble_hint"
+        android:importantForAccessibility="no"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="3dp"
+        android:textColor="@color/off_white"
+        android:textSize="12sp"
+        android:visibility="gone" />
+</LinearLayout>

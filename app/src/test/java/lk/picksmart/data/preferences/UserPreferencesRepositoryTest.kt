@@ -1,6 +1,7 @@
 package lk.picksmart.data.preferences
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -12,7 +13,9 @@ import lk.picksmart.domain.model.CommissionType
 import lk.picksmart.domain.model.FareMode
 import lk.picksmart.domain.model.FuelPriceList
 import lk.picksmart.domain.model.FuelType
+import lk.picksmart.domain.model.Gender
 import lk.picksmart.domain.model.LastCheckInputs
+import lk.picksmart.domain.model.PersonalDetails
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.ThemeMode
 import org.junit.Assert.assertEquals
@@ -51,6 +54,21 @@ class UserPreferencesRepositoryTest {
         prefs.setMobileNumber("a", " ")
         assertNull(prefs.mobileNumber("a").first())
         assertEquals("071 000 0000", prefs.mobileNumber("b").first())
+    }
+
+    @Test
+    fun `gender and date of birth are kept per account`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.setMobileNumber("a", "077 123 4567")
+        prefs.setGender("a", Gender.FEMALE)
+        prefs.setBirthDate("a", LocalDate.of(1990, 5, 17))
+        prefs.setGender("b", Gender.PREFER_NOT_TO_SAY)
+        assertEquals(PersonalDetails("077 123 4567", Gender.FEMALE, LocalDate.of(1990, 5, 17)), prefs.personalDetails("a").first())
+        assertEquals(PersonalDetails(gender = Gender.PREFER_NOT_TO_SAY), prefs.personalDetails("b").first())
+
+        prefs.setBirthDate("a", null)
+        assertNull(prefs.personalDetails("a").first().birthDate)
+        assertEquals(Gender.PREFER_NOT_TO_SAY, prefs.personalDetails("b").first().gender)
     }
 
     @Test
@@ -175,5 +193,92 @@ class UserPreferencesRepositoryTest {
         assertEquals(1L, prefs.fuelPriceAutoNoticeVehicleId.first())
         prefs.setFuelPriceAutoNoticeVehicleId(null)
         assertNull(prefs.fuelPriceAutoNoticeVehicleId.first())
+    }
+
+    @Test
+    fun `clearing the rider's data restarts setup and keeps the theme and published prices`() = runTest {
+        val prefs = UserPreferencesRepository(store())
+        prefs.completeOnboarding(defaultVehicleId = 7)
+        prefs.setThemeMode(ThemeMode.DARK)
+        prefs.setFuelPriceList(priceList)
+        prefs.setFuelPriceLastCheckAt(1_000L)
+        prefs.setMobileNumber("a", "077 123 4567")
+        prefs.setGender("a", Gender.FEMALE)
+        prefs.rememberFuelPrices(mapOf(FuelType.PETROL_92 to 30_000L))
+
+        prefs.clearRiderData("a")
+
+        assertFalse(prefs.onboardingComplete.first())
+        assertNull(prefs.defaultVehicleId.first())
+        assertEquals(PersonalDetails(), prefs.personalDetails("a").first())
+        assertEquals(emptyMap<FuelType, Long>(), prefs.ownFuelPrices.first())
+        assertEquals(ThemeMode.DARK, prefs.themeMode.first())
+        assertEquals(priceList, prefs.fuelPriceList.first())
+        assertEquals(1_000L, prefs.fuelPriceLastCheckAt.first())
+    }
+
+    @Test
+    fun `each account's space keeps its own setup, vehicle and Check a Ride inputs`() = runTest {
+        val store = store()
+        val first = UserPreferencesRepository(store)
+        val second = UserPreferencesRepository(store, space = "x1")
+        first.completeOnboarding(defaultVehicleId = 1)
+        first.setLastCheckInputs(LastCheckInputs(platform = Platform.UBER, commissionHundredths = 2_000))
+        first.rememberFuelPrices(mapOf(FuelType.PETROL_92 to 30_000L))
+
+        assertFalse(second.onboardingComplete.first())
+        assertNull(second.defaultVehicleId.first())
+        assertEquals(LastCheckInputs(), second.lastCheckInputs.first())
+        assertEquals(emptyMap<FuelType, Long>(), second.ownFuelPrices.first())
+
+        second.completeOnboarding(defaultVehicleId = 7)
+        assertEquals(1L, first.defaultVehicleId.first())
+        assertEquals(7L, second.defaultVehicleId.first())
+    }
+
+    @Test
+    fun `the phone's settings are shared by every space`() = runTest {
+        val store = store()
+        val first = UserPreferencesRepository(store)
+        val second = UserPreferencesRepository(store, space = "x1")
+        first.setThemeMode(ThemeMode.DARK)
+        first.setOfferReaderPaused(true)
+
+        assertEquals(ThemeMode.DARK, second.themeMode.first())
+        assertTrue(second.offerReaderPaused.first())
+    }
+
+    @Test
+    fun `the first space reads the settings saved before spaces existed`() = runTest {
+        val store = store()
+        store.edit {
+            it[booleanPreferencesKey("onboarding_complete")] = true
+            it[longPreferencesKey("default_vehicle_id")] = 3
+        }
+        val prefs = UserPreferencesRepository(store)
+        assertTrue(prefs.onboardingComplete.first())
+        assertEquals(3L, prefs.defaultVehicleId.first())
+    }
+
+    @Test
+    fun `deleting an account clears only its space and its details`() = runTest {
+        val store = store()
+        val first = UserPreferencesRepository(store)
+        val second = UserPreferencesRepository(store, space = "x1")
+        first.completeOnboarding(defaultVehicleId = 1)
+        first.setMobileNumber("rider-a", "077 123 4567")
+        first.setThemeMode(ThemeMode.DARK)
+        second.completeOnboarding(defaultVehicleId = 7)
+        second.setMobileNumber("rider-b", "071 000 0000")
+
+        second.clearRiderData("rider-b")
+
+        assertFalse(second.onboardingComplete.first())
+        assertNull(second.defaultVehicleId.first())
+        assertNull(second.mobileNumber("rider-b").first())
+        assertTrue(first.onboardingComplete.first())
+        assertEquals(1L, first.defaultVehicleId.first())
+        assertEquals("077 123 4567", first.mobileNumber("rider-a").first())
+        assertEquals(ThemeMode.DARK, first.themeMode.first())
     }
 }

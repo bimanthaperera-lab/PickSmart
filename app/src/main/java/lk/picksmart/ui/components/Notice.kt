@@ -14,11 +14,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import lk.picksmart.R
-import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
 
@@ -47,24 +47,7 @@ fun NoticeCard(
             }
         }
         if (primaryLabel != null && onPrimary != null) {
-            // A choice: the secondary action, then the primary one. Stacked full width at large
-            // font sizes so neither label is cut.
-            if (LocalDensity.current.fontScale > STACK_FONT_SCALE) {
-                Column(Modifier.padding(top = Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    PrimaryButton(primaryLabel, onPrimary, Modifier.fillMaxWidth())
-                    if (actionLabel != null && onAction != null) SecondaryButton(actionLabel, onAction, Modifier.fillMaxWidth())
-                }
-            } else {
-                Row(
-                    Modifier
-                        .align(Alignment.End)
-                        .padding(top = Spacing.m),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                ) {
-                    if (actionLabel != null && onAction != null) SecondaryButton(actionLabel, onAction)
-                    PrimaryButton(primaryLabel, onPrimary)
-                }
-            }
+            NoticeButtons(primaryLabel, onPrimary, actionLabel, onAction, Modifier.padding(top = Spacing.m))
         } else if (actionLabel != null && onAction != null) {
             SecondaryButton(
                 actionLabel,
@@ -73,6 +56,54 @@ fun NoticeCard(
                     .align(Alignment.End)
                     .padding(top = Spacing.m),
             )
+        }
+    }
+}
+
+/**
+ * A choice: the secondary action, then the primary one, side by side at the end. When the two
+ * labels don't fit on one line at their full width (a long translation, or a large font), they
+ * stack full width with the primary on top, so neither label is squeezed or wrapped.
+ */
+@Composable
+private fun NoticeButtons(
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    actionLabel: String?,
+    onAction: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val buttons = @Composable {
+        PrimaryButton(primaryLabel, onPrimary)
+        if (actionLabel != null && onAction != null) SecondaryButton(actionLabel, onAction)
+    }
+    // The buttons are measured at their natural width, not from intrinsic widths: on a Samsung
+    // phone in Sinhala the primary button came out as a thin bar beside the other one, and
+    // measuring them directly doesn't depend on how a font reports its intrinsic width.
+    SubcomposeLayout(modifier.fillMaxWidth()) { constraints ->
+        val gap = Spacing.s.roundToPx()
+        val width = constraints.maxWidth
+        val inline = subcompose(NoticeSlot.INLINE, buttons).map { it.measure(Constraints(maxWidth = width)) }
+        if (inline.sumOf { it.width } + gap * (inline.size - 1) <= width) {
+            val placeables = inline
+            val height = placeables.maxOf { it.height }
+            layout(width, height) {
+                var x = width
+                placeables.forEach {
+                    x -= it.width
+                    it.placeRelative(x, (height - it.height) / 2)
+                    x -= gap
+                }
+            }
+        } else {
+            val placeables = subcompose(NoticeSlot.STACKED, buttons).map { it.measure(Constraints.fixedWidth(width)) }
+            layout(width, placeables.sumOf { it.height } + gap * (placeables.size - 1)) {
+                var y = 0
+                placeables.forEach {
+                    it.placeRelative(0, y)
+                    y += it.height + gap
+                }
+            }
         }
     }
 }
@@ -104,3 +135,5 @@ fun InfoNote(
         }
     }
 }
+
+private enum class NoticeSlot { INLINE, STACKED }

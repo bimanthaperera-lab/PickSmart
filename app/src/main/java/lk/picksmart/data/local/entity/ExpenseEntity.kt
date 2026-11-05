@@ -9,7 +9,7 @@ import lk.picksmart.domain.model.ExpenseCategory
 import java.time.LocalDate
 
 /** Room row for [Expense]. `date` is an ISO `yyyy-MM-dd` Sri Lankan calendar date. */
-@Entity(tableName = "expenses", indices = [Index("date")])
+@Entity(tableName = "expenses", indices = [Index("date"), Index(value = ["sync_id"], unique = true)])
 data class ExpenseEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "vehicle_id") val vehicleId: Long?,
@@ -20,6 +20,9 @@ data class ExpenseEntity(
     @ColumnInfo(name = "odometer_km") val odometerKm: Double?,
     @ColumnInfo(name = "created_at") val createdAtMillis: Long,
     @ColumnInfo(name = "updated_at") val updatedAtMillis: Long,
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String,
+    /** True until cloud backup has this version of the row; every local save sets it. */
+    @ColumnInfo(name = "sync_pending", defaultValue = "1") val syncPending: Boolean = true,
 )
 
 fun ExpenseEntity.toDomain() = Expense(
@@ -32,6 +35,7 @@ fun ExpenseEntity.toDomain() = Expense(
     odometerKm = odometerKm,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    syncId = syncId,
 )
 
 fun Expense.toEntity() = ExpenseEntity(
@@ -44,4 +48,5 @@ fun Expense.toEntity() = ExpenseEntity(
     odometerKm = odometerKm,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    syncId = syncId,
 )

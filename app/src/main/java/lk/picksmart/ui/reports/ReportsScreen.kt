@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
@@ -42,14 +43,14 @@ import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.InfoNote
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.PicksmartCard
-import lk.picksmart.ui.components.ScreenTitle
+import lk.picksmart.ui.components.DetailHeader
 import lk.picksmart.ui.components.SegmentedControl
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatDecimal
-import java.time.format.DateTimeFormatter
 
 /**
  * Profit for a day, a Monday–Sunday week or a calendar month, in the estimated or the cash view
@@ -58,6 +59,7 @@ import java.time.format.DateTimeFormatter
  */
 @Composable
 fun ReportsScreen(
+    onBack: () -> Unit,
     onCheckRide: () -> Unit,
     onOpenFuelLog: () -> Unit,
     viewModel: ReportsViewModel = viewModel(factory = ReportsViewModel.Factory),
@@ -70,9 +72,8 @@ fun ReportsScreen(
     LaunchedEffect(viewModel) {
         viewModel.exportedFiles.collect { files -> context.shareFiles(files, subject, chooserTitle) }
     }
-    TabScreen {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ScreenTitle(stringResource(R.string.reports_title), Modifier.weight(1f))
+    Column(Modifier.fillMaxSize()) {
+        DetailHeader(stringResource(R.string.reports_title), R.drawable.ic_arrow_back, stringResource(R.string.action_back), onBack) {
             // Exports every record, so it is offered whenever there is anything to export.
             if (state is ReportsUiState.Loaded) {
                 IconButton(onClick = viewModel::export, enabled = exportStatus != ExportStatus.WORKING) {
@@ -80,51 +81,61 @@ fun ReportsScreen(
                 }
             }
         }
-        if (exportStatus == ExportStatus.FAILED) {
-            InfoNote(stringResource(R.string.reports_export_failed), iconRes = R.drawable.ic_error)
-        }
-        when (val s = state) {
-            ReportsUiState.Loading -> LoadingState()
-            ReportsUiState.Empty -> EmptyState(
-                iconRes = R.drawable.ic_nav_reports,
-                title = stringResource(R.string.reports_empty_title),
-                body = stringResource(R.string.reports_empty_body),
-                actionLabel = stringResource(R.string.action_check_ride),
-                onAction = onCheckRide,
-            )
-            is ReportsUiState.Loaded -> {
-                SegmentedControl(
-                    options = ReportPeriod.entries,
-                    selected = s.period,
-                    optionLabel = { stringResource(it.label) },
-                    onSelect = viewModel::setPeriod,
-                    modifier = Modifier.fillMaxWidth(),
+        TabScreen(Modifier.weight(1f)) {
+            if (exportStatus == ExportStatus.FAILED) {
+                InfoNote(stringResource(R.string.reports_export_failed), iconRes = R.drawable.ic_error)
+            }
+            when (val s = state) {
+                ReportsUiState.Loading -> LoadingState()
+                ReportsUiState.Empty -> EmptyState(
+                    iconRes = R.drawable.ic_nav_reports,
+                    title = stringResource(R.string.reports_empty_title),
+                    body = stringResource(R.string.reports_empty_body),
+                    actionLabel = stringResource(R.string.action_check_ride),
+                    onAction = onCheckRide,
                 )
-                // The period and the view share a row; at large font sizes the view drops below.
-                FlowRow(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
-                    itemVerticalAlignment = Alignment.CenterVertically,
-                ) {
-                    PeriodNavigator(s, onPrevious = viewModel::previous, onNext = viewModel::next)
+                is ReportsUiState.Loaded -> {
+                    s.vehicleName?.let {
+                        Text(
+                            stringResource(R.string.vehicle_scope_for, it),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     SegmentedControl(
-                        options = ReportView.entries,
-                        selected = s.view,
+                        options = ReportPeriod.entries,
+                        selected = s.period,
                         optionLabel = { stringResource(it.label) },
-                        onSelect = viewModel::setView,
-                        accent = true,
-                        fill = false,
+                        onSelect = viewModel::setPeriod,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                }
-                if (s.summary.hasNoRecords) {
-                    EmptyState(
-                        iconRes = R.drawable.ic_nav_reports,
-                        title = stringResource(R.string.reports_period_empty_title),
-                        body = stringResource(R.string.reports_period_empty_body),
-                    )
-                } else {
-                    Report(s, onOpenFuelLog)
+                    // The period and the view share a row; at large font sizes the view drops below.
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                        itemVerticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PeriodNavigator(s, onPrevious = viewModel::previous, onNext = viewModel::next)
+                        SegmentedControl(
+                            options = ReportView.entries,
+                            selected = s.view,
+                            optionLabel = { stringResource(it.label) },
+                            onSelect = viewModel::setView,
+                            accent = true,
+                            fill = false,
+                        )
+                    }
+                    if (s.summary.hasNoRecords) {
+                        EmptyState(
+                            iconRes = R.drawable.ic_nav_reports,
+                            title = stringResource(R.string.reports_period_empty_title),
+                            body = stringResource(R.string.reports_period_empty_body),
+                        )
+                        if (s.sharedLeftOut) InfoNote(stringResource(R.string.vehicle_scope_shared_note))
+                    } else {
+                        Report(s, onOpenFuelLog)
+                    }
                 }
             }
         }
@@ -157,6 +168,7 @@ private fun Report(s: ReportsUiState.Loaded, onOpenFuelLog: () -> Unit) {
             )
         }
     }
+    if (s.sharedLeftOut) InfoNote(stringResource(R.string.vehicle_scope_shared_note))
     if (summary.offers > 0) {
         Text(
             pluralStringResource(R.plurals.reports_offers_note, summary.offers, summary.offers),
@@ -230,7 +242,7 @@ private fun periodLabel(s: ReportsUiState.Loaded): String {
     return when (s.period) {
         ReportPeriod.DAY -> {
             val pattern = stringResource(if (range.start.year == thisYear) R.string.pattern_day else R.string.pattern_day_with_year)
-            remember(range, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(range.start) }
+            remember(range, pattern, locale) { dateFormatter(pattern, locale).format(range.start) }
         }
         ReportPeriod.WEEK -> {
             val end = range.endInclusive
@@ -242,13 +254,13 @@ private fun periodLabel(s: ReportsUiState.Loaded): String {
                     else -> R.string.pattern_date_field
                 },
             )
-            val startText = remember(range, startPattern, locale) { DateTimeFormatter.ofPattern(startPattern, locale).format(range.start) }
-            val endText = remember(range, endPattern, locale) { DateTimeFormatter.ofPattern(endPattern, locale).format(end) }
+            val startText = remember(range, startPattern, locale) { dateFormatter(startPattern, locale).format(range.start) }
+            val endText = remember(range, endPattern, locale) { dateFormatter(endPattern, locale).format(end) }
             stringResource(R.string.reports_range, startText, endText)
         }
         ReportPeriod.MONTH -> {
             val pattern = stringResource(R.string.pattern_month)
-            remember(range, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(range.start) }
+            remember(range, pattern, locale) { dateFormatter(pattern, locale).format(range.start) }
         }
     }
 }

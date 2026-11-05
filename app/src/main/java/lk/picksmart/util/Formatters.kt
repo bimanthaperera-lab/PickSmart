@@ -28,6 +28,25 @@ class MoneyFormatter(private val currencyPrefix: String = "Rs.") {
         else -> format(cents)
     }
 
+    /**
+     * Whole rupees rounded up, for a minimum that must be met: `Rs. 91` for Rs. 90.10. Short
+     * enough for the floating bubble.
+     */
+    fun formatWholeUp(cents: Long): String =
+        (if (cents < 0) "-" else "") + currencyPrefix + NBSP +
+            formatDecimal(BigDecimal.valueOf(cents, 2).setScale(0, RoundingMode.CEILING).abs(), 0)
+
+    /**
+     * The exact amount without empty cents, for a short label: `Rs. 100` for Rs. 100.00, but
+     * `Rs. 87.50` when there are cents. Never rounded, so it shows what the rider typed.
+     */
+    fun formatShort(cents: Long): String =
+        if (cents % 100 == 0L) {
+            (if (cents < 0) "-" else "") + currencyPrefix + NBSP + formatDecimal(BigDecimal.valueOf(cents, 2).abs(), 0)
+        } else {
+            format(cents)
+        }
+
     private fun unsigned(cents: Long): String =
         currencyPrefix + NBSP + formatDecimal(BigDecimal.valueOf(cents, 2).abs(), 2)
 }

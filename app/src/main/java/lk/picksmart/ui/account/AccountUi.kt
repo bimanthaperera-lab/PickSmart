@@ -5,11 +5,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
 import lk.picksmart.data.account.AccountProvider
+import lk.picksmart.data.account.ProfilePhoto
 import lk.picksmart.data.account.ProfilePhotoCache
 import lk.picksmart.data.preferences.UserPreferencesRepository
+import lk.picksmart.domain.model.PersonalDetails
 import lk.picksmart.domain.model.UserProfile
 
 /** What the Account tab and Profile screen know about the rider's account. */
@@ -21,10 +24,21 @@ sealed interface AccountUi {
 
     data object SignedOut : AccountUi
 
-    data class SignedIn(val profile: UserProfile, val mobile: String?, val photo: Bitmap?) : AccountUi
+    /** [ownPhoto] is true when [photo] is one the rider chose, which they can remove. */
+    data class SignedIn(
+        val profile: UserProfile,
+        val details: PersonalDetails,
+        val photo: Bitmap?,
+        val ownPhoto: Boolean = false,
+    ) : AccountUi {
+        val mobile: String? get() = details.mobile
+    }
 }
 
-/** The account with its mobile number and cached photo. The photo arrives a moment later. */
+/**
+ * The account with the details the rider added and the cached photo. The photo arrives a moment
+ * later, and loads again when the rider chooses or removes one.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 fun accountUi(
     account: AccountProvider,
@@ -36,12 +50,11 @@ fun accountUi(
         if (profile == null) {
             flowOf(AccountUi.SignedOut)
         } else {
-            val photo = flow {
-                emit(null)
-                emit(photos.load(profile.uid, profile.photoUrl))
-            }
-            combine(preferences.mobileNumber(profile.uid), photo) { mobile, bitmap ->
-                AccountUi.SignedIn(profile, mobile, bitmap)
+            val photo = photos.changes
+                .mapLatest { photos.load(profile.uid, profile.photoUrl) }
+                .onStart { emit(ProfilePhoto(null, own = false)) }
+            combine(preferences.personalDetails(profile.uid), photo) { details, loaded ->
+                AccountUi.SignedIn(profile, details, loaded.bitmap, loaded.own)
             }
         }
     }

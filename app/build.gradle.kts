@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -24,6 +26,11 @@ fun googleWebClientId(): String {
         ?.get("client_id") as? String ?: ""
 }
 
+// Release signing (the Play upload key). keystore.properties and the keystore are git-ignored and
+// stay on the owner's computer; without them the release build is unsigned. See docs/release-security.md.
+val keystoreFile = rootProject.file("keystore.properties")
+val uploadKey = Properties().apply { if (keystoreFile.exists()) keystoreFile.inputStream().use { load(it) } }
+
 android {
     namespace = "lk.picksmart"
     compileSdk = 37
@@ -33,7 +40,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -46,8 +53,20 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${googleWebClientId()}\"")
     }
 
+    signingConfigs {
+        if (keystoreFile.exists()) {
+            create("upload") {
+                storeFile = rootProject.file(uploadKey.getProperty("storeFile"))
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -65,6 +84,20 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        // Sinhala and Tamil are translated after the English text lands; a string without a
+        // translation shows in English, so a gap is a warning, not a failed build.
+        warning += "MissingTranslation"
+    }
+
+    bundle {
+        // The rider picks the app language inside Picksmart, which may differ from the phone's,
+        // so every install from Play must carry Sinhala and Tamil, not only the phone's language.
+        language {
+            enableSplit = false
+        }
     }
 }
 
@@ -86,6 +119,10 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.appcheck)
+    releaseImplementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)

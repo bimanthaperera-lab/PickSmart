@@ -18,12 +18,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import lk.picksmart.domain.model.Platform
+import lk.picksmart.ui.components.fieldColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -36,10 +52,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,22 +67,27 @@ import lk.picksmart.domain.model.TripStatus
 import lk.picksmart.ui.checkride.STACK_FONT_SCALE
 import lk.picksmart.ui.components.ChoiceChips
 import lk.picksmart.ui.components.EmptyState
+import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.ScreenTitle
-import lk.picksmart.ui.components.SecondaryButton
+import lk.picksmart.ui.components.SwipeAction
+import lk.picksmart.ui.components.SwipeRevealRow
+import lk.picksmart.ui.components.SwipeSide
+import lk.picksmart.ui.components.BorderlessButton
 import lk.picksmart.ui.components.TabScreen
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.theme.PicksmartTheme
 import lk.picksmart.ui.theme.Spacing
+import lk.picksmart.ui.trip.TripDeleteDialog
 import lk.picksmart.ui.trip.initials
 import lk.picksmart.ui.trip.label
 import lk.picksmart.util.ColomboZone
+import lk.picksmart.util.dateFormatter
 import lk.picksmart.util.formatDecimal
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
- * Every saved trip, newest first, grouped by day. Offers are listed (dashed, marked "Offer") but
+ * The active vehicle's saved trips (every trip with a single vehicle), newest first, grouped by day. Offers are listed (dashed, marked "Offer") but
  * never counted in a day's total (CLAUDE.md N1).
  */
 @Composable
@@ -71,9 +95,20 @@ fun HistoryScreen(
     onCheckRide: () -> Unit,
     onAddTrip: () -> Unit,
     onOpenTrip: (tripId: Long) -> Unit,
+    onEditTrip: (tripId: Long) -> Unit,
     viewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val deleteFailed by viewModel.deleteFailed.collectAsStateWithLifecycle()
+    // One row open at a time; not saved, since a swiped row is only a moment's state.
+    var revealed by remember { mutableStateOf<Pair<Long, SwipeSide>?>(null) }
+    var confirmDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    // Focus goes to the search field only when the rider opens it, not each time it scrolls back in.
+    var focusSearch by remember { mutableStateOf(false) }
+
+    val platformNames = Platform.entries.associateWith { stringResource(it.label) }
+    LaunchedEffect(platformNames) { viewModel.setPlatformNames(platformNames) }
 
     when (val s = state) {
         HistoryUiState.Loading -> TabScreen {
@@ -95,7 +130,35 @@ fun HistoryScreen(
             contentPadding = PaddingValues(horizontal = Spacing.screen, vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.s),
         ) {
-            item { Header(onAddTrip) }
+            item {
+                // While search is open, its own close button replaces the search button.
+                Header(
+                    onAddTrip,
+                    onSearch = if (searchOpen) {
+                        null
+                    } else {
+                        {
+                            searchOpen = true
+                            focusSearch = true
+                        }
+                    },
+                )
+            }
+            if (searchOpen) {
+                item(key = "search") {
+                    SearchField(
+                        query = s.query,
+                        onQueryChange = viewModel::setQuery,
+                        requestFocus = focusSearch,
+                        onFocused = { focusSearch = false },
+                        onClose = {
+                            viewModel.setQuery("")
+                            searchOpen = false
+                        },
+                    )
+                }
+            }
+            if (deleteFailed) item { ErrorState(stringResource(R.string.trip_delete_failed)) }
             item {
                 ChoiceChips(
                     options = HistoryFilter.entries,
@@ -105,25 +168,108 @@ fun HistoryScreen(
                     modifier = Modifier.padding(vertical = Spacing.s),
                 )
             }
-            if (s.days.isEmpty()) {
+            s.vehicleName?.let { name ->
+                item {
+                    Text(
+                        stringResource(R.string.vehicle_scope_for, name),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (s.days.isEmpty() && s.query.isNotBlank()) {
+                item {
+                    EmptyState(
+                        iconRes = R.drawable.ic_search,
+                        title = stringResource(R.string.history_search_empty_title),
+                        body = stringResource(R.string.history_search_empty_body, s.query.trim()),
+                    )
+                }
+            } else if (s.days.isEmpty()) {
                 item {
                     EmptyState(
                         iconRes = R.drawable.ic_nav_history,
                         title = stringResource(R.string.history_filter_empty_title),
-                        body = stringResource(R.string.history_filter_empty_body),
+                        body = if (s.filter == HistoryFilter.ALL && s.vehicleName != null) {
+                            stringResource(R.string.history_vehicle_empty_body, s.vehicleName)
+                        } else {
+                            stringResource(R.string.history_filter_empty_body)
+                        },
                     )
                 }
             }
             s.days.forEach { day ->
                 item(key = "day-${day.date}") { DayHeader(day, s.today) }
-                items(day.rows, key = { it.trip.id }) { row -> TripRow(row) { onOpenTrip(row.trip.id) } }
+                items(day.rows, key = { it.trip.id }) { row ->
+                    val id = row.trip.id
+                    SwipeableTripRow(
+                        row = row,
+                        revealed = revealed?.takeIf { it.first == id }?.second,
+                        onRevealedChange = { side -> revealed = side?.let { id to it } },
+                        onOpen = { if (revealed != null) revealed = null else onOpenTrip(id) },
+                        onEdit = {
+                            revealed = null
+                            onEditTrip(id)
+                        },
+                        onDelete = { confirmDeleteId = id },
+                    )
+                }
             }
         }
     }
+
+    confirmDeleteId?.let { id ->
+        TripDeleteDialog(
+            onConfirm = {
+                confirmDeleteId = null
+                revealed = null
+                viewModel.delete(id)
+            },
+            onDismiss = { confirmDeleteId = null },
+        )
+    }
 }
 
+/**
+ * A trip row that swipes right to show Edit and left to show Delete. Tapping the row opens its
+ * details, or closes the open buttons first. Screen readers get both as custom actions.
+ */
 @Composable
-private fun Header(onAddTrip: () -> Unit) {
+private fun SwipeableTripRow(
+    row: HistoryRow,
+    revealed: SwipeSide?,
+    onRevealedChange: (SwipeSide?) -> Unit,
+    onOpen: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    val editLabel = stringResource(R.string.action_edit)
+    val deleteLabel = stringResource(R.string.action_delete)
+    SwipeRevealRow(
+        leftAction = SwipeAction(editLabel, R.drawable.ic_edit, colors.primaryContainer, colors.onPrimaryContainer, onEdit),
+        rightAction = SwipeAction(deleteLabel, R.drawable.ic_delete, colors.errorContainer, colors.onErrorContainer, onDelete),
+        revealed = revealed,
+        onRevealedChange = onRevealedChange,
+    ) {
+        TripRow(
+            row,
+            onClick = onOpen,
+            // The buttons sit behind the row, so an offer's see-through card needs a solid fill.
+            offerBackground = colors.background,
+            modifier = Modifier.semantics {
+                customActions = listOf(
+                    CustomAccessibilityAction(editLabel) { onEdit(); true },
+                    CustomAccessibilityAction(deleteLabel) { onDelete(); true },
+                )
+            },
+        )
+    }
+}
+
+/** The title, and on the right Add trip and the search button (when [onSearch] is given). */
+@Composable
+private fun Header(onAddTrip: () -> Unit, onSearch: (() -> Unit)? = null) {
     FlowRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -131,9 +277,57 @@ private fun Header(onAddTrip: () -> Unit) {
         itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         ScreenTitle(stringResource(R.string.history_title))
-        SecondaryButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            BorderlessButton(stringResource(R.string.history_add_trip), onAddTrip, iconRes = R.drawable.ic_add)
+            if (onSearch != null) {
+                IconButton(onClick = onSearch) {
+                    Icon(painterResource(R.drawable.ic_search), contentDescription = stringResource(R.string.history_search))
+                }
+            }
+        }
     }
 }
+
+/** Searches the trips as the rider types (note, ride app or fare; see [matchesSearch]). */
+@Composable
+private fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    requestFocus: Boolean,
+    onFocused: () -> Unit,
+    onClose: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(requestFocus) {
+        if (requestFocus) {
+            focusRequester.requestFocus()
+            onFocused()
+        }
+    }
+    OutlinedTextField(
+        value = query,
+        onValueChange = { onQueryChange(it.take(SEARCH_MAX_LENGTH)) },
+        placeholder = { Text(stringResource(R.string.history_search_hint)) },
+        leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+        trailingIcon = {
+            IconButton(onClick = onClose) {
+                Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.history_search_close))
+            }
+        },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyLarge,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+        shape = MaterialTheme.shapes.medium,
+        colors = fieldColors(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
+    )
+}
+
+private const val SEARCH_MAX_LENGTH = 60
 
 private val HistoryFilter.label: Int
     get() = when (this) {
@@ -169,7 +363,7 @@ private fun DayHeader(day: HistoryDay, today: LocalDate) {
 private fun formatDay(date: LocalDate, today: LocalDate): String {
     val locale = LocalConfiguration.current.locales[0]
     val pattern = stringResource(if (date.year == today.year) R.string.pattern_day else R.string.pattern_day_with_year)
-    val text = remember(date, pattern, locale) { DateTimeFormatter.ofPattern(pattern, locale).format(date) }
+    val text = remember(date, pattern, locale) { dateFormatter(pattern, locale).format(date) }
     return when (date) {
         today -> stringResource(R.string.history_today, text)
         today.minusDays(1) -> stringResource(R.string.history_yesterday, text)
@@ -178,7 +372,12 @@ private fun formatDay(date: LocalDate, today: LocalDate): String {
 }
 
 @Composable
-internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
+internal fun TripRow(
+    row: HistoryRow,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    offerBackground: Color = Color.Transparent,
+) {
     val trip = row.trip
     val money = rememberMoneyFormatter()
     val status = PicksmartTheme.status
@@ -189,17 +388,15 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     val timePattern = stringResource(R.string.pattern_time)
     val time = remember(trip.tripDateTime, timePattern, locale) {
-        DateTimeFormatter.ofPattern(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
+        dateFormatter(timePattern, locale).format(trip.tripDateTime.atZone(ColomboZone))
     }
     val km = formatDecimal(trip.pickupKm + trip.tripKm + trip.returnKm, 1)
-    val statusDetail = when (trip.status) {
+    val detail = when (trip.status) {
         TripStatus.CANCELLED -> trip.cancellationFeeCents?.let { stringResource(R.string.history_row_cancelled_fee, km, money.format(it)) }
             ?: stringResource(R.string.history_row_cancelled_no_fee, km)
         TripStatus.OFFER_CHECK -> stringResource(R.string.history_row_offer_note)
         TripStatus.COMPLETED -> stringResource(R.string.history_row_trip, km, money.format(trip.fareCents))
     }
-    // With more than one vehicle, the row says which one: "Honda · 5.0 km · fare Rs. 60.00".
-    val detail = row.vehicleName?.let { stringResource(R.string.history_row_with_vehicle, it, statusDetail) } ?: statusDetail
     val net = row.estimate?.netProfitCents
     val amount = when {
         net == null -> stringResource(R.string.history_row_unavailable)
@@ -218,9 +415,9 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
         shape = shape,
         // Offers are outlined with a dashed border instead of filled, so they read as "not income".
         color = if (isOffer) Color.Transparent else colors.surfaceContainer,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .then(if (isOffer) Modifier.dashedBorder(colors.outline) else Modifier)
+            .then(if (isOffer) Modifier.background(offerBackground, shape).dashedBorder(colors.outline) else Modifier)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) {},
     ) {
@@ -251,6 +448,7 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
                     if (trip.status != TripStatus.COMPLETED) StatusTag(trip.status)
                     Text(detail, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
                 }
+                RouteLine(trip.pickupLocation, trip.dropOffLocation)
                 if (amountBelow) Text(amount, style = MaterialTheme.typography.titleMedium, color = amountColor)
             }
             if (!amountBelow) {
@@ -267,8 +465,39 @@ internal fun TripRow(row: HistoryRow, onClick: () -> Unit) {
     }
 }
 
+/**
+ * The trip's places in small type, "Pickup → Where to", on [maxLines] lines that end in "…" when
+ * too long. Nothing when the trip has neither; one alone shows with its own icon.
+ */
 @Composable
-private fun StatusTag(tripStatus: TripStatus) {
+internal fun RouteLine(pickup: String?, dropOff: String?, maxLines: Int = 1) {
+    if (pickup == null && dropOff == null) return
+    val text = when {
+        pickup != null && dropOff != null -> stringResource(R.string.history_row_route, pickup, dropOff)
+        pickup != null -> pickup
+        else -> stringResource(R.string.history_row_route_to, dropOff.orEmpty())
+    }
+    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+        Icon(
+            painterResource(if (pickup != null) R.drawable.ic_pin else R.drawable.ic_flag),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(14.dp),
+        )
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+internal fun StatusTag(tripStatus: TripStatus) {
     val status = PicksmartTheme.status
     val (container, content) = when (tripStatus) {
         TripStatus.CANCELLED -> status.belowTargetContainer to status.onBelowTargetContainer

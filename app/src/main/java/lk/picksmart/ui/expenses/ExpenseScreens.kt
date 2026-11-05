@@ -26,11 +26,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import lk.picksmart.R
+import lk.picksmart.ui.checkride.ErrorText
+import lk.picksmart.ui.checkride.HelpText
+import lk.picksmart.ui.checkride.InputSection
+import lk.picksmart.ui.checkride.NoteBox
+import lk.picksmart.ui.checkride.NoteCounter
+import lk.picksmart.ui.checkride.QuickAddRow
+import lk.picksmart.ui.checkride.ValueBox
+import lk.picksmart.util.addRupeesToInput
 import lk.picksmart.ui.vehicle.RecordVehicleField
 import lk.picksmart.domain.model.Expense
 import lk.picksmart.domain.model.ExpenseCategory
@@ -41,17 +48,16 @@ import lk.picksmart.ui.components.EmptyState
 import lk.picksmart.ui.components.ErrorState
 import lk.picksmart.ui.components.LoadingState
 import lk.picksmart.ui.components.MonthTotalCard
-import lk.picksmart.ui.components.NumberField
 import lk.picksmart.ui.components.PrimaryButton
 import lk.picksmart.ui.components.RecordRow
 import lk.picksmart.ui.components.SectionLabel
-import lk.picksmart.ui.components.TextInputField
 import lk.picksmart.ui.components.message
 import lk.picksmart.ui.components.neutralRecordIcon
 import lk.picksmart.ui.components.rememberMoneyFormatter
 import lk.picksmart.ui.components.rememberRecordDate
 import lk.picksmart.ui.theme.Spacing
 import java.time.LocalDate
+import lk.picksmart.util.InputDigits
 
 /** Expenses: this month's total, the entries newest first, and "Add expense". */
 @Composable
@@ -166,7 +172,7 @@ fun EditExpenseScreen(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = Spacing.screen, vertical = Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
         ) {
             when (val s = state) {
                 EditExpenseUiState.Loading -> LoadingState()
@@ -178,7 +184,7 @@ fun EditExpenseScreen(
                     onAction = onClose,
                 )
                 is EditExpenseUiState.Editing -> {
-                    RecordVehicleField(s.vehicle, viewModel::selectVehicle)
+                    RecordVehicleField(s.vehicle, card = true)
                     ExpenseForm(s, viewModel::updateForm)
                 }
             }
@@ -207,43 +213,76 @@ fun EditExpenseScreen(
     }
 }
 
+/**
+ * Add / Edit expense in Check a Ride's card style: the category tiles, the amount with quick-add
+ * buttons, the date, the odometer (maintenance only) and the note, each on its own card.
+ */
 @Composable
 private fun ExpenseForm(state: EditExpenseUiState.Editing, onChange: (ExpenseFormState) -> Unit) {
     val form = state.form
-    ChoiceGrid(
-        label = stringResource(R.string.expense_category),
-        options = ExpenseCategory.entries,
-        selected = form.category,
-        optionLabel = { stringResource(it.label) },
-        onSelect = { onChange(form.copy(category = it)) },
-    )
-    NumberField(
-        value = form.amount,
-        onValueChange = { onChange(form.copy(amount = it)) },
-        label = stringResource(R.string.expense_amount),
-        prefix = stringResource(R.string.currency_prefix),
-        error = state.amountError?.message(R.string.income_error_amount_required),
-    )
-    DateField(stringResource(R.string.expense_date), form.date, { onChange(form.copy(date = it)) }, Modifier.fillMaxWidth(), maxDate = state.today)
-    if (form.showsOdometer) {
-        NumberField(
-            value = form.odometer,
-            onValueChange = { onChange(form.copy(odometer = it)) },
-            label = stringResource(R.string.expense_odometer),
-            suffix = stringResource(R.string.unit_km),
-            maxDecimals = 1,
-            supportingText = stringResource(R.string.expense_odometer_help),
-            error = state.odometerError?.message(R.string.vehicle_error_invalid),
+    InputSection(title = stringResource(R.string.expense_category)) {
+        ChoiceGrid(
+            label = null,
+            options = ExpenseCategory.entries,
+            selected = form.category,
+            optionLabel = { stringResource(it.label) },
+            onSelect = { onChange(form.copy(category = it)) },
+            optionIcon = { it.icon },
+            optionSubtitle = { stringResource(it.hint) },
+            tileColor = MaterialTheme.colorScheme.surface,
         )
     }
-    TextInputField(
-        value = form.note,
-        onValueChange = { onChange(form.copy(note = it)) },
-        label = stringResource(R.string.expense_note),
-        placeholder = stringResource(R.string.expense_note_placeholder),
-        maxLength = NOTE_MAX_LENGTH,
-        imeAction = ImeAction.Done,
+    val amountLabel = stringResource(R.string.expense_amount)
+    val amountError = state.amountError?.message(R.string.income_error_amount_required)
+    InputSection(title = amountLabel) {
+        ValueBox(
+            value = form.amount,
+            onValueChange = { onChange(form.copy(amount = it)) },
+            label = amountLabel,
+            error = amountError,
+            prefix = stringResource(R.string.currency_prefix),
+            textStyle = MaterialTheme.typography.headlineMedium,
+            onClear = { onChange(form.copy(amount = "")) },
+        )
+        if (amountError != null) ErrorText(amountError)
+        QuickAddRow(onAdd = { onChange(form.copy(amount = addRupeesToInput(form.amount, it))) })
+    }
+    DateField(
+        stringResource(R.string.expense_date),
+        form.date,
+        { onChange(form.copy(date = it)) },
+        Modifier.fillMaxWidth(),
+        maxDate = state.today,
+        tile = true,
     )
+    if (form.showsOdometer) {
+        val odometerLabel = stringResource(R.string.expense_odometer)
+        val odometerError = state.odometerError?.message(R.string.vehicle_error_invalid)
+        InputSection(title = odometerLabel) {
+            ValueBox(
+                value = form.odometer,
+                onValueChange = { onChange(form.copy(odometer = it)) },
+                label = odometerLabel,
+                error = odometerError,
+                unit = stringResource(R.string.unit_km),
+                leadingIcon = R.drawable.ic_gauge,
+                maxDecimals = 1,
+                maxIntegerDigits = InputDigits.ODOMETER,
+            )
+            if (odometerError != null) ErrorText(odometerError)
+            HelpText(stringResource(R.string.expense_odometer_help))
+        }
+    }
+    val noteLabel = stringResource(R.string.expense_note)
+    InputSection(title = noteLabel, action = { NoteCounter(form.note.length, NOTE_MAX_LENGTH) }) {
+        NoteBox(
+            value = form.note,
+            onValueChange = { onChange(form.copy(note = it)) },
+            label = noteLabel,
+            maxLength = NOTE_MAX_LENGTH,
+            placeholder = stringResource(R.string.expense_note_placeholder),
+        )
+    }
 }
 
 private const val NOTE_MAX_LENGTH = 100

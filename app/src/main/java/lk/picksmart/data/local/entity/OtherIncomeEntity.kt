@@ -10,7 +10,7 @@ import lk.picksmart.domain.model.Platform
 import java.time.LocalDate
 
 /** Room row for [OtherIncome]. `date` is an ISO `yyyy-MM-dd` Sri Lankan calendar date. */
-@Entity(tableName = "other_income", indices = [Index("date")])
+@Entity(tableName = "other_income", indices = [Index("date"), Index(value = ["sync_id"], unique = true)])
 data class OtherIncomeEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val date: LocalDate,
@@ -20,6 +20,9 @@ data class OtherIncomeEntity(
     val note: String?,
     @ColumnInfo(name = "created_at") val createdAtMillis: Long,
     @ColumnInfo(name = "updated_at") val updatedAtMillis: Long,
+    @ColumnInfo(name = "sync_id", defaultValue = "''") val syncId: String,
+    /** True until cloud backup has this version of the row; every local save sets it. */
+    @ColumnInfo(name = "sync_pending", defaultValue = "1") val syncPending: Boolean = true,
 )
 
 fun OtherIncomeEntity.toDomain() = OtherIncome(
@@ -31,6 +34,7 @@ fun OtherIncomeEntity.toDomain() = OtherIncome(
     note = note,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    syncId = syncId,
 )
 
 fun OtherIncome.toEntity() = OtherIncomeEntity(
@@ -42,4 +46,5 @@ fun OtherIncome.toEntity() = OtherIncomeEntity(
     note = note,
     createdAtMillis = createdAtMillis,
     updatedAtMillis = updatedAtMillis,
+    syncId = syncId,
 )

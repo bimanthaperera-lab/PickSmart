@@ -225,4 +225,19 @@ class CheckRideFormStateTest {
         val edited = start.copy(fare = "1000", pickupKm = "2", tripKm = "8")
         assertEquals(70_500L, result(edited).netProfitCents)
     }
+
+    @Test
+    fun `quick add counts an empty fare as zero and keeps cents`() {
+        assertEquals("50", CheckRideFormState().addToFare(50).fare)
+        assertEquals("1100", CheckRideFormState(fare = "1000").addToFare(100).fare)
+        assertEquals("1050.5", CheckRideFormState(fare = "1000.50").addToFare(50).fare)
+        assertEquals("100", CheckRideFormState(fare = "50.").addToFare(50).fare)
+    }
+
+    @Test
+    fun `quick add leaves an unparseable or full fare alone`() {
+        assertEquals(".", CheckRideFormState(fare = ".").addToFare(50).fare)
+        assertEquals("9999990", CheckRideFormState(fare = "9999990").addToFare(50).fare)
+        assertEquals("9999999", CheckRideFormState(fare = "9999949").addToFare(50).fare)
+    }
 }

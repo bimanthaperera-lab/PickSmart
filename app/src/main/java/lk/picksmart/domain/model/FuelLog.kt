@@ -21,6 +21,8 @@ data class FuelLog(
     val fullTank: Boolean,
     val createdAtMillis: Long,
     val updatedAtMillis: Long,
+    /** The same on every device the rider backs up to; see [newSyncId]. Never changes. */
+    val syncId: String = newSyncId(),
 )
 
 /** The values a rider sets on the fuel form, already parsed and validated. */

@@ -2,8 +2,8 @@ package lk.picksmart.domain.calculator
 
 /**
  * The breakdown for one ride. Every money value is in cents and already rounded, and
- * [netProfitCents] is exactly `fare − commission − fuel − reserve − other` of the values shown
- * here, so the lines on screen always add up.
+ * [netProfitCents] is exactly `fare − commission − fuel − reserve − other + tip` of the values
+ * shown here, so the lines on screen always add up.
  *
  * @property netProfitPerKmCents Null when [totalKm] is 0.
  */
@@ -15,6 +15,7 @@ data class ProfitResult(
     val netProfitCents: Long,
     val netProfitPerKmCents: Long?,
     val band: ResultBand,
+    val tipCents: Long = 0,
 )
 
 /** How good a ride is. The UI pairs each band with a text label and an icon, never colour alone. */

@@ -12,6 +12,7 @@ import lk.picksmart.domain.model.LastCheckInputs
 import lk.picksmart.domain.model.Platform
 import lk.picksmart.domain.model.TripRates
 import lk.picksmart.domain.model.Vehicle
+import lk.picksmart.util.addRupeesToInput
 import lk.picksmart.util.centsToInput
 import lk.picksmart.util.decimalToInput
 import lk.picksmart.util.hundredthsToInput
@@ -23,6 +24,9 @@ import lk.picksmart.util.parseRupeesToCents
  * never lost. Empty optional fields (commission, other costs, distances) count as 0.
  *
  * @property overrides Rates typed for this check only, or null to use the vehicle's rates.
+ * @property pickupLocation Optional free text, saved with the trip; it never affects the result
+ *   and isn't remembered for the next check.
+ * @property dropOffLocation The optional "Where to", as [pickupLocation].
  */
 data class CheckRideFormState(
     val platform: Platform = Platform.UBER,
@@ -35,6 +39,8 @@ data class CheckRideFormState(
     val tripKm: String = "",
     val returnKm: String = "",
     val overrides: RateOverrides? = null,
+    val pickupLocation: String = "",
+    val dropOffLocation: String = "",
 )
 
 /** Per-check replacements for the vehicle's rates. They never change the saved vehicle. */
@@ -155,6 +161,12 @@ private fun List<ValidationError>.toOutcome(): CheckRideOutcome.Invalid {
     }
     return CheckRideOutcome.Invalid(errors, tooLarge)
 }
+
+/**
+ * The "+50" / "+100" buttons by the fare: adds [rupees] to it (an empty fare counts as 0). A fare
+ * that doesn't parse, or one that would pass the fare field's digit limit, stays as it is.
+ */
+fun CheckRideFormState.addToFare(rupees: Long): CheckRideFormState = copy(fare = addRupeesToInput(fare, rupees))
 
 /** Starts a new check from the remembered values. The fare always starts empty. */
 fun LastCheckInputs.toFormState() = CheckRideFormState(
